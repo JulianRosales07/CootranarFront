@@ -1,34 +1,182 @@
-import { useAuth } from '../../hooks/useAuth';
+import React from 'react';
+import { useLocation } from 'react-router-dom';
+import { ROUTES } from '../../../shared/constants';
+
+const PAGE_SEARCH_PLACEHOLDER: Record<string, string> = {
+  [ROUTES.ASEGURADORAS]: 'Buscar aseguradora...',
+  [ROUTES.CONDUCTORES]: 'Buscar conductor...',
+  [ROUTES.VEHICULOS]: 'Buscar vehículo...',
+  [ROUTES.RUTAS]: 'Buscar ruta...',
+  [ROUTES.VIAJES]: 'Buscar viaje...',
+  [ROUTES.POLIZAS]: 'Buscar póliza...',
+  [ROUTES.USUARIOS]: 'Buscar usuario...',
+  [ROUTES.CIUDADES]: 'Buscar ciudad...',
+  [ROUTES.AGENCIAS]: 'Buscar agencia...',
+  [ROUTES.OFICINAS]: 'Buscar oficina...',
+  [ROUTES.TIPOS_BUS]: 'Buscar tipo de bus...',
+  [ROUTES.TIPOS_SERVICIO]: 'Buscar tipo de servicio...',
+};
+
+const getPageHeaderInfo = (pathname: string) => {
+  switch (pathname) {
+    case ROUTES.TIPOS_BUS:
+      return {
+        title: 'Gestión de Tipos de Bus',
+        breadcrumbs: (
+          <>
+            Inicio &rsaquo; Gestión Base &rsaquo;{' '}
+            <span style={{ color: '#0D3B8E', fontWeight: 600 }}>Tipos de Bus</span>
+          </>
+        ),
+      };
+    case ROUTES.ASEGURADORAS:
+      return {
+        title: 'Gestión de Aseguradoras',
+        breadcrumbs: (
+          <>
+            Inicio &rsaquo; Gestión Base &rsaquo;{' '}
+            <span style={{ color: '#0D3B8E', fontWeight: 600 }}>Aseguradoras</span>
+          </>
+        ),
+      };
+    default:
+      return {
+        title: 'Panel Principal',
+        breadcrumbs: (
+          <>
+            Inicio &rsaquo; <span style={{ color: '#0D3B8E', fontWeight: 600 }}>Dashboard</span>
+          </>
+        ),
+      };
+  }
+};
 
 export const Header = () => {
-  const { user } = useAuth();
+  const location = useLocation();
+  const placeholder = PAGE_SEARCH_PLACEHOLDER[location.pathname] ?? 'Buscar...';
+  const { title, breadcrumbs } = getPageHeaderInfo(location.pathname);
 
   return (
-    <header className="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between sticky top-0 z-40">
-      <div>
-        <h1 className="text-lg font-bold text-slate-800">Reportes Administrativos</h1>
-        <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Dashboard de Ventas Consolidado</p>
+    <header
+      style={{
+        height: '76px',
+        background: 'white',
+        borderBottom: '1px solid #e2e8f0',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0 24px',
+        position: 'sticky',
+        top: 0,
+        zIndex: 40,
+      }}
+    >
+      {/* ── Left: Title and Breadcrumbs ─────────────────── */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <h1 style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', margin: 0, lineHeight: 1.1 }}>
+          {title}
+        </h1>
+        <p style={{ fontSize: '12.5px', color: '#94a3b8', margin: 0, fontWeight: 500 }}>
+          {breadcrumbs}
+        </p>
       </div>
-      <div className="flex items-center gap-6">
-        {/* Buscador */}
-        <div className="relative">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+
+      {/* ── Right: Search and Actions ───────────────────── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        {/* Search */}
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+          <span
+            className="material-symbols-outlined"
+            style={{
+              position: 'absolute',
+              left: '9px',
+              fontSize: '17px',
+              color: '#94a3b8',
+              pointerEvents: 'none',
+            }}
+          >
+            search
+          </span>
           <input
-            className="pl-10 pr-4 py-1.5 bg-slate-50 border border-slate-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#0D3B8E]/20 focus:border-[#0D3B8E]/30 w-56 transition-all"
-            placeholder="Buscar..."
             type="text"
+            placeholder={placeholder}
+            style={{
+              paddingLeft: '32px',
+              paddingRight: '12px',
+              paddingTop: '6px',
+              paddingBottom: '6px',
+              width: '220px',
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '6px',
+              fontSize: '13px',
+              color: '#334155',
+              outline: 'none',
+              fontFamily: 'inherit',
+              transition: 'border-color 0.15s',
+            }}
+            onFocus={(e) => (e.currentTarget.style.borderColor = '#93b4e0')}
+            onBlur={(e) => (e.currentTarget.style.borderColor = '#e2e8f0')}
           />
         </div>
-        {/* Acciones */}
-        <div className="flex items-center gap-2">
-          <button className="size-9 flex items-center justify-center rounded hover:bg-slate-50 text-slate-500 relative transition-colors">
-            <span className="material-symbols-outlined text-xl">notifications</span>
-            <span className="absolute top-2.5 right-2.5 size-1.5 bg-red-500 rounded-full"></span>
-          </button>
-          <button className="size-9 flex items-center justify-center rounded hover:bg-slate-50 text-slate-500 transition-colors">
-            <span className="material-symbols-outlined text-xl">settings</span>
-          </button>
-        </div>
+
+        {/* Notifications */}
+        <button
+          style={{
+            width: '34px',
+            height: '34px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: '6px',
+            border: 'none',
+            background: 'none',
+            cursor: 'pointer',
+            color: '#64748b',
+            position: 'relative',
+            transition: 'background 0.15s',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = '#f1f5f9')}
+          onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+            notifications
+          </span>
+          <span
+            style={{
+              position: 'absolute',
+              top: '7px',
+              right: '7px',
+              width: '6px',
+              height: '6px',
+              borderRadius: '50%',
+              background: '#ef4444',
+            }}
+          />
+        </button>
+
+        {/* Settings */}
+        <button
+          style={{
+            width: '34px',
+            height: '34px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: '6px',
+            border: 'none',
+            background: 'none',
+            cursor: 'pointer',
+            color: '#64748b',
+            transition: 'background 0.15s',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = '#f1f5f9')}
+          onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+            settings
+          </span>
+        </button>
       </div>
     </header>
   );

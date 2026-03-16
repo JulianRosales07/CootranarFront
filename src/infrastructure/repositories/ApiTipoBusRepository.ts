@@ -5,7 +5,12 @@ import { httpClient } from '../api/httpClient';
 export class ApiTipoBusRepository implements TipoBusRepository {
   async findAll(): Promise<TipoBus[]> {
     const response = await httpClient.get('/tipos-bus');
-    return response.data;
+    const raw = response.data;
+    if (Array.isArray(raw)) return raw;
+    if (raw && Array.isArray(raw.data)) return raw.data;
+    if (raw && Array.isArray(raw.content)) return raw.content;
+    if (raw && Array.isArray(raw.tiposBus)) return raw.tiposBus;
+    return [];
   }
 
   async findById(id: string): Promise<TipoBus | null> {

@@ -14,7 +14,7 @@ export const Layout = ({ children }: LayoutProps) => {
       <div className="flex-1 flex flex-col overflow-hidden" style={{ marginLeft: '256px' }}>
         <Header />
         <div className="flex-1 overflow-y-auto">
-          <div className="p-8 space-y-8">
+          <div style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
             {children}
           </div>
           <footer className="py-6 px-8 border-t border-slate-200 flex justify-between items-center bg-white mt-4">

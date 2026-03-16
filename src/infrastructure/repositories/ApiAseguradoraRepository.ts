@@ -5,7 +5,13 @@ import { httpClient } from '../api/httpClient';
 export class ApiAseguradoraRepository implements AseguradoraRepository {
   async findAll(): Promise<Aseguradora[]> {
     const response = await httpClient.get('/aseguradoras');
-    return response.data;
+    // Normalize: API may return { data: [...] } or { content: [...] } or the array directly
+    const raw = response.data;
+    if (Array.isArray(raw)) return raw;
+    if (raw && Array.isArray(raw.data)) return raw.data;
+    if (raw && Array.isArray(raw.content)) return raw.content;
+    if (raw && Array.isArray(raw.aseguradoras)) return raw.aseguradoras;
+    return [];
   }
 
   async findById(id: string): Promise<Aseguradora | null> {

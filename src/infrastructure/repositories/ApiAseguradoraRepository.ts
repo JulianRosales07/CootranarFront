@@ -5,35 +5,66 @@ import { httpClient } from '../api/httpClient';
 export class ApiAseguradoraRepository implements AseguradoraRepository {
   async findAll(): Promise<Aseguradora[]> {
     const response = await httpClient.get('/aseguradoras');
-    // Normalize: API may return { data: [...] } or { content: [...] } or the array directly
-    const raw = response.data;
-    if (Array.isArray(raw)) return raw;
-    if (raw && Array.isArray(raw.data)) return raw.data;
-    if (raw && Array.isArray(raw.content)) return raw.content;
-    if (raw && Array.isArray(raw.aseguradoras)) return raw.aseguradoras;
-    return [];
+    const aseguradoras = Array.isArray(response.data) ? response.data : response.data?.data?.aseguradoras || [];
+    return aseguradoras.map((a: any) => ({
+      id: String(a.idaseguradora || a.id),
+      nombre: a.nombre,
+      nit: a.nit,
+      activo: a.activo
+    }));
   }
 
   async findById(id: string): Promise<Aseguradora | null> {
     try {
       const response = await httpClient.get(`/aseguradoras/${id}`);
-      return response.data;
+      const a = response.data?.data?.aseguradora || response.data;
+      if (!a) return null;
+      return {
+        id: String(a.idaseguradora || a.id),
+        nombre: a.nombre,
+        nit: a.nit,
+        activo: a.activo
+      };
     } catch (error) {
       return null;
     }
   }
 
-  async save(data: Omit<Aseguradora, 'id' | 'createdAt' | 'updatedAt'>): Promise<Aseguradora> {
+  async save(data: Omit<Aseguradora, 'id' | 'activo'>): Promise<Aseguradora> {
     const response = await httpClient.post('/aseguradoras', data);
-    return response.data;
+    const a = response.data?.data?.aseguradora || response.data;
+    return {
+      id: String(a.idaseguradora || a.id),
+      nombre: a.nombre,
+      nit: a.nit,
+      activo: a.activo
+    };
   }
 
   async update(id: string, data: Partial<Aseguradora>): Promise<Aseguradora> {
-    const response = await httpClient.put(`/aseguradoras/${id}`, data);
-    return response.data;
+    // IMPORTANTE: Tu backend tiene un error tipográfico en actualizarAseguradora:
+    // comprueba hasOwnProperty("apellido") para luego usar "datosActualizados.nit".
+    // Por ende es necesario mandarle el campo "apellido" ficticio.
+    const payload = {
+      ...data,
+      apellido: data.nit // Hack para el backend!!
+    };
+    
+    const response = await httpClient.put(`/aseguradoras/${id}`, payload);
+    const a = response.data?.data?.aseguradora || response.data;
+    return {
+      id: String(a.idaseguradora || a.id),
+      nombre: a.nombre,
+      nit: a.nit,
+      activo: a.activo
+    };
   }
 
   async delete(id: string): Promise<void> {
-    await httpClient.delete(`/aseguradoras/${id}`);
+    await httpClient.patch(`/aseguradoras/desactivar/${id}`);
+  }
+
+  async activate(id: string): Promise<void> {
+    await httpClient.patch(`/aseguradoras/activar/${id}`);
   }
 }

@@ -28,11 +28,12 @@ const BLUE = '#0D3B8E';
 
 /* ─── component ───────────────────────────────────────────── */
 export const AseguradorasPage = () => {
-  const { aseguradoras, isLoading } = useAseguradoras();
+  const { aseguradoras, isLoading, create, update, deactivate } = useAseguradoras();
 
   /* form state */
   const [nombre, setNombre] = useState('');
   const [nit, setNit] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [formMsg, setFormMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
   /* filters */
@@ -55,16 +56,50 @@ export const AseguradorasPage = () => {
   const paginated = list.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
   /* handlers */
+  const resetForm = () => {
+    setNombre('');
+    setNit('');
+    setEditingId(null);
+  };
+
   const handleGuardar = (e: React.FormEvent) => {
     e.preventDefault();
     if (!nombre.trim() || !nit.trim()) {
       setFormMsg({ type: 'err', text: 'Por favor completa todos los campos.' });
       return;
     }
-    setFormMsg({ type: 'ok', text: 'Aseguradora guardada correctamente.' });
-    setNombre('');
-    setNit('');
-    setTimeout(() => setFormMsg(null), 3000);
+
+    if (editingId) {
+      update.mutate(
+        { id: editingId, data: { nombre, nit } },
+        {
+          onSuccess: () => {
+            setFormMsg({ type: 'ok', text: 'Aseguradora actualizada correctamente.' });
+            resetForm();
+            setTimeout(() => setFormMsg(null), 3000);
+          },
+          onError: () => {
+            setFormMsg({ type: 'err', text: 'Error al actualizar la aseguradora.' });
+            setTimeout(() => setFormMsg(null), 3000);
+          },
+        }
+      );
+    } else {
+      create.mutate(
+        { nombre, nit },
+        {
+          onSuccess: () => {
+            setFormMsg({ type: 'ok', text: 'Aseguradora guardada correctamente.' });
+            resetForm();
+            setTimeout(() => setFormMsg(null), 3000);
+          },
+          onError: () => {
+            setFormMsg({ type: 'err', text: 'Error al guardar la aseguradora.' });
+            setTimeout(() => setFormMsg(null), 3000);
+          },
+        }
+      );
+    }
   };
 
   return (
@@ -83,7 +118,7 @@ export const AseguradorasPage = () => {
             health_and_safety
           </span>
           <span style={{ fontWeight: 700, fontSize: '14.5px', color: '#0f172a' }}>
-            Añadir Nueva Aseguradora
+            {editingId ? 'Editar Aseguradora' : 'Añadir Nueva Aseguradora'}
           </span>
         </div>
 
@@ -163,26 +198,50 @@ export const AseguradorasPage = () => {
               </div>
             </div>
 
-            {/* Save button */}
-            <button
-              type="submit"
-              style={{
-                display: 'flex', alignItems: 'center', gap: '7px',
-                background: BLUE, color: 'white',
-                border: 'none', borderRadius: '7px',
-                padding: '9px 18px',
-                fontSize: '13.5px', fontWeight: 700,
-                cursor: 'pointer', whiteSpace: 'nowrap',
-                fontFamily: 'inherit',
-                transition: 'background 0.15s',
-                height: '38px',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = '#0a2f72')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = BLUE)}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '17px' }}>save</span>
-              Guardar Aseguradora
-            </button>
+            {/* Save/Cancel buttons */}
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                type="submit"
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '7px',
+                  background: BLUE, color: 'white',
+                  border: 'none', borderRadius: '7px',
+                  padding: '9px 18px',
+                  fontSize: '13.5px', fontWeight: 700,
+                  cursor: 'pointer', whiteSpace: 'nowrap',
+                  fontFamily: 'inherit',
+                  transition: 'background 0.15s',
+                  height: '38px',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = '#0a2f72')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = BLUE)}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '17px' }}>
+                  {editingId ? 'edit' : 'save'}
+                </span>
+                {editingId ? 'Actualizar' : 'Guardar'}
+              </button>
+              {editingId && (
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '7px',
+                    background: 'white', color: '#64748b',
+                    border: '1px solid #cbd5e1', borderRadius: '7px',
+                    padding: '9px 12px',
+                    fontSize: '13.5px', fontWeight: 600,
+                    cursor: 'pointer', whiteSpace: 'nowrap',
+                    height: '38px', transition: 'all 0.15s',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = '#334155'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#64748b'; }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '17px' }}>close</span>
+                  Cancelar
+                </button>
+              )}
+            </div>
           </div>
 
           {formMsg && (
@@ -364,6 +423,12 @@ export const AseguradorasPage = () => {
                           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                             <button
                               title="Editar"
+                              onClick={() => {
+                                setEditingId(a.id);
+                                setNombre(a.nombre);
+                                setNit(a.nit);
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                              }}
                               style={{
                                 background: 'none', border: 'none', padding: 0,
                                 cursor: 'pointer', color: '#94a3b8',
@@ -377,6 +442,11 @@ export const AseguradorasPage = () => {
                             </button>
                             <button
                               title="Eliminar"
+                              onClick={() => {
+                                if (window.confirm('¿Seguro que deseas desactivar esta aseguradora?')) {
+                                  deactivate.mutate(a.id);
+                                }
+                              }}
                               style={{
                                 background: 'none', border: 'none', padding: 0,
                                 cursor: 'pointer', color: '#94a3b8',

@@ -6,11 +6,12 @@ const BLUE = '#0D3B8E';
 const ITEMS_PER_PAGE = 5;
 
 export const TiposBusPage = () => {
-  const { tiposBus, isLoading } = useTiposBus();
+  const { tiposBus, isLoading, create, update, deactivate } = useTiposBus();
 
   /* ── form state ─────────────────────────────────────── */
   const [nombre, setNombre] = useState('');
   const [descripcion, setDescripcion] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [formMsg, setFormMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
   /* ── filters ────────────────────────────────────────── */
@@ -25,16 +26,50 @@ export const TiposBusPage = () => {
   const paginated = list.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
   /* ── handlers ───────────────────────────────────────── */
+  const resetForm = () => {
+    setNombre('');
+    setDescripcion('');
+    setEditingId(null);
+  };
+
   const handleGuardar = (e: React.FormEvent) => {
     e.preventDefault();
     if (!nombre.trim()) {
       setFormMsg({ type: 'err', text: 'El nombre es requerido.' });
       return;
     }
-    setFormMsg({ type: 'ok', text: 'Tipo de bus guardado correctamente.' });
-    setNombre('');
-    setDescripcion('');
-    setTimeout(() => setFormMsg(null), 3000);
+
+    if (editingId) {
+      update.mutate(
+        { id: editingId, data: { nombre, descripcion } },
+        {
+          onSuccess: () => {
+            setFormMsg({ type: 'ok', text: 'Tipo de bus actualizado correctamente.' });
+            resetForm();
+            setTimeout(() => setFormMsg(null), 3000);
+          },
+          onError: () => {
+            setFormMsg({ type: 'err', text: 'Error al actualizar el tipo de bus.' });
+            setTimeout(() => setFormMsg(null), 3000);
+          },
+        }
+      );
+    } else {
+      create.mutate(
+        { nombre, descripcion },
+        {
+          onSuccess: () => {
+            setFormMsg({ type: 'ok', text: 'Tipo de bus guardado correctamente.' });
+            resetForm();
+            setTimeout(() => setFormMsg(null), 3000);
+          },
+          onError: () => {
+            setFormMsg({ type: 'err', text: 'Error al guardar el tipo de bus.' });
+            setTimeout(() => setFormMsg(null), 3000);
+          },
+        }
+      );
+    }
   };
 
   /* ── pagination pages array ─────────────────────────── */
@@ -59,7 +94,7 @@ export const TiposBusPage = () => {
         boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
       }}>
         <div style={{ fontWeight: 700, fontSize: '15px', color: '#0f172a', marginBottom: '18px' }}>
-          Añadir Nuevo Tipo de Bus
+          {editingId ? 'Editar Tipo de Bus' : 'Añadir Nuevo Tipo de Bus'}
         </div>
 
         <form onSubmit={handleGuardar}>
@@ -125,27 +160,53 @@ export const TiposBusPage = () => {
               />
             </div>
 
-            {/* Guardar button */}
-            <button
-              type="submit"
-              style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                background: BLUE, color: 'white',
-                border: 'none', borderRadius: '7px',
-                padding: '8px 20px',
-                fontSize: '13px', fontWeight: 700,
-                cursor: 'pointer',
-                fontFamily: 'inherit', lineHeight: 1.35,
-                transition: 'background 0.15s',
-                minHeight: '46px',
-                textAlign: 'left',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = '#0a2f72')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = BLUE)}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '18px', flexShrink: 0 }}>save</span>
-              <span style={{ display: 'block' }}>Guardar<br />Tipo</span>
-            </button>
+            {/* Action buttons */}
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                type="submit"
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                  background: BLUE, color: 'white',
+                  border: 'none', borderRadius: '7px',
+                  padding: '8px 20px',
+                  fontSize: '13px', fontWeight: 700,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit', lineHeight: 1.35,
+                  transition: 'background 0.15s',
+                  minHeight: '46px',
+                  textAlign: 'left',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = '#0a2f72')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = BLUE)}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '18px', flexShrink: 0 }}>
+                  {editingId ? 'edit' : 'save'}
+                </span>
+                <span style={{ display: 'block' }}>
+                  {editingId ? 'Actualizar' : 'Guardar'}<br />Tipo
+                </span>
+              </button>
+              {editingId && (
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                    background: 'white', color: '#64748b',
+                    border: '1px solid #cbd5e1', borderRadius: '7px',
+                    padding: '8px 12px',
+                    fontSize: '13px', fontWeight: 600,
+                    cursor: 'pointer',
+                    minHeight: '46px', transition: 'all 0.15s',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = '#334155'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#64748b'; }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
+                  Cancelar
+                </button>
+              )}
+            </div>
           </div>
 
           {formMsg && (
@@ -320,6 +381,12 @@ export const TiposBusPage = () => {
                           <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                             <button
                               title="Editar"
+                              onClick={() => {
+                                setEditingId(tipo.id);
+                                setNombre(tipo.nombre);
+                                setDescripcion(tipo.descripcion || '');
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                              }}
                               style={{
                                 background: 'none', border: 'none', padding: 0,
                                 cursor: 'pointer', color: '#60a5fa',
@@ -333,6 +400,11 @@ export const TiposBusPage = () => {
                             </button>
                             <button
                               title="Eliminar"
+                              onClick={() => {
+                                if (window.confirm('¿Seguro que deseas desactivar este tipo de bus?')) {
+                                  deactivate.mutate(tipo.id);
+                                }
+                              }}
                               style={{
                                 background: 'none', border: 'none', padding: 0,
                                 cursor: 'pointer', color: '#f87171',

@@ -39,6 +39,136 @@ const getPageHeaderInfo = (pathname: string) => {
           </>
         ),
       };
+    case ROUTES.VEHICULOS:
+      return {
+        title: 'Gestión de Vehículos',
+        breadcrumbs: (
+          <>
+            Inicio &rsaquo; Operaciones &rsaquo;{' '}
+            <span style={{ color: '#0D3B8E', fontWeight: 600 }}>Vehículos</span>
+          </>
+        ),
+      };
+    case ROUTES.CONDUCTORES:
+      return {
+        title: 'Gestión de Conductores',
+        breadcrumbs: (
+          <>
+            Inicio &rsaquo; Operaciones &rsaquo;{' '}
+            <span style={{ color: '#0D3B8E', fontWeight: 600 }}>Conductores</span>
+          </>
+        ),
+      };
+    case ROUTES.RUTAS:
+      return {
+        title: 'Gestión de Rutas',
+        breadcrumbs: (
+          <>
+            Inicio &rsaquo; Operaciones &rsaquo;{' '}
+            <span style={{ color: '#0D3B8E', fontWeight: 600 }}>Rutas</span>
+          </>
+        ),
+      };
+    case ROUTES.AGENCIAS:
+      return {
+        title: 'Gestión de Agencias',
+        breadcrumbs: (
+          <>
+            Inicio &rsaquo; Gestión Base &rsaquo;{' '}
+            <span style={{ color: '#0D3B8E', fontWeight: 600 }}>Agencias</span>
+          </>
+        ),
+      };
+    case ROUTES.OFICINAS:
+      return {
+        title: 'Gestión de Oficinas',
+        breadcrumbs: (
+          <>
+            Inicio &rsaquo; Gestión Base &rsaquo;{' '}
+            <span style={{ color: '#0D3B8E', fontWeight: 600 }}>Oficinas</span>
+          </>
+        ),
+      };
+    case ROUTES.CIUDADES:
+      return {
+        title: 'Gestión de Ciudades',
+        breadcrumbs: (
+          <>
+            Inicio &rsaquo; Gestión Base &rsaquo;{' '}
+            <span style={{ color: '#0D3B8E', fontWeight: 600 }}>Ciudades</span>
+          </>
+        ),
+      };
+    case ROUTES.POLIZAS:
+      return {
+        title: 'Gestión de Pólizas',
+        breadcrumbs: (
+          <>
+            Inicio &rsaquo; Gestión Base &rsaquo;{' '}
+            <span style={{ color: '#0D3B8E', fontWeight: 600 }}>Pólizas</span>
+          </>
+        ),
+      };
+    case ROUTES.VIAJES:
+      return {
+        title: 'Gestión de Viajes',
+        breadcrumbs: (
+          <>
+            Inicio &rsaquo; Operaciones &rsaquo;{' '}
+            <span style={{ color: '#0D3B8E', fontWeight: 600 }}>Viajes</span>
+          </>
+        ),
+      };
+    case ROUTES.TIQUETES:
+      return {
+        title: 'Gestión de Tiquetes',
+        breadcrumbs: (
+          <>
+            Inicio &rsaquo; Operaciones &rsaquo;{' '}
+            <span style={{ color: '#0D3B8E', fontWeight: 600 }}>Tiquetes</span>
+          </>
+        ),
+      };
+    case ROUTES.ENCOMIENDAS:
+      return {
+        title: 'Gestión de Encomiendas',
+        breadcrumbs: (
+          <>
+            Inicio &rsaquo; Operaciones &rsaquo;{' '}
+            <span style={{ color: '#0D3B8E', fontWeight: 600 }}>Encomiendas</span>
+          </>
+        ),
+      };
+    case ROUTES.TIPOS_SERVICIO:
+      return {
+        title: 'Gestión de Tipos de Servicio',
+        breadcrumbs: (
+          <>
+            Inicio &rsaquo; Gestión Base &rsaquo;{' '}
+            <span style={{ color: '#0D3B8E', fontWeight: 600 }}>Tipos de Servicio</span>
+          </>
+        ),
+      };
+    case ROUTES.TAQUILLEROS:
+      return {
+        title: 'Gestión de Taquilleros',
+        breadcrumbs: (
+          <>
+            Inicio &rsaquo; Empleados &rsaquo;{' '}
+            <span style={{ color: '#0D3B8E', fontWeight: 600 }}>Taquilleros</span>
+          </>
+        ),
+      };
+    case ROUTES.EMPLEADOS_ENCOMIENDAS:
+      return {
+        title: 'Empleados de Encomiendas',
+        breadcrumbs: (
+          <>
+            Inicio &rsaquo; Empleados &rsaquo;{' '}
+            <span style={{ color: '#0D3B8E', fontWeight: 600 }}>Encomiendas</span>
+          </>
+        ),
+      };
     default:
       return {
         title: 'Panel Principal',

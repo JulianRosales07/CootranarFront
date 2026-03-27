@@ -1,17 +1,21 @@
 import type { ReactNode } from 'react';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
+import { useSidebar } from '../../context/SidebarContext';
 
 interface LayoutProps {
   children: ReactNode;
 }
 
 export const Layout = ({ children }: LayoutProps) => {
+  const { collapsed } = useSidebar();
+  const ml = collapsed ? 64 : 256;
+
   return (
     <div className="flex h-screen overflow-hidden" style={{ backgroundColor: '#f8fafc', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
       <Sidebar />
       {/* Main content area - scrollable */}
-      <div className="flex-1 flex flex-col overflow-hidden" style={{ marginLeft: '256px' }}>
+      <div className="flex-1 flex flex-col overflow-hidden" style={{ marginLeft: `${ml}px`, transition: 'margin-left 0.2s ease' }}>
         <Header />
         <div className="flex-1 overflow-y-auto">
           <div style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>

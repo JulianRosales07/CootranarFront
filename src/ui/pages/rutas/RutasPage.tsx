@@ -1,247 +1,292 @@
-import { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Layout } from '../../components/layout/Layout';
-import { Badge } from '../../components/common/Badge';
+import { useRutas } from '../../hooks/useRutas';
+import { useAgencias } from '../../hooks/useAgencias';
+import type { Ruta } from '../../../domain/entities/Ruta';
 
+const BLUE = '#0D3B8E';
+const ITEMS_PER_PAGE = 5;
+
+/* ─── Status badge ────────────────────────────────────────── */
+function EstadoBadge({ activa }: { activa: boolean }) {
+  const bg = activa ? '#dcfce7' : '#fee2e2';
+  const color = activa ? '#15803d' : '#dc2626';
+  return (
+    <span style={{ display: 'inline-block', padding: '3px 12px', borderRadius: '20px', background: bg, color, fontSize: '11.5px', fontWeight: 700 }}>
+      {activa ? 'Activo' : 'Inactivo'}
+    </span>
+  );
+}
+
+/* ─── Pagination ──────────────────────────────────────────── */
+function PagBtn({ label, active, onClick }: { label: string; active?: boolean; onClick: () => void }) {
+  return (
+    <button onClick={onClick} style={{
+      minWidth: '30px', height: '30px', padding: '0 6px', border: `1px solid ${active ? BLUE : '#e2e8f0'}`,
+      borderRadius: '6px', background: active ? BLUE : 'white', color: active ? 'white' : '#475569',
+      fontSize: '13px', fontWeight: active ? 700 : 400, cursor: 'pointer', fontFamily: 'inherit',
+    }}>{label}</button>
+  );
+}
+function NavArrow({ icon, disabled, onClick }: { icon: string; disabled: boolean; onClick: () => void }) {
+  return (
+    <button onClick={onClick} disabled={disabled} style={{
+      width: '30px', height: '30px', border: '1px solid #e2e8f0', borderRadius: '6px', background: 'white',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      cursor: disabled ? 'default' : 'pointer', color: disabled ? '#cbd5e1' : '#475569',
+    }}>
+      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{icon}</span>
+    </button>
+  );
+}
+
+/* ─── Field ───────────────────────────────────────────────── */
+function Field({ label, required, optional, children }: { label: string; required?: boolean; optional?: boolean; children: React.ReactNode }) {
+  return (
+    <div>
+      <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
+        {label} {required && <span style={{ color: '#dc2626' }}>*</span>}
+        {optional && <span style={{ color: '#94a3b8', fontSize: '10px', textTransform: 'none', fontWeight: 400 }}> (Opcional)</span>}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+const inputStyle: React.CSSProperties = {
+  width: '100%', boxSizing: 'border-box', padding: '9px 12px',
+  border: '1px solid #e2e8f0', borderRadius: '7px', fontSize: '13px',
+  color: '#334155', outline: 'none', background: 'white', fontFamily: 'inherit',
+};
+
+/* ═══════════════════════════════════════════════════════════ */
 export const RutasPage = () => {
+  const { rutas, isLoading, create, update, remove } = useRutas();
+  const { agencias } = useAgencias();
+  const agenciasList = Array.isArray(agencias) ? agencias : [];
+
   const [modoTarifa, setModoTarifa] = useState<'normal' | 'alto'>('normal');
 
-  // Datos mock para las rutas
-  const rutasMock = [
-    {
-      codigo: '#R-2023-001',
-      agenciaOrigen: 'Terminal Pasto',
-      agenciaDestino: 'Terminal Cali',
-      duracion: '8h 30m',
-      distancia: '384 km',
-      estado: 'Activo',
-    },
-    {
-      codigo: '#R-2023-002',
-      agenciaOrigen: 'Terminal Ipiales',
-      agenciaDestino: 'Terminal Pasto',
-      duracion: '2h 15m',
-      distancia: '90 km',
-      estado: 'Activo',
-    },
-    {
-      codigo: '#R-2023-003',
-      agenciaOrigen: 'Terminal Bogotá',
-      agenciaDestino: 'Terminal Pasto',
-      duracion: '18h 00m',
-      distancia: '850 km',
-      estado: 'Inactivo',
-    },
-  ];
+  /* ── form ────────────────────────────────────────────────── */
+  const [origenId, setOrigenId] = useState('');
+  const [destinoId, setDestinoId] = useState('');
+  const [duracion, setDuracion] = useState('');
+  const [distancia, setDistancia] = useState('');
+  const [via, setVia] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [formMsg, setFormMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+
+  /* ── table ───────────────────────────────────────────────── */
+  const [page, setPage] = useState(1);
+  const list = useMemo(() => Array.isArray(rutas) ? rutas : [], [rutas]);
+  const totalPages = Math.max(1, Math.ceil(list.length / ITEMS_PER_PAGE));
+  const paginated = list.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+  const visiblePages = (() => {
+    if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1);
+    const p: (number | '...')[] = [1];
+    if (page > 3) p.push('...');
+    for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) p.push(i);
+    if (page < totalPages - 2) p.push('...');
+    p.push(totalPages);
+    return p;
+  })();
+
+  const agName = (id: string) => agenciasList.find(a => a.id === id)?.nombre ?? id;
+
+  const resetForm = () => { setOrigenId(''); setDestinoId(''); setDuracion(''); setDistancia(''); setVia(''); setEditingId(null); };
+
+  const startEdit = (r: Ruta) => {
+    setEditingId(r.id); setOrigenId(r.origen); setDestinoId(r.destino);
+    setDuracion(String(r.duracionMinutos)); setDistancia(String(r.precioBase)); setVia('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleGuardar = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!origenId || !destinoId) { setFormMsg({ type: 'err', text: 'Origen y destino son requeridos.' }); return; }
+    const payload = { origen: origenId, destino: destinoId, duracionMinutos: Number(duracion) || 0, precioBase: Number(distancia) || 0, activa: true };
+    const cb = {
+      onSuccess: () => { setFormMsg({ type: 'ok', text: editingId ? 'Ruta actualizada.' : 'Ruta guardada.' }); resetForm(); setTimeout(() => setFormMsg(null), 3000); },
+      onError: () => { setFormMsg({ type: 'err', text: 'Error al guardar.' }); setTimeout(() => setFormMsg(null), 3000); },
+    };
+    editingId ? update.mutate({ id: editingId, data: payload }, cb) : create.mutate(payload, cb);
+  };
+
+  const handleDelete = (id: string) => { if (window.confirm('¿Eliminar esta ruta?')) remove.mutate(id); };
+
+  const focusBorder = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => (e.currentTarget.style.borderColor = '#93b4e0');
+  const blurBorder = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => (e.currentTarget.style.borderColor = '#e2e8f0');
 
   return (
     <Layout>
-      <div className="space-y-6">
-        {/* Header con Modo de Tarifas */}
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800">Gestión de Rutas</h1>
-            <p className="text-xs text-slate-400 mt-0.5 uppercase tracking-wider">
-              Inicio &gt; Operaciones &gt; Rutas
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                Modo Global de Tarifas:
-              </span>
-              <button
-                onClick={() => setModoTarifa('normal')}
-                className={`px-4 py-2 text-xs font-bold rounded transition-colors ${
-                  modoTarifa === 'normal'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                Tráfico Normal
-              </button>
-              <button
-                onClick={() => setModoTarifa('alto')}
-                className={`px-4 py-2 text-xs font-bold rounded transition-colors ${
-                  modoTarifa === 'alto'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                Tráfico Alto
-              </button>
-            </div>
-            <div className="flex items-center gap-2">
-              <button className="p-2 hover:bg-slate-100 rounded transition-colors relative">
-                <span className="material-symbols-outlined text-slate-600">notifications</span>
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
-              </button>
-              <button className="p-2 hover:bg-slate-100 rounded transition-colors">
-                <span className="material-symbols-outlined text-slate-600">settings</span>
-              </button>
-            </div>
-          </div>
+      {/* ── Modo Global de Tarifas (header row) ────────────── */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+        <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          Modo Global de Tarifas:
+        </span>
+        {(['normal', 'alto'] as const).map(m => (
+          <button key={m} onClick={() => setModoTarifa(m)} style={{
+            padding: '8px 16px', borderRadius: '6px', fontSize: '12px', fontWeight: 700, border: 'none',
+            background: modoTarifa === m ? BLUE : '#f1f5f9', color: modoTarifa === m ? 'white' : '#64748b',
+            cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s',
+          }}>
+            {m === 'normal' ? 'Tráfico Normal' : 'Tráfico Alto'}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Formulario Nueva Ruta ──────────────────────────── */}
+      <div style={{
+        background: 'white', borderRadius: '10px', border: '1px solid #e8edf2',
+        padding: '20px 24px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', marginBottom: '24px',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '20px', color: BLUE }}>add_road</span>
+          <span style={{ fontWeight: 700, fontSize: '15px', color: '#0f172a' }}>
+            {editingId ? 'Editar Ruta' : 'Añadir Nueva Ruta'}
+          </span>
         </div>
 
-        {/* Formulario Añadir Nueva Ruta */}
-        <div className="bg-white rounded border border-slate-200 p-6">
-          <div className="flex items-center gap-2 mb-6">
-            <span className="material-symbols-outlined text-blue-600">add_road</span>
-            <h2 className="text-lg font-bold text-slate-800">Añadir Nueva Ruta</h2>
+        <form onSubmit={handleGuardar}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr', gap: '14px' }}>
+            <Field label="Agencia Origen" required>
+              <select value={origenId} onChange={e => setOrigenId(e.target.value)}
+                style={{ ...inputStyle, appearance: 'none' }} onFocus={focusBorder} onBlur={blurBorder}>
+                <option value="">Seleccionar Agencia...</option>
+                {agenciasList.map(a => <option key={a.id} value={a.id}>{a.nombre}</option>)}
+              </select>
+            </Field>
+            <Field label="Agencia Destino" required>
+              <select value={destinoId} onChange={e => setDestinoId(e.target.value)}
+                style={{ ...inputStyle, appearance: 'none' }} onFocus={focusBorder} onBlur={blurBorder}>
+                <option value="">Seleccionar Agencia...</option>
+                {agenciasList.map(a => <option key={a.id} value={a.id}>{a.nombre}</option>)}
+              </select>
+            </Field>
+            <Field label="Duración Aproximada" required>
+              <div style={{ position: 'relative' }}>
+                <input value={duracion} onChange={e => setDuracion(e.target.value)} placeholder="Ej: 4h 30m"
+                  style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} />
+                <span className="material-symbols-outlined" style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '16px', color: '#94a3b8', pointerEvents: 'none' }}>schedule</span>
+              </div>
+            </Field>
+            <Field label="Distancia en km" required>
+              <div style={{ position: 'relative' }}>
+                <input value={distancia} onChange={e => setDistancia(e.target.value)} placeholder="Ej: 120"
+                  style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} />
+                <span style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '11px', color: '#94a3b8', fontWeight: 600 }}>km</span>
+              </div>
+            </Field>
+            <Field label="Vía / Observaciones" optional>
+              <input value={via} onChange={e => setVia(e.target.value)} placeholder="Ej: Vía Panamericana"
+                style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} />
+            </Field>
           </div>
 
-          <div className="grid grid-cols-12 gap-6">
-            {/* Agencia Origen */}
-            <div className="col-span-3">
-              <label className="block text-xs font-semibold text-slate-600 mb-2">
-                Agencia Origen <span className="text-red-500">*</span>
-              </label>
-              <select className="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
-                <option value="">Seleccionar Agencia...</option>
-                <option>Terminal Pasto</option>
-                <option>Terminal Ipiales</option>
-                <option>Terminal Tumaco</option>
-                <option>Terminal Cali</option>
-              </select>
-            </div>
-
-            {/* Agencia Destino */}
-            <div className="col-span-3">
-              <label className="block text-xs font-semibold text-slate-600 mb-2">
-                Agencia Destino <span className="text-red-500">*</span>
-              </label>
-              <select className="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
-                <option value="">Seleccionar Agencia...</option>
-                <option>Terminal Pasto</option>
-                <option>Terminal Cali</option>
-                <option>Terminal Bogotá</option>
-                <option>Terminal Popayán</option>
-              </select>
-            </div>
-
-            {/* Duración Aproximada */}
-            <div className="col-span-2">
-              <label className="block text-xs font-semibold text-slate-600 mb-2">
-                Duración Aproximada <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Ej: 4h 30m"
-                  className="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-                <button className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-                  <span className="material-symbols-outlined text-lg">schedule</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Distancia en km */}
-            <div className="col-span-2">
-              <label className="block text-xs font-semibold text-slate-600 mb-2">
-                Distancia en km <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Ej: 120"
-                  className="w-full pl-8 pr-12 py-2 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">
-                  Ej:
-                </span>
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-medium">
-                  km
-                </span>
-              </div>
-            </div>
-
-            {/* Vía / Observaciones */}
-            <div className="col-span-2">
-              <label className="block text-xs font-semibold text-slate-600 mb-2">
-                Vía / Observaciones <span className="text-slate-400 text-[10px]">(Opcional)</span>
-              </label>
-              <input
-                type="text"
-                placeholder="Ej: Vía Panamericana"
-                className="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
+          <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+            {editingId && (
+              <button type="button" onClick={resetForm} style={{
+                display: 'flex', alignItems: 'center', gap: '6px', background: 'white', color: '#64748b',
+                border: '1px solid #cbd5e1', borderRadius: '7px', padding: '10px 16px', fontSize: '13px',
+                fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+              }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '17px' }}>close</span> Cancelar
+              </button>
+            )}
+            <button type="submit" style={{
+              display: 'flex', alignItems: 'center', gap: '8px', background: BLUE, color: 'white',
+              border: 'none', borderRadius: '7px', padding: '10px 20px', fontSize: '13px', fontWeight: 700,
+              cursor: 'pointer', fontFamily: 'inherit',
+            }}
+              onMouseEnter={e => (e.currentTarget.style.background = '#0a2f72')}
+              onMouseLeave={e => (e.currentTarget.style.background = BLUE)}>
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{editingId ? 'edit' : 'save'}</span>
+              {editingId ? 'Actualizar Ruta' : 'Guardar Ruta'}
+            </button>
           </div>
+          {formMsg && <p style={{ marginTop: '10px', fontSize: '13px', fontWeight: 600, color: formMsg.type === 'ok' ? '#16a34a' : '#dc2626', textAlign: 'right' }}>{formMsg.text}</p>}
+        </form>
+      </div>
 
-          <div className="mt-6 flex justify-end">
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded font-semibold text-sm transition-colors flex items-center gap-2">
-              <span className="material-symbols-outlined text-lg">save</span>
-              Guardar Ruta
+      {/* ── Tabla de Rutas ─────────────────────────────────── */}
+      <div style={{
+        background: 'white', borderRadius: '10px', border: '1px solid #e8edf2',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.05)', overflow: 'hidden',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderBottom: '1px solid #f1f5f9' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '18px', color: BLUE }}>list</span>
+            <span style={{ fontWeight: 700, fontSize: '15px', color: '#0f172a' }}>Listado de Rutas</span>
+          </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button style={{ padding: '7px 14px', borderRadius: '7px', fontSize: '12px', fontWeight: 600, border: '1px solid #e2e8f0', background: 'white', color: '#475569', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>filter_alt</span> Filtrar
+            </button>
+            <button style={{ padding: '7px 14px', borderRadius: '7px', fontSize: '12px', fontWeight: 600, border: '1px solid #e2e8f0', background: 'white', color: '#475569', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>download</span> Exportar
             </button>
           </div>
         </div>
 
-        {/* Listado de Rutas */}
-        <div className="bg-white rounded border border-slate-200">
-          <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-blue-600">list</span>
-              <h2 className="text-base font-bold text-slate-800">Listado de Rutas</h2>
-            </div>
-            <div className="flex gap-2">
-              <button className="px-4 py-2 border border-slate-300 rounded text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors flex items-center gap-2">
-                <span className="material-symbols-outlined text-sm">filter_alt</span>
-                Filtrar
-              </button>
-              <button className="px-4 py-2 border border-slate-300 rounded text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors flex items-center gap-2">
-                <span className="material-symbols-outlined text-sm">download</span>
-                Exportar
-              </button>
-            </div>
+        {isLoading ? (
+          <div style={{ padding: '60px', textAlign: 'center', color: '#94a3b8' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '32px', display: 'block', marginBottom: '8px' }}>hourglass_empty</span>
+            <span style={{ fontSize: '13px' }}>Cargando rutas...</span>
           </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-slate-50 text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
-                <tr>
-                  <th className="px-6 py-3 text-left">Código Ruta</th>
-                  <th className="px-6 py-3 text-left">Agencia Origen</th>
-                  <th className="px-6 py-3 text-left">Agencia Destino</th>
-                  <th className="px-6 py-3 text-center">Duración</th>
-                  <th className="px-6 py-3 text-center">Distancia</th>
-                  <th className="px-6 py-3 text-center">Estado</th>
-                  <th className="px-6 py-3 text-center">Acciones</th>
+        ) : (
+          <>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc' }}>
+                  {[
+                    { label: 'Código Ruta', w: '120px' }, { label: 'Agencia Origen', w: '180px' },
+                    { label: 'Agencia Destino', w: '180px' }, { label: 'Duración', w: '100px' },
+                    { label: 'Distancia', w: '100px' }, { label: 'Estado', w: '90px' },
+                    { label: 'Acciones', w: '200px' },
+                  ].map(({ label, w }) => (
+                    <th key={label} style={{
+                      width: w, padding: '11px 16px', textAlign: label === 'Duración' || label === 'Distancia' || label === 'Estado' ? 'center' : 'left',
+                      fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase',
+                      letterSpacing: '0.08em', borderBottom: '1px solid #e8edf2', background: '#f8fafc',
+                    }}>{label}</th>
+                  ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
-                {rutasMock.map((ruta, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-6 py-4">
-                      <span className="text-sm font-mono text-slate-700 font-semibold">{ruta.codigo}</span>
+              <tbody>
+                {paginated.length === 0 ? (
+                  <tr><td colSpan={7} style={{ padding: '48px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>No se encontraron rutas.</td></tr>
+                ) : paginated.map((r, idx) => (
+                  <tr key={r.id} style={{ borderBottom: '1px solid #f1f5f9' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'white')}>
+                    <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: '#64748b', fontFamily: 'monospace' }}>
+                      #R-{String(idx + 1 + (page - 1) * ITEMS_PER_PAGE).padStart(3, '0')}
                     </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-slate-700">{ruta.agenciaOrigen}</span>
+                    <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{agName(r.origen)}</td>
+                    <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{agName(r.destino)}</td>
+                    <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', textAlign: 'center' }}>
+                      {Math.floor(r.duracionMinutos / 60)}h {r.duracionMinutos % 60 > 0 ? `${r.duracionMinutos % 60}m` : '00m'}
                     </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-slate-700">{ruta.agenciaDestino}</span>
+                    <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', textAlign: 'center' }}>
+                      {r.precioBase} km
                     </td>
-                    <td className="px-6 py-4 text-center">
-                      <span className="text-sm text-slate-600">{ruta.duracion}</span>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <span className="text-sm text-slate-600">{ruta.distancia}</span>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <Badge variant={ruta.estado === 'Activo' ? 'success' : 'danger'}>
-                        {ruta.estado}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-center gap-2">
-                        <button className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-xs font-semibold transition-colors flex items-center gap-1">
-                          <span className="material-symbols-outlined text-sm">payments</span>
-                          Administrar Tarifas
+                    <td style={{ padding: '12px 16px', textAlign: 'center' }}><EstadoBadge activa={r.activa} /></td>
+                    <td style={{ padding: '12px 16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <button style={{
+                          display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 12px', borderRadius: '6px',
+                          fontSize: '12px', fontWeight: 600, background: BLUE, color: 'white', border: 'none',
+                          cursor: 'pointer', fontFamily: 'inherit',
+                        }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>payments</span> Administrar Tarifas
                         </button>
-                        <button className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors">
-                          <span className="material-symbols-outlined text-lg">edit</span>
+                        <button title="Editar" onClick={() => startEdit(r)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center' }}
+                          onMouseEnter={e => (e.currentTarget.style.color = BLUE)} onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}>
+                          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>edit</span>
                         </button>
-                        <button className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors">
-                          <span className="material-symbols-outlined text-lg">delete</span>
+                        <button title="Eliminar" onClick={() => handleDelete(r.id)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center' }}
+                          onMouseEnter={e => (e.currentTarget.style.color = '#dc2626')} onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}>
+                          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>delete</span>
                         </button>
                       </div>
                     </td>
@@ -249,29 +294,25 @@ export const RutasPage = () => {
                 ))}
               </tbody>
             </table>
-          </div>
 
-          <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
-            <p className="text-xs text-slate-500">Mostrando 1 a 3 de 12 rutas</p>
-            <div className="flex gap-2">
-              <button className="px-3 py-1 text-xs font-semibold text-slate-400 border border-slate-200 rounded hover:bg-white transition-colors">
-                Anterior
-              </button>
-              <button className="px-3 py-1 text-xs font-semibold text-white bg-blue-600 border border-blue-600 rounded">
-                1
-              </button>
-              <button className="px-3 py-1 text-xs font-semibold text-slate-600 border border-slate-200 rounded hover:bg-white transition-colors">
-                2
-              </button>
-              <button className="px-3 py-1 text-xs font-semibold text-slate-600 border border-slate-200 rounded hover:bg-white transition-colors">
-                ...
-              </button>
-              <button className="px-3 py-1 text-xs font-semibold text-slate-600 border border-slate-200 rounded hover:bg-white transition-colors">
-                Siguiente
-              </button>
+            {/* Pagination */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '13px 20px', borderTop: '1px solid #f1f5f9' }}>
+              <span style={{ fontSize: '12.5px', color: '#94a3b8' }}>
+                Mostrando <strong style={{ color: '#475569' }}>{list.length === 0 ? 0 : (page - 1) * ITEMS_PER_PAGE + 1}</strong> a{' '}
+                <strong style={{ color: '#475569' }}>{Math.min(page * ITEMS_PER_PAGE, list.length)}</strong> de{' '}
+                <strong style={{ color: '#475569' }}>{list.length}</strong> rutas
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                <NavArrow icon="chevron_left" disabled={page === 1} onClick={() => setPage(p => p - 1)} />
+                {visiblePages.map((p, i) => p === '...'
+                  ? <span key={`d${i}`} style={{ padding: '0 6px', color: '#94a3b8', fontSize: '13px' }}>...</span>
+                  : <PagBtn key={p} label={String(p)} active={p === page} onClick={() => setPage(p as number)} />
+                )}
+                <NavArrow icon="chevron_right" disabled={page === totalPages} onClick={() => setPage(p => p + 1)} />
+              </div>
             </div>
-          </div>
-        </div>
+          </>
+        )}
       </div>
     </Layout>
   );

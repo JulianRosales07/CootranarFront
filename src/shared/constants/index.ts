@@ -17,6 +17,8 @@ export const ROUTES = {
   VIAJES: '/viajes',
   TIPOS_SERVICIO: '/tipos-servicio',
   TIPOS_BUS: '/tipos-bus',
+  TAQUILLEROS: '/empleados/taquilleros',
+  EMPLEADOS_ENCOMIENDAS: '/empleados/encomiendas',
 } as const;
 
 export const ESTADOS_TIQUETE = {

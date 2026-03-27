@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AppRouter } from './ui/navigation/AppRouter';
+import { SidebarProvider } from './ui/context/SidebarContext';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -13,7 +14,9 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AppRouter />
+      <SidebarProvider>
+        <AppRouter />
+      </SidebarProvider>
     </QueryClientProvider>
   );
 }

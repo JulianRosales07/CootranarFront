@@ -29,13 +29,27 @@ httpClient.interceptors.response.use(
 
     console.error(`[HTTP Error] ${status} en ${url}`, data);
 
+    if (status === 403) {
+      console.warn('⚠️ Error 403: Sin permisos para este recurso.');
+    }
+
     if (status === 401) {
-      console.warn('⚠️ Error 401: Token inválido, expirado o faltante. Redirigiendo a Login...');
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('usuario');
-      // Evitar bucle de redirección si ya estamos en login
-      if (!window.location.pathname.includes('/login')) {
-        window.location.href = '/login';
+      const msg = (data?.message || '').toLowerCase();
+      const esPermisos = msg.includes('permiso') || msg.includes('autorizado') || msg.includes('rol') || msg.includes('acceso') || msg.includes('no tiene');
+
+      if (esPermisos) {
+        console.warn('⚠️ Error 401: Sin permisos suficientes. No se cierra sesión.');
+      } else {
+        // Verificar si hay un token válido guardado; si no lo hay, no redirigir (evita loops)
+        const token = localStorage.getItem('authToken');
+        if (token && token !== 'cookie-based-auth') {
+          console.warn('⚠️ Error 401: Token inválido o expirado. Redirigiendo a Login...');
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('usuario');
+          if (!window.location.pathname.includes('/login')) {
+            window.location.href = '/login';
+          }
+        }
       }
     }
     return Promise.reject(error);

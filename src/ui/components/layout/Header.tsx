@@ -169,6 +169,16 @@ const getPageHeaderInfo = (pathname: string) => {
           </>
         ),
       };
+    case ROUTES.USUARIOS:
+      return {
+        title: 'Gestión de Usuarios',
+        breadcrumbs: (
+          <>
+            Inicio &rsaquo; Gestión Base &rsaquo;{' '}
+            <span style={{ color: '#0D3B8E', fontWeight: 600 }}>Usuarios</span>
+          </>
+        ),
+      };
     default:
       return {
         title: 'Panel Principal',

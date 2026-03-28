@@ -16,6 +16,7 @@ import { TiposBusPage } from '../pages/tipos-bus/TiposBusPage';
 import { RutasPage } from '../pages/rutas/RutasPage';
 import { TaquillerosPage } from '../pages/empleados/TaquillerosPage';
 import { EmpleadosEncomiendasPage } from '../pages/empleados/EmpleadosEncomiendasPage';
+import { UsuariosPage } from '../pages/usuarios/UsuariosPage';
 import { PrivateRoute } from './PrivateRoute';
 import { ROUTES } from '../../shared/constants';
 
@@ -42,6 +43,7 @@ export const AppRouter = () => {
           <Route path={ROUTES.TIPOS_BUS} element={<TiposBusPage />} />
           <Route path={ROUTES.TAQUILLEROS} element={<TaquillerosPage />} />
           <Route path={ROUTES.EMPLEADOS_ENCOMIENDAS} element={<EmpleadosEncomiendasPage />} />
+          <Route path={ROUTES.USUARIOS} element={<UsuariosPage />} />
         </Route>
 
         <Route path="/" element={<Navigate to={ROUTES.LOGIN} replace />} />

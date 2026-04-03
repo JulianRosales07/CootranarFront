@@ -2,23 +2,6 @@ import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { ROUTES } from '../../../shared/constants';
 
-const PAGE_SEARCH_PLACEHOLDER: Record<string, string> = {
-  [ROUTES.ASEGURADORAS]: 'Buscar aseguradora...',
-  [ROUTES.CONDUCTORES]: 'Buscar conductor...',
-  [ROUTES.VEHICULOS]: 'Buscar vehículo...',
-  [ROUTES.RUTAS]: 'Buscar ruta...',
-  [ROUTES.VIAJES]: 'Buscar viaje...',
-  [ROUTES.POLIZAS]: 'Buscar póliza...',
-  [ROUTES.USUARIOS]: 'Buscar usuario...',
-  [ROUTES.CIUDADES]: 'Buscar ciudad...',
-  [ROUTES.AGENCIAS]: 'Buscar agencia...',
-  [ROUTES.OFICINAS]: 'Buscar oficina...',
-  [ROUTES.TIPOS_BUS]: 'Buscar tipo de bus...',
-  [ROUTES.TIPOS_SERVICIO]: 'Buscar tipo de servicio...',
-  [ROUTES.OFICINAS_ENCOMIENDAS]: 'Buscar oficina de encomiendas...',
-  [ROUTES.TARIFAS_RUTA]: 'Buscar tarifa...',
-};
-
 const getPageHeaderInfo = (pathname: string) => {
   switch (pathname) {
     case ROUTES.TIPOS_BUS:
@@ -225,7 +208,6 @@ const getPageHeaderInfo = (pathname: string) => {
 
 export const Header = () => {
   const location = useLocation();
-  const placeholder = PAGE_SEARCH_PLACEHOLDER[location.pathname] ?? 'Buscar...';
   const { title, breadcrumbs } = getPageHeaderInfo(location.pathname);
 
   return (
@@ -253,45 +235,8 @@ export const Header = () => {
         </p>
       </div>
 
-      {/* ── Right: Search and Actions ───────────────────── */}
+      {/* ── Right: Actions ───────────────────── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        {/* Search */}
-        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-          <span
-            className="material-symbols-outlined"
-            style={{
-              position: 'absolute',
-              left: '9px',
-              fontSize: '17px',
-              color: '#94a3b8',
-              pointerEvents: 'none',
-            }}
-          >
-            search
-          </span>
-          <input
-            type="text"
-            placeholder={placeholder}
-            style={{
-              paddingLeft: '32px',
-              paddingRight: '12px',
-              paddingTop: '6px',
-              paddingBottom: '6px',
-              width: '220px',
-              background: '#f8fafc',
-              border: '1px solid #e2e8f0',
-              borderRadius: '6px',
-              fontSize: '13px',
-              color: '#334155',
-              outline: 'none',
-              fontFamily: 'inherit',
-              transition: 'border-color 0.15s',
-            }}
-            onFocus={(e) => (e.currentTarget.style.borderColor = '#93b4e0')}
-            onBlur={(e) => (e.currentTarget.style.borderColor = '#e2e8f0')}
-          />
-        </div>
-
         {/* Notifications */}
         <button
           style={{

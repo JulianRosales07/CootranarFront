@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { Layout } from '../../components/layout/Layout';
-import { useEmpleadosEncomiendas } from '../../hooks/useEmpleadosEncomiendas';
-import type { EmpleadoEncomienda } from '../../../domain/entities/EmpleadoEncomienda';
+import { useOficinasEncomiendas } from '../../hooks/useOficinasEncomiendas';
+import { useCiudades } from '../../hooks/useCiudades';
+import type { OficinaEncomienda } from '../../../domain/entities/OficinaEncomienda';
 
 const BLUE = '#0D3B8E';
 const ITEMS_PER_PAGE = 5;
@@ -11,7 +12,7 @@ function EstadoBadge({ activo }: { activo: boolean }) {
   const color = activo ? '#15803d' : '#dc2626';
   return (
     <span style={{ display: 'inline-block', padding: '3px 12px', borderRadius: '20px', background: bg, color, fontSize: '11.5px', fontWeight: 700 }}>
-      {activo ? 'Activo' : 'Inactivo'}
+      {activo ? 'Habilitada' : 'Inhabilitada'}
     </span>
   );
 }
@@ -55,19 +56,20 @@ const inputStyle: React.CSSProperties = {
   color: '#334155', outline: 'none', background: 'white', fontFamily: 'inherit',
 };
 
-export const EmpleadosEncomiendasPage = () => {
-  const { empleados, isLoading, create, update } = useEmpleadosEncomiendas();
+export const OficinasEncomiendasPage = () => {
+  const { oficinas, isLoading, create, update, activar, desactivar } = useOficinasEncomiendas();
+  const { ciudades } = useCiudades();
+  const ciudadesList = Array.isArray(ciudades) ? ciudades : [];
 
   const [nombre, setNombre] = useState('');
-  const [documento, setDocumento] = useState('');
+  const [direccion, setDireccion] = useState('');
   const [telefono, setTelefono] = useState('');
-  const [email, setEmail] = useState('');
-  const [agencia, setAgencia] = useState('');
+  const [ciudadId, setCiudadId] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formMsg, setFormMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
   const [page, setPage] = useState(1);
 
-  const list = useMemo(() => Array.isArray(empleados) ? empleados : [], [empleados]);
+  const list = useMemo(() => Array.isArray(oficinas) ? oficinas : [], [oficinas]);
   const totalPages = Math.max(1, Math.ceil(list.length / ITEMS_PER_PAGE));
   const paginated = list.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
   const visiblePages = (() => {
@@ -83,55 +85,60 @@ export const EmpleadosEncomiendasPage = () => {
   const focusBorder = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => (e.currentTarget.style.borderColor = '#93b4e0');
   const blurBorder = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => (e.currentTarget.style.borderColor = '#e2e8f0');
 
-  const resetForm = () => { setNombre(''); setDocumento(''); setTelefono(''); setEmail(''); setAgencia(''); setEditingId(null); };
+  const resetForm = () => { setNombre(''); setDireccion(''); setTelefono(''); setCiudadId(''); setEditingId(null); };
 
-  const startEdit = (emp: EmpleadoEncomienda) => {
-    setEditingId(emp.id); setNombre(emp.nombre); setDocumento(emp.documento);
-    setTelefono(emp.telefono); setEmail(emp.email); setAgencia(emp.agencia);
+  const startEdit = (o: OficinaEncomienda) => {
+    setEditingId(o.id); setNombre(o.nombre); setDireccion(o.direccion);
+    setTelefono(o.telefono); setCiudadId(o.ciudadId);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleGuardar = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nombre || !documento) { setFormMsg({ type: 'err', text: 'Nombre y documento son requeridos.' }); return; }
-    const payload = { nombre, documento, telefono, email, agencia, activo: true };
+    if (!nombre) { setFormMsg({ type: 'err', text: 'El nombre es requerido.' }); return; }
+    const payload = { nombre, direccion, telefono, ciudadId, activo: true } as any;
     const cb = {
-      onSuccess: () => { setFormMsg({ type: 'ok', text: editingId ? 'Empleado actualizado.' : 'Empleado registrado.' }); resetForm(); setTimeout(() => setFormMsg(null), 3000); },
+      onSuccess: () => { setFormMsg({ type: 'ok', text: editingId ? 'Oficina actualizada.' : 'Oficina registrada.' }); resetForm(); setTimeout(() => setFormMsg(null), 3000); },
       onError: () => { setFormMsg({ type: 'err', text: 'Error al guardar.' }); setTimeout(() => setFormMsg(null), 3000); },
     };
     editingId ? update.mutate({ id: editingId, data: payload }, cb) : create.mutate(payload, cb);
+  };
+
+  const handleToggle = (o: OficinaEncomienda) => {
+    if (o.activo) {
+      desactivar.mutate(o.id);
+    } else {
+      activar.mutate(o.id);
+    }
   };
 
   return (
     <Layout>
       <div style={{ background: 'white', borderRadius: '10px', border: '1px solid #e8edf2', padding: '20px 24px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', marginBottom: '24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-          <span className="material-symbols-outlined" style={{ fontSize: '20px', color: BLUE }}>package_2</span>
-          <span style={{ fontWeight: 700, fontSize: '15px', color: '#0f172a' }}>{editingId ? 'Editar Empleado' : 'Registrar Empleado de Encomiendas'}</span>
+          <span className="material-symbols-outlined" style={{ fontSize: '20px', color: BLUE }}>local_shipping</span>
+          <span style={{ fontWeight: 700, fontSize: '15px', color: '#0f172a' }}>{editingId ? 'Editar Oficina de Encomiendas' : 'Registrar Oficina de Encomiendas'}</span>
         </div>
         <form onSubmit={handleGuardar}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
-            <Field label="Nombre Completo" required>
-              <input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej. Pedro Ruiz" style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+            <Field label="Nombre" required>
+              <input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej. Oficina Central Pasto" style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} />
             </Field>
-            <Field label="Documento" required>
-              <input value={documento} onChange={e => setDocumento(e.target.value)} placeholder="Ej. 1085111222" style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} />
-            </Field>
-            <Field label="Agencia Asignada" required>
-              <input value={agencia} onChange={e => setAgencia(e.target.value)} placeholder="Ej. Terminal Pasto" style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} />
+            <Field label="Ciudad">
+              <select value={ciudadId} onChange={e => setCiudadId(e.target.value)} style={{ ...inputStyle, appearance: 'none' }} onFocus={focusBorder} onBlur={blurBorder}>
+                <option value="">Seleccionar Ciudad...</option>
+                {ciudadesList.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+              </select>
             </Field>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginTop: '14px' }}>
+            <Field label="Dirección">
+              <input value={direccion} onChange={e => setDireccion(e.target.value)} placeholder="Ej. Calle 18 #25-30" style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} />
+            </Field>
             <Field label="Teléfono">
               <div style={{ position: 'relative' }}>
                 <span className="material-symbols-outlined" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '16px', color: '#cbd5e1' }}>call</span>
                 <input value={telefono} onChange={e => setTelefono(e.target.value)} placeholder="315 111 2222" style={{ ...inputStyle, paddingLeft: '34px' }} onFocus={focusBorder} onBlur={blurBorder} />
-              </div>
-            </Field>
-            <Field label="Correo Electrónico">
-              <div style={{ position: 'relative' }}>
-                <span className="material-symbols-outlined" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '16px', color: '#cbd5e1' }}>mail</span>
-                <input value={email} onChange={e => setEmail(e.target.value)} placeholder="correo@cootranar.com" style={{ ...inputStyle, paddingLeft: '34px' }} onFocus={focusBorder} onBlur={blurBorder} />
               </div>
             </Field>
           </div>
@@ -143,7 +150,7 @@ export const EmpleadosEncomiendasPage = () => {
             )}
             <button type="submit" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: BLUE, color: 'white', border: 'none', borderRadius: '7px', padding: '10px 20px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}
               onMouseEnter={e => (e.currentTarget.style.background = '#0a2f72')} onMouseLeave={e => (e.currentTarget.style.background = BLUE)}>
-              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{editingId ? 'edit' : 'save'}</span> {editingId ? 'Actualizar' : 'Guardar Empleado'}
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{editingId ? 'edit' : 'save'}</span> {editingId ? 'Actualizar' : 'Guardar Oficina'}
             </button>
           </div>
           {formMsg && <p style={{ marginTop: '10px', fontSize: '13px', fontWeight: 600, color: formMsg.type === 'ok' ? '#16a34a' : '#dc2626', textAlign: 'right' }}>{formMsg.text}</p>}
@@ -152,37 +159,40 @@ export const EmpleadosEncomiendasPage = () => {
 
       <div style={{ background: 'white', borderRadius: '10px', border: '1px solid #e8edf2', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderBottom: '1px solid #f1f5f9' }}>
-          <span style={{ fontWeight: 700, fontSize: '15px', color: '#0f172a' }}>Empleados de Encomiendas</span>
+          <span style={{ fontWeight: 700, fontSize: '15px', color: '#0f172a' }}>Oficinas de Encomiendas</span>
         </div>
         {isLoading ? (
           <div style={{ padding: '60px', textAlign: 'center', color: '#94a3b8' }}>
             <span className="material-symbols-outlined" style={{ fontSize: '32px', display: 'block', marginBottom: '8px' }}>hourglass_empty</span>
-            <span style={{ fontSize: '13px' }}>Cargando empleados...</span>
+            <span style={{ fontSize: '13px' }}>Cargando oficinas...</span>
           </div>
         ) : (
           <>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ background: '#f8fafc' }}>
-                  {['Nombre', 'Documento', 'Teléfono', 'Email', 'Agencia', 'Estado', 'Acciones'].map(l => (
+                  {['Nombre', 'Dirección', 'Teléfono', 'Ciudad', 'Estado', 'Acciones'].map(l => (
                     <th key={l} style={{ padding: '11px 16px', textAlign: 'left', fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', borderBottom: '1px solid #e8edf2' }}>{l}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {paginated.length === 0 ? (
-                  <tr><td colSpan={7} style={{ padding: '48px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>No se encontraron empleados.</td></tr>
-                ) : paginated.map(t => (
-                  <tr key={t.id} style={{ borderBottom: '1px solid #f1f5f9' }} onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')} onMouseLeave={e => (e.currentTarget.style.background = 'white')}>
-                    <td style={{ padding: '12px 16px', fontSize: '13.5px', fontWeight: 600, color: '#1e293b' }}>{t.nombre}</td>
-                    <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{t.documento}</td>
-                    <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{t.telefono}</td>
-                    <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{t.email}</td>
-                    <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{t.agencia}</td>
-                    <td style={{ padding: '12px 16px' }}><EstadoBadge activo={t.activo} /></td>
+                  <tr><td colSpan={6} style={{ padding: '48px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>No se encontraron oficinas de encomiendas.</td></tr>
+                ) : paginated.map(o => (
+                  <tr key={o.id} style={{ borderBottom: '1px solid #f1f5f9' }} onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')} onMouseLeave={e => (e.currentTarget.style.background = 'white')}>
+                    <td style={{ padding: '12px 16px', fontSize: '13.5px', fontWeight: 600, color: '#1e293b' }}>{o.nombre}</td>
+                    <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{o.direccion}</td>
+                    <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{o.telefono}</td>
+                    <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{o.ciudadNombre || ciudadesList.find(c => c.id === o.ciudadId)?.nombre || o.ciudadId}</td>
+                    <td style={{ padding: '12px 16px' }}><EstadoBadge activo={o.activo} /></td>
                     <td style={{ padding: '12px 16px' }}>
                       <div style={{ display: 'flex', gap: '10px' }}>
-                        <button onClick={() => startEdit(t)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8', display: 'flex' }} onMouseEnter={e => (e.currentTarget.style.color = BLUE)} onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}><span className="material-symbols-outlined" style={{ fontSize: '18px' }}>edit</span></button>
+                        <button onClick={() => startEdit(o)} title="Editar" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8', display: 'flex' }} onMouseEnter={e => (e.currentTarget.style.color = BLUE)} onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}><span className="material-symbols-outlined" style={{ fontSize: '18px' }}>edit</span></button>
+                        <button onClick={() => handleToggle(o)} title={o.activo ? 'Inhabilitar' : 'Habilitar'} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8', display: 'flex' }}
+                          onMouseEnter={e => (e.currentTarget.style.color = o.activo ? '#dc2626' : '#16a34a')} onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}>
+                          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{o.activo ? 'block' : 'check_circle'}</span>
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -193,7 +203,7 @@ export const EmpleadosEncomiendasPage = () => {
               <span style={{ fontSize: '12.5px', color: '#94a3b8' }}>
                 Mostrando <strong style={{ color: '#475569' }}>{list.length === 0 ? 0 : (page - 1) * ITEMS_PER_PAGE + 1}</strong> a{' '}
                 <strong style={{ color: '#475569' }}>{Math.min(page * ITEMS_PER_PAGE, list.length)}</strong> de{' '}
-                <strong style={{ color: '#475569' }}>{list.length}</strong> empleados
+                <strong style={{ color: '#475569' }}>{list.length}</strong> oficinas
               </span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
                 <NavArrow icon="chevron_left" disabled={page === 1} onClick={() => setPage(p => p - 1)} />

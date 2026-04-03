@@ -273,13 +273,6 @@ export const RutasPage = () => {
                     <td style={{ padding: '12px 16px', textAlign: 'center' }}><EstadoBadge activa={r.activa} /></td>
                     <td style={{ padding: '12px 16px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <button style={{
-                          display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 12px', borderRadius: '6px',
-                          fontSize: '12px', fontWeight: 600, background: BLUE, color: 'white', border: 'none',
-                          cursor: 'pointer', fontFamily: 'inherit',
-                        }}>
-                          <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>payments</span> Administrar Tarifas
-                        </button>
                         <button title="Editar" onClick={() => startEdit(r)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center' }}
                           onMouseEnter={e => (e.currentTarget.style.color = BLUE)} onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}>
                           <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>edit</span>

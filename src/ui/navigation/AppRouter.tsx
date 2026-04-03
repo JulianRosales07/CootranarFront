@@ -16,6 +16,8 @@ import { TiposBusPage } from '../pages/tipos-bus/TiposBusPage';
 import { RutasPage } from '../pages/rutas/RutasPage';
 import { TaquillerosPage } from '../pages/empleados/TaquillerosPage';
 import { EmpleadosEncomiendasPage } from '../pages/empleados/EmpleadosEncomiendasPage';
+import { OficinasEncomiendasPage } from '../pages/oficinas-encomiendas/OficinasEncomiendasPage';
+import { TarifasRutaPage } from '../pages/tarifas-ruta/TarifasRutaPage';
 import { UsuariosPage } from '../pages/usuarios/UsuariosPage';
 import { PrivateRoute } from './PrivateRoute';
 import { ROUTES } from '../../shared/constants';
@@ -43,6 +45,8 @@ export const AppRouter = () => {
           <Route path={ROUTES.TIPOS_BUS} element={<TiposBusPage />} />
           <Route path={ROUTES.TAQUILLEROS} element={<TaquillerosPage />} />
           <Route path={ROUTES.EMPLEADOS_ENCOMIENDAS} element={<EmpleadosEncomiendasPage />} />
+          <Route path={ROUTES.OFICINAS_ENCOMIENDAS} element={<OficinasEncomiendasPage />} />
+          <Route path={ROUTES.TARIFAS_RUTA} element={<TarifasRutaPage />} />
           <Route path={ROUTES.USUARIOS} element={<UsuariosPage />} />
         </Route>
 

@@ -1,7 +1,17 @@
 @import "tailwindcss";
 
+@theme {
+  /* Colores primarios en oklch para que funcionen los modificadores de opacidad (/) */
+  --color-primary: oklch(29.4% 0.149 258.08);
+  --color-primary-hover: oklch(24% 0.138 258.08);
+
+  /* Fuentes */
+  --font-sans: 'Public Sans', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  --font-display: 'Plus Jakarta Sans', 'Public Sans', sans-serif;
+}
+
 :root {
-  font-family: 'Public Sans', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -13,5 +23,6 @@
 }
 
 body {
-  font-family: 'Public Sans', sans-serif;
+  font-family: var(--font-sans);
+  background-color: #f8fafc;
 }

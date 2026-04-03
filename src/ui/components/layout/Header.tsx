@@ -15,6 +15,8 @@ const PAGE_SEARCH_PLACEHOLDER: Record<string, string> = {
   [ROUTES.OFICINAS]: 'Buscar oficina...',
   [ROUTES.TIPOS_BUS]: 'Buscar tipo de bus...',
   [ROUTES.TIPOS_SERVICIO]: 'Buscar tipo de servicio...',
+  [ROUTES.OFICINAS_ENCOMIENDAS]: 'Buscar oficina de encomiendas...',
+  [ROUTES.TARIFAS_RUTA]: 'Buscar tarifa...',
 };
 
 const getPageHeaderInfo = (pathname: string) => {
@@ -176,6 +178,36 @@ const getPageHeaderInfo = (pathname: string) => {
           <>
             Inicio &rsaquo; Gestión Base &rsaquo;{' '}
             <span style={{ color: '#0D3B8E', fontWeight: 600 }}>Usuarios</span>
+          </>
+        ),
+      };
+    case ROUTES.OFICINAS_ENCOMIENDAS:
+      return {
+        title: 'Oficinas de Encomiendas',
+        breadcrumbs: (
+          <>
+            Inicio &rsaquo; Encomiendas &rsaquo;{' '}
+            <span style={{ color: '#0D3B8E', fontWeight: 600 }}>Oficinas</span>
+          </>
+        ),
+      };
+    case ROUTES.TARIFAS_RUTA:
+      return {
+        title: 'Tarifas de Ruta',
+        breadcrumbs: (
+          <>
+            Inicio &rsaquo; Operaciones &rsaquo;{' '}
+            <span style={{ color: '#0D3B8E', fontWeight: 600 }}>Tarifas</span>
+          </>
+        ),
+      };
+    case ROUTES.DEPARTAMENTOS:
+      return {
+        title: 'Departamentos',
+        breadcrumbs: (
+          <>
+            Inicio &rsaquo; Gestión Base &rsaquo;{' '}
+            <span style={{ color: '#0D3B8E', fontWeight: 600 }}>Departamentos</span>
           </>
         ),
       };

@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../../shared/constants';
 import { useAuth } from '../../hooks/useAuth';
 import { useSidebar } from '../../context/SidebarContext';
+import logoCootranar from '../../../assets/LOGO-COOTRANAR-.png';
 
 const SIDEBAR_BG = '#0b2454';
 const SIDEBAR_WIDTH = 256;
@@ -24,6 +25,7 @@ const sections: NavSection[] = [
     { path: ROUTES.TIPOS_SERVICIO, label: 'Gestión de Tipos de Servicio', icon: 'service_toolbox' },
     { path: ROUTES.VEHICULOS, label: 'Gestión de Vehículos', icon: 'airport_shuttle' },
     { path: ROUTES.RUTAS, label: 'Gestión de Rutas', icon: 'map' },
+    { path: ROUTES.TARIFAS_RUTA, label: 'Tarifas de Ruta', icon: 'payments' },
     { path: ROUTES.VIAJES, label: 'Gestión de Viajes', icon: 'departure_board' },
   ]},
   { title: 'Recursos y Legal', items: [
@@ -32,9 +34,12 @@ const sections: NavSection[] = [
     { path: ROUTES.POLIZAS, label: 'Gestión de Pólizas', icon: 'gavel' },
     { path: ROUTES.USUARIOS, label: 'Gestión de Usuarios', icon: 'manage_accounts' },
   ]},
+  { title: 'Encomiendas', items: [
+    { path: ROUTES.OFICINAS_ENCOMIENDAS, label: 'Oficinas de Encomiendas', icon: 'local_shipping' },
+    { path: ROUTES.EMPLEADOS_ENCOMIENDAS, label: 'Empleados Encomiendas', icon: 'package_2' },
+  ]},
   { title: 'Gestión de Empleados', items: [
     { path: ROUTES.TAQUILLEROS, label: 'Taquilleros', icon: 'point_of_sale' },
-    { path: ROUTES.EMPLEADOS_ENCOMIENDAS, label: 'Encomiendas', icon: 'package_2' },
   ]},
 ];
 
@@ -58,9 +63,9 @@ export const Sidebar = () => {
         transition: 'width 0.2s ease',
       }}>
         {/* Logo */}
-        <div style={{ padding: '20px 0 12px', borderBottom: '1px solid rgba(255,255,255,0.05)', width: '100%', display: 'flex', justifyContent: 'center' }}>
-          <div style={{ width: '36px', height: '36px', backgroundColor: 'white', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#0D3B8E' }}>directions_bus</span>
+        <div style={{ padding: '20px 12px 12px', borderBottom: '1px solid rgba(255,255,255,0.05)', width: '100%', display: 'flex', justifyContent: 'center' }}>
+          <div style={{ width: '40px', height: '40px', backgroundColor: 'white', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '22px', color: '#0D3B8E' }}>directions_bus</span>
           </div>
         </div>
 
@@ -132,13 +137,10 @@ export const Sidebar = () => {
       transition: 'width 0.2s ease',
     }}>
       {/* Logo + collapse btn */}
-      <div style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '12px', borderBottom: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
-        <div style={{ width: '36px', height: '36px', backgroundColor: 'white', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#0D3B8E' }}>directions_bus</span>
-        </div>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: '17px', fontWeight: '800', letterSpacing: '-0.02em', lineHeight: 1 }}>Cootranar</div>
-          <div style={{ fontSize: '9px', opacity: 0.45, fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.15em', marginTop: '4px' }}>Admin Panel</div>
+      <div style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', gap: '12px', borderBottom: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', backgroundColor: 'white', padding: '16px', borderRadius: '12px' }}>
+          <img src={logoCootranar} alt="Cootranar" style={{ height: '48px', objectFit: 'contain' }} />
+          <div style={{ fontSize: '9px', opacity: 0.6, fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.15em', color: '#0b2454' }}>Admin Panel</div>
         </div>
         <button onClick={toggle} title="Contraer menú" style={{
           width: '28px', height: '28px', borderRadius: '6px', background: 'rgba(255,255,255,0.08)',

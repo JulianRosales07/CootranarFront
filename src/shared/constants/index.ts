@@ -19,6 +19,9 @@ export const ROUTES = {
   TIPOS_BUS: '/tipos-bus',
   TAQUILLEROS: '/empleados/taquilleros',
   EMPLEADOS_ENCOMIENDAS: '/empleados/encomiendas',
+  OFICINAS_ENCOMIENDAS: '/oficinas-encomiendas',
+  TARIFAS_RUTA: '/rutas/tarifas',
+  DEPARTAMENTOS: '/departamentos',
 } as const;
 
 export const ESTADOS_TIQUETE = {

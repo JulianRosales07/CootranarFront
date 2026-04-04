@@ -1,38 +1,58 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ApiAgenciaRepository } from '../../infrastructure/repositories/ApiAgenciaRepository';
-import { getAgencias } from '../../application/use-cases/agencias/getAgencias';
-import { createAgencia } from '../../application/use-cases/agencias/createAgencia';
-import { updateAgencia } from '../../application/use-cases/agencias/updateAgencia';
-import { deleteAgencia } from '../../application/use-cases/agencias/deleteAgencia';
+import { agenciasApi } from '../../infrastructure/services/agenciasApi';
 import type { Agencia } from '../../domain/entities/Agencia';
-
-const repository = new ApiAgenciaRepository();
 
 export const useAgencias = () => {
   const queryClient = useQueryClient();
 
   const { data: agencias, isLoading, error } = useQuery({
     queryKey: ['agencias'],
-    queryFn: () => getAgencias(repository),
+    queryFn: async () => {
+      const response = await agenciasApi.obtenerTodas();
+      console.log('Response agencias:', response.data);
+      return response.data.data.agencias || [];
+    },
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: Omit<Agencia, 'id' | 'createdAt' | 'updatedAt'>) => createAgencia(repository, data),
+    mutationFn: async (data: any) => {
+      // Mapear campos del frontend al backend
+      const backendData = {
+        nombre: data.nombre,
+        idciudad: data.ciudadId ? parseInt(data.ciudadId, 10) : null,
+        direccion: data.direccion || null,
+        telefono: data.telefono || null
+      };
+      const response = await agenciasApi.crear(backendData);
+      return response.data.data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agencias'] });
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Agencia> }) =>
-      updateAgencia(repository, id, data),
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      // Mapear campos del frontend al backend
+      const backendData: any = {};
+      if (data.nombre) backendData.nombre = data.nombre;
+      if (data.ciudadId) backendData.idciudad = parseInt(data.ciudadId, 10);
+      if (data.direccion !== undefined) backendData.direccion = data.direccion || null;
+      if (data.telefono !== undefined) backendData.telefono = data.telefono || null;
+      
+      const response = await agenciasApi.actualizar(id, backendData);
+      return response.data.data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agencias'] });
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteAgencia(repository, id),
+    mutationFn: async (id: string) => {
+      const response = await agenciasApi.eliminar(id);
+      return response.data.data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agencias'] });
     },

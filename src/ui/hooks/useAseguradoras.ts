@@ -1,40 +1,48 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ApiAseguradoraRepository } from '../../infrastructure/repositories/ApiAseguradoraRepository';
+import { aseguradorasApi } from '../../infrastructure/services/aseguradorasApi';
 import type { Aseguradora } from '../../domain/entities/Aseguradora';
-
-const repository = new ApiAseguradoraRepository();
 
 export const useAseguradoras = () => {
   const queryClient = useQueryClient();
 
   const query = useQuery({
     queryKey: ['aseguradoras'],
-    queryFn: () => repository.findAll(),
+    queryFn: async () => {
+      const response = await aseguradorasApi.obtenerTodas();
+      const data = response.data.data;
+      const raw = data.aseguradoras || data || [];
+      return Array.isArray(raw) ? raw.map((a: any) => ({
+        ...a,
+        id: String(a.idaseguradora || a.id),
+      })) : [];
+    },
   });
 
   const create = useMutation({
-    mutationFn: (data: Omit<Aseguradora, 'id' | 'activo'>) => repository.save(data),
+    mutationFn: async (data: Omit<Aseguradora, 'id' | 'activo'>) => {
+      const response = await aseguradorasApi.crear(data);
+      return response.data.data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['aseguradoras'] });
     },
   });
 
   const update = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Aseguradora> }) => repository.update(id, data),
+    mutationFn: async ({ id, data }: { id: string; data: Partial<Aseguradora> }) => {
+      const response = await aseguradorasApi.actualizar(id, data);
+      return response.data.data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['aseguradoras'] });
     },
   });
 
   const deactivate = useMutation({
-    mutationFn: (id: string) => repository.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['aseguradoras'] });
+    mutationFn: async (id: string) => {
+      const response = await aseguradorasApi.eliminar(id);
+      return response.data.data;
     },
-  });
-
-  const activate = useMutation({
-    mutationFn: (id: string) => repository.activate(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['aseguradoras'] });
     },
@@ -47,6 +55,5 @@ export const useAseguradoras = () => {
     create,
     update,
     deactivate,
-    activate,
   };
 };

@@ -77,8 +77,8 @@ export const TarifasRutaPage = () => {
     return p;
   })();
 
-  const agName = (id: string) => agenciasList.find(a => a.id === id)?.nombre ?? id;
-  const rutaLabel = (r: typeof rutasList[0]) => `${agName(r.origen)} → ${agName(r.destino)}`;
+  const agName = (id: string) => agenciasList.find((a: any) => a.idagencia === parseInt(id))?.nombre ?? id;
+  const rutaLabel = (r: any) => r.nombre || `${agName(r.origen)} → ${agName(r.destino)}`;
 
   const focusBorder = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => (e.currentTarget.style.borderColor = '#93b4e0');
   const blurBorder = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => (e.currentTarget.style.borderColor = '#e2e8f0');
@@ -89,7 +89,16 @@ export const TarifasRutaPage = () => {
     e.preventDefault();
     if (!selectedRutaId) { setFormMsg({ type: 'err', text: 'Selecciona una ruta primero.' }); return; }
     if (!tipoBusId || !precio) { setFormMsg({ type: 'err', text: 'Tipo de bus y precio son requeridos.' }); return; }
-    const payload = { idRuta: selectedRutaId, idTipoBus: tipoBusId, precio: Number(precio) };
+    
+    // Mapear campos del frontend al backend
+    const payload = { 
+      idruta: parseInt(selectedRutaId, 10),
+      idtipobus: parseInt(tipoBusId, 10),
+      piso: 1, // Por defecto piso 1
+      valornormal: Number(precio),
+      valortraficoalto: Number(precio) * 1.2 // 20% más para tráfico alto
+    };
+    
     const cb = {
       onSuccess: () => { setFormMsg({ type: 'ok', text: editingId ? 'Tarifa actualizada.' : 'Tarifa creada.' }); resetForm(); setTimeout(() => setFormMsg(null), 3000); },
       onError: () => { setFormMsg({ type: 'err', text: 'Error al guardar tarifa.' }); setTimeout(() => setFormMsg(null), 3000); },
@@ -180,11 +189,11 @@ export const TarifasRutaPage = () => {
                     <tr><td colSpan={3} style={{ padding: '48px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>No hay tarifas configuradas para esta ruta.</td></tr>
                   ) : paginated.map(t => (
                     <tr key={t.id} style={{ borderBottom: '1px solid #f1f5f9' }} onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')} onMouseLeave={e => (e.currentTarget.style.background = 'white')}>
-                      <td style={{ padding: '12px 16px', fontSize: '13.5px', fontWeight: 600, color: '#1e293b' }}>{t.tipoBusNombre || tiposBusList.find(tb => tb.id === t.idTipoBus)?.nombre || t.idTipoBus}</td>
-                      <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>${t.precio.toLocaleString()}</td>
+                      <td style={{ padding: '12px 16px', fontSize: '13.5px', fontWeight: 600, color: '#1e293b' }}>{t.tipoBusNombre || tiposBusList.find(tb => tb.id === String(t.idTipoBus))?.nombre || t.idTipoBus}</td>
+                      <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>${t.precio?.toLocaleString() || 0}</td>
                       <td style={{ padding: '12px 16px' }}>
                         <div style={{ display: 'flex', gap: '10px' }}>
-                          <button onClick={() => { setEditingId(t.id); setTipoBusId(t.idTipoBus); setPrecio(String(t.precio)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                          <button onClick={() => { setEditingId(t.id); setTipoBusId(String(t.idTipoBus)); setPrecio(String(t.precio)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                             style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8', display: 'flex' }}
                             onMouseEnter={e => (e.currentTarget.style.color = BLUE)} onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}>
                             <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>edit</span>

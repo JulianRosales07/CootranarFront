@@ -88,10 +88,6 @@ export const OficinasPage = () => {
 
   /* ── form state ──────────────────────────────────────────── */
   const [nombre, setNombre] = useState('');
-  const [codigo, setCodigo] = useState('');
-  const [direccion, setDireccion] = useState('');
-  const [telefono, setTelefono] = useState('');
-  const [email, setEmail] = useState('');
   const [agenciaId, setAgenciaId] = useState('');
   const [activo, setActivo] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -125,34 +121,29 @@ export const OficinasPage = () => {
   const agenciasList = Array.isArray(agencias) ? agencias : [];
 
   const agenciaName = (id: string) => {
-    const ag = agenciasList.find((a) => a.id === id);
+    const ag = agenciasList.find((a: any) => a.idagencia === parseInt(id));
     return ag?.nombre ?? '—';
   };
 
   const resetForm = () => {
-    setNombre(''); setCodigo(''); setDireccion(''); setTelefono('');
-    setEmail(''); setAgenciaId(''); setActivo(true); setEditingId(null);
+    setNombre(''); setAgenciaId(''); setActivo(true); setEditingId(null);
   };
 
-  const startEdit = (o: Oficina) => {
-    setEditingId(o.id);
-    setNombre(o.nombre);
-    setCodigo(o.codigo);
-    setDireccion(o.direccion);
-    setTelefono(o.telefono);
-    setEmail(o.email);
-    setAgenciaId(o.agenciaId);
+  const startEdit = (o: any) => {
+    setEditingId(o.idoficina);
+    setNombre(o.codigo); // El codigo en BD es el nombre
+    setAgenciaId(o.idagencia ? String(o.idagencia) : '');
     setActivo(o.activo);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleGuardar = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nombre.trim() || !codigo.trim() || !agenciaId) {
-      setFormMsg({ type: 'err', text: 'Nombre, código y agencia son requeridos.' });
+    if (!nombre.trim() || !agenciaId) {
+      setFormMsg({ type: 'err', text: 'Nombre y agencia son requeridos.' });
       return;
     }
-    const payload = { nombre, codigo, direccion, telefono, email, agenciaId, activo };
+    const payload = { nombre, agenciaId, activo };
 
     if (editingId) {
       update.mutate(
@@ -197,15 +188,10 @@ export const OficinasPage = () => {
         </div>
 
         <form onSubmit={handleGuardar}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
-            <Field label="Código" required>
-              <input value={codigo} onChange={e => setCodigo(e.target.value)}
-                placeholder="Ej. OF-001" style={inputStyle}
-                onFocus={focusBorder} onBlur={blurBorder} />
-            </Field>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
             <Field label="Nombre" required>
               <input value={nombre} onChange={e => setNombre(e.target.value)}
-                placeholder="Ej. Oficina Central Pasto" style={inputStyle}
+                placeholder="Ej. Taquilla Principal" style={inputStyle}
                 onFocus={focusBorder} onBlur={blurBorder} />
             </Field>
             <Field label="Agencia" required>
@@ -213,46 +199,10 @@ export const OficinasPage = () => {
                 style={{ ...inputStyle, appearance: 'none' }}
                 onFocus={focusBorder} onBlur={blurBorder}>
                 <option value="">Seleccionar Agencia...</option>
-                {agenciasList.map((ag) => (
-                  <option key={ag.id} value={ag.id}>{ag.nombre}</option>
+                {agenciasList.map((ag: any) => (
+                  <option key={ag.idagencia} value={ag.idagencia}>{ag.nombre}</option>
                 ))}
               </select>
-            </Field>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px', marginTop: '14px' }}>
-            <Field label="Dirección">
-              <div style={{ position: 'relative' }}>
-                <span className="material-symbols-outlined" style={{
-                  position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)',
-                  fontSize: '16px', color: '#cbd5e1',
-                }}>location_on</span>
-                <input value={direccion} onChange={e => setDireccion(e.target.value)}
-                  placeholder="Ej. Calle 18 #25-30" style={inputWithIconStyle}
-                  onFocus={focusBorder} onBlur={blurBorder} />
-              </div>
-            </Field>
-            <Field label="Teléfono">
-              <div style={{ position: 'relative' }}>
-                <span className="material-symbols-outlined" style={{
-                  position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)',
-                  fontSize: '16px', color: '#cbd5e1',
-                }}>call</span>
-                <input value={telefono} onChange={e => setTelefono(e.target.value)}
-                  placeholder="Ej. 602 723 4567" style={inputWithIconStyle}
-                  onFocus={focusBorder} onBlur={blurBorder} />
-              </div>
-            </Field>
-            <Field label="Correo Electrónico">
-              <div style={{ position: 'relative' }}>
-                <span className="material-symbols-outlined" style={{
-                  position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)',
-                  fontSize: '16px', color: '#cbd5e1',
-                }}>mail</span>
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-                  placeholder="oficina@cootranar.com" style={inputWithIconStyle}
-                  onFocus={focusBorder} onBlur={blurBorder} />
-              </div>
             </Field>
           </div>
 
@@ -368,14 +318,11 @@ export const OficinasPage = () => {
               <thead>
                 <tr style={{ background: '#f8fafc' }}>
                   {[
-                    { label: 'Código',    width: '100px' },
-                    { label: 'Nombre',    width: '180px' },
-                    { label: 'Agencia',   width: '160px' },
-                    { label: 'Dirección', width: '200px' },
-                    { label: 'Teléfono',  width: '120px' },
-                    { label: 'Email',     width: '180px' },
-                    { label: 'Estado',    width: '90px'  },
-                    { label: 'Acciones',  width: '80px'  },
+                    { label: 'ID',        width: '80px' },
+                    { label: 'Nombre',    width: '300px' },
+                    { label: 'Agencia',   width: '300px' },
+                    { label: 'Estado',    width: '120px'  },
+                    { label: 'Acciones',  width: '120px'  },
                   ].map(({ label, width }) => (
                     <th key={label} style={{
                       width, padding: '11px 16px',
@@ -391,7 +338,7 @@ export const OficinasPage = () => {
               <tbody>
                 {paginated.length === 0 ? (
                   <tr>
-                    <td colSpan={8} style={{
+                    <td colSpan={5} style={{
                       padding: '48px', textAlign: 'center',
                       color: '#94a3b8', fontSize: '13px',
                     }}>
@@ -399,30 +346,21 @@ export const OficinasPage = () => {
                     </td>
                   </tr>
                 ) : (
-                  paginated.map((oficina) => (
+                  paginated.map((oficina: any) => (
                     <tr
-                      key={oficina.id}
+                      key={oficina.idoficina}
                       style={{ borderBottom: '1px solid #f1f5f9' }}
                       onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')}
                       onMouseLeave={e => (e.currentTarget.style.background = 'white')}
                     >
                       <td style={{ padding: '12px 16px', fontSize: '13px', color: '#64748b', fontWeight: 600, fontFamily: 'monospace' }}>
-                        {oficina.codigo}
+                        #{oficina.idoficina}
                       </td>
                       <td style={{ padding: '12px 16px', fontSize: '13.5px', fontWeight: 600, color: '#1e293b' }}>
-                        {oficina.nombre}
+                        {oficina.codigo}
                       </td>
                       <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>
-                        {agenciaName(oficina.agenciaId)}
-                      </td>
-                      <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>
-                        {oficina.direccion || '—'}
-                      </td>
-                      <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>
-                        {oficina.telefono || '—'}
-                      </td>
-                      <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>
-                        {oficina.email || '—'}
+                        {oficina.nombreagencia || agenciaName(oficina.idagencia)}
                       </td>
                       <td style={{ padding: '12px 16px' }}>
                         <EstadoBadge activo={oficina.activo} />
@@ -440,7 +378,7 @@ export const OficinasPage = () => {
                           >
                             <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>edit</span>
                           </button>
-                          <button title="Eliminar" onClick={() => handleDelete(oficina.id)}
+                          <button title="Eliminar" onClick={() => handleDelete(oficina.idoficina)}
                             style={{
                               background: 'none', border: 'none', padding: 0,
                               cursor: 'pointer', color: '#94a3b8',

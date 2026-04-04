@@ -15,6 +15,7 @@ function getInitials(nombre: string): string {
 const AVATAR_COLORS: Record<string, string> = {};
 const PALETTE = ['#4F86C6', '#6DBB9A', '#E98D5C', '#B97BD4', '#E96C6C', '#5BB8A8', '#D4A056', '#7B8FD4'];
 function avatarColor(id: string): string {
+  if (!id) return PALETTE[0];
   if (!AVATAR_COLORS[id]) {
     let hash = 0;
     for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) | 0;

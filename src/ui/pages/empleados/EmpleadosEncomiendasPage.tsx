@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Layout } from '../../components/layout/Layout';
 import { useEmpleadosEncomiendas } from '../../hooks/useEmpleadosEncomiendas';
+import { useOficinasEncomiendas } from '../../hooks/useOficinasEncomiendas';
 import type { EmpleadoEncomienda } from '../../../domain/entities/EmpleadoEncomienda';
 
 const BLUE = '#0D3B8E';
@@ -59,13 +60,19 @@ export const EmpleadosEncomiendasPage = () => {
   const { empleados, isLoading, create, update } = useEmpleadosEncomiendas();
 
   const [nombre, setNombre] = useState('');
+  const [apellido, setApellido] = useState('');
+  const [tipodocumento, setTipodocumento] = useState('CC');
   const [documento, setDocumento] = useState('');
   const [telefono, setTelefono] = useState('');
   const [email, setEmail] = useState('');
-  const [agencia, setAgencia] = useState('');
+  const [password, setPassword] = useState('');
+  const [agenciaId, setAgenciaId] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formMsg, setFormMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
   const [page, setPage] = useState(1);
+
+  const { oficinas } = useOficinasEncomiendas();
+  const oficinasList = Array.isArray(oficinas) ? oficinas : [];
 
   const list = useMemo(() => Array.isArray(empleados) ? empleados : [], [empleados]);
   const totalPages = Math.max(1, Math.ceil(list.length / ITEMS_PER_PAGE));
@@ -83,23 +90,66 @@ export const EmpleadosEncomiendasPage = () => {
   const focusBorder = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => (e.currentTarget.style.borderColor = '#93b4e0');
   const blurBorder = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => (e.currentTarget.style.borderColor = '#e2e8f0');
 
-  const resetForm = () => { setNombre(''); setDocumento(''); setTelefono(''); setEmail(''); setAgencia(''); setEditingId(null); };
+  const resetForm = () => { 
+    setNombre(''); setApellido(''); setTipodocumento('CC'); setDocumento(''); 
+    setTelefono(''); setEmail(''); setPassword(''); setAgenciaId(''); setEditingId(null); 
+  };
 
   const startEdit = (emp: EmpleadoEncomienda) => {
-    setEditingId(emp.id); setNombre(emp.nombre); setDocumento(emp.documento);
-    setTelefono(emp.telefono); setEmail(emp.email); setAgencia(emp.agencia);
+    setEditingId(emp.id); 
+    setNombre(emp.nombre || ''); 
+    setApellido(emp.apellido || '');
+    setTipodocumento(emp.tipodocumento || 'CC');
+    setDocumento(emp.documento || '');
+    setTelefono(emp.telefono || ''); 
+    setEmail(emp.email || emp.correo || ''); 
+    setPassword(''); // No cargamos contraseña al editar por seguridad
+    setAgenciaId(emp.idoficinaencomienda ? String(emp.idoficinaencomienda) : '');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleGuardar = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nombre || !documento) { setFormMsg({ type: 'err', text: 'Nombre y documento son requeridos.' }); return; }
-    const payload = { nombre, documento, telefono, email, agencia, activo: true };
-    const cb = {
-      onSuccess: () => { setFormMsg({ type: 'ok', text: editingId ? 'Empleado actualizado.' : 'Empleado registrado.' }); resetForm(); setTimeout(() => setFormMsg(null), 3000); },
-      onError: () => { setFormMsg({ type: 'err', text: 'Error al guardar.' }); setTimeout(() => setFormMsg(null), 3000); },
+    if (!nombre || !apellido || !documento || !agenciaId || (!editingId && !password)) { 
+      setFormMsg({ type: 'err', text: 'Nombre, apellido, documento, oficina y contraseña (para nuevos) son requeridos.' }); 
+      return; 
+    }
+
+    if (password && (password.length < 6 || password.length > 12)) {
+      setFormMsg({ type: 'err', text: 'La contraseña debe tener entre 6 y 12 caracteres.' });
+      return;
+    }
+    
+    const payload: any = { 
+      nombre, 
+      apellido,
+      tipodocumento,
+      documento, 
+      telefono, 
+      correo: email, 
+      idoficinaencomienda: parseInt(agenciaId, 10), 
+      activo: true 
     };
-    editingId ? update.mutate({ id: editingId, data: payload }, cb) : create.mutate(payload, cb);
+
+    if (password) payload.password = password;
+    
+    const cb = {
+      onSuccess: () => { 
+        setFormMsg({ type: 'ok', text: editingId ? 'Empleado actualizado.' : 'Empleado registrado.' }); 
+        resetForm(); 
+        setTimeout(() => setFormMsg(null), 3000); 
+      },
+      onError: () => { 
+        setFormMsg({ type: 'err', text: 'Error al guardar.' }); 
+        setTimeout(() => setFormMsg(null), 3000); 
+      },
+    };
+
+    if (editingId) {
+      update.mutate({ idusuario: parseInt(editingId, 10), data: payload }, cb);
+    } else {
+      create.mutate(payload, cb);
+    }
   };
 
   return (
@@ -110,29 +160,43 @@ export const EmpleadosEncomiendasPage = () => {
           <span style={{ fontWeight: 700, fontSize: '15px', color: '#0f172a' }}>{editingId ? 'Editar Empleado' : 'Registrar Empleado de Encomiendas'}</span>
         </div>
         <form onSubmit={handleGuardar}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
-            <Field label="Nombre Completo" required>
-              <input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej. Pedro Ruiz" style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '14px' }}>
+            <Field label="Nombre" required>
+              <input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej. Juan" style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} />
             </Field>
-            <Field label="Documento" required>
-              <input value={documento} onChange={e => setDocumento(e.target.value)} placeholder="Ej. 1085111222" style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} />
+            <Field label="Apellido" required>
+              <input value={apellido} onChange={e => setApellido(e.target.value)} placeholder="Ej. Pérez" style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} />
             </Field>
-            <Field label="Agencia Asignada" required>
-              <input value={agencia} onChange={e => setAgencia(e.target.value)} placeholder="Ej. Terminal Pasto" style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} />
+            <Field label="Correo Electrónico" required>
+              <input value={email} onChange={e => setEmail(e.target.value)} placeholder="correo@ejemplo.com" style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} />
+            </Field>
+            <Field label="Contraseña" required={!editingId}>
+              <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="6-12 caracteres" style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} />
             </Field>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginTop: '14px' }}>
-            <Field label="Teléfono">
-              <div style={{ position: 'relative' }}>
-                <span className="material-symbols-outlined" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '16px', color: '#cbd5e1' }}>call</span>
-                <input value={telefono} onChange={e => setTelefono(e.target.value)} placeholder="315 111 2222" style={{ ...inputStyle, paddingLeft: '34px' }} onFocus={focusBorder} onBlur={blurBorder} />
-              </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '14px', marginTop: '14px' }}>
+            <Field label="Tipo Doc." required>
+              <select value={tipodocumento} onChange={e => setTipodocumento(e.target.value)} style={{ ...inputStyle, appearance: 'none' }} onFocus={focusBorder} onBlur={blurBorder}>
+                <option value="CC">CC</option>
+                <option value="TI">TI</option>
+                <option value="CE">CE</option>
+                <option value="PAS">PAS</option>
+              </select>
             </Field>
-            <Field label="Correo Electrónico">
-              <div style={{ position: 'relative' }}>
-                <span className="material-symbols-outlined" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '16px', color: '#cbd5e1' }}>mail</span>
-                <input value={email} onChange={e => setEmail(e.target.value)} placeholder="correo@cootranar.com" style={{ ...inputStyle, paddingLeft: '34px' }} onFocus={focusBorder} onBlur={blurBorder} />
-              </div>
+            <Field label="Documento" required>
+              <input value={documento} onChange={e => setDocumento(e.target.value)} placeholder="1234567890" style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} />
+            </Field>
+            <Field label="Teléfono" required>
+              <input value={telefono} onChange={e => setTelefono(e.target.value)} placeholder="3001234567" style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} />
+            </Field>
+            <Field label="Oficina de Encomiendas" required>
+              <select value={agenciaId} onChange={e => setAgenciaId(e.target.value)} style={{ ...inputStyle, appearance: 'none' }} onFocus={focusBorder} onBlur={blurBorder}>
+                <option value="">Seleccionar...</option>
+                {oficinasList.map((off: any) => (
+                  <option key={off.id} value={off.id}>{off.nombre || off.direccion} - {off.ciudadNombre}</option>
+                ))}
+              </select>
             </Field>
           </div>
           <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
@@ -178,7 +242,9 @@ export const EmpleadosEncomiendasPage = () => {
                     <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{t.documento}</td>
                     <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{t.telefono}</td>
                     <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{t.email}</td>
-                    <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{t.agencia}</td>
+                    <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>
+                      {oficinasList.find((off: any) => off.id === t.idoficinaencomienda)?.nombre || '-'}
+                    </td>
                     <td style={{ padding: '12px 16px' }}><EstadoBadge activo={t.activo} /></td>
                     <td style={{ padding: '12px 16px' }}>
                       <div style={{ display: 'flex', gap: '10px' }}>

@@ -61,7 +61,6 @@ export const OficinasEncomiendasPage = () => {
   const { ciudades } = useCiudades();
   const ciudadesList = Array.isArray(ciudades) ? ciudades : [];
 
-  const [nombre, setNombre] = useState('');
   const [direccion, setDireccion] = useState('');
   const [telefono, setTelefono] = useState('');
   const [ciudadId, setCiudadId] = useState('');
@@ -85,21 +84,27 @@ export const OficinasEncomiendasPage = () => {
   const focusBorder = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => (e.currentTarget.style.borderColor = '#93b4e0');
   const blurBorder = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => (e.currentTarget.style.borderColor = '#e2e8f0');
 
-  const resetForm = () => { setNombre(''); setDireccion(''); setTelefono(''); setCiudadId(''); setEditingId(null); };
+  const resetForm = () => { setDireccion(''); setTelefono(''); setCiudadId(''); setEditingId(null); };
 
   const startEdit = (o: OficinaEncomienda) => {
-    setEditingId(o.id); setNombre(o.nombre); setDireccion(o.direccion);
+    setEditingId(o.id); setDireccion(o.direccion);
     setTelefono(o.telefono); setCiudadId(o.ciudadId);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleGuardar = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nombre) { setFormMsg({ type: 'err', text: 'El nombre es requerido.' }); return; }
-    const payload = { nombre, direccion, telefono, ciudadId, activo: true } as any;
+    if (!ciudadId) { setFormMsg({ type: 'err', text: 'La ciudad es requerida.' }); return; }
+    if (!direccion) { setFormMsg({ type: 'err', text: 'La dirección es requerida.' }); return; }
+    
+    const payload = { direccion, telefono, ciudadId, activo: true } as any;
     const cb = {
       onSuccess: () => { setFormMsg({ type: 'ok', text: editingId ? 'Oficina actualizada.' : 'Oficina registrada.' }); resetForm(); setTimeout(() => setFormMsg(null), 3000); },
-      onError: () => { setFormMsg({ type: 'err', text: 'Error al guardar.' }); setTimeout(() => setFormMsg(null), 3000); },
+      onError: (err: any) => { 
+        const errorMsg = err?.message || err?.response?.data?.message || 'Error al guardar.';
+        setFormMsg({ type: 'err', text: errorMsg }); 
+        setTimeout(() => setFormMsg(null), 3000); 
+      },
     };
     editingId ? update.mutate({ id: editingId, data: payload }, cb) : create.mutate(payload, cb);
   };
@@ -121,20 +126,17 @@ export const OficinasEncomiendasPage = () => {
         </div>
         <form onSubmit={handleGuardar}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-            <Field label="Nombre" required>
-              <input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej. Oficina Central Pasto" style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} />
-            </Field>
-            <Field label="Ciudad">
+            <Field label="Ciudad" required>
               <select value={ciudadId} onChange={e => setCiudadId(e.target.value)} style={{ ...inputStyle, appearance: 'none' }} onFocus={focusBorder} onBlur={blurBorder}>
                 <option value="">Seleccionar Ciudad...</option>
                 {ciudadesList.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
               </select>
             </Field>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginTop: '14px' }}>
-            <Field label="Dirección">
+            <Field label="Dirección" required>
               <input value={direccion} onChange={e => setDireccion(e.target.value)} placeholder="Ej. Calle 18 #25-30" style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} />
             </Field>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '14px', marginTop: '14px' }}>
             <Field label="Teléfono">
               <div style={{ position: 'relative' }}>
                 <span className="material-symbols-outlined" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '16px', color: '#cbd5e1' }}>call</span>

@@ -1,34 +1,47 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ApiTaquilleroRepository } from '../../infrastructure/repositories/ApiTaquilleroRepository';
-import { getTaquilleros } from '../../application/use-cases/taquilleros/getTaquilleros';
-import { createTaquillero } from '../../application/use-cases/taquilleros/createTaquillero';
-import { updateTaquillero } from '../../application/use-cases/taquilleros/updateTaquillero';
-import { activarTaquillero } from '../../application/use-cases/taquilleros/activarTaquillero';
-import type { CreateTaquilleroData, UpdateTaquilleroData } from '../../domain/repositories/TaquilleroRepository';
-
-const repository = new ApiTaquilleroRepository();
+import { taquillerosApi } from '../../infrastructure/services/taquillerosApi';
 
 export const useTaquilleros = () => {
   const queryClient = useQueryClient();
 
   const { data: taquilleros, isLoading, error } = useQuery({
     queryKey: ['taquilleros'],
-    queryFn: () => getTaquilleros(repository),
+    queryFn: async () => {
+      const response = await taquillerosApi.obtenerTodos();
+      const data = response.data.data;
+      return data.taquilleros || data || [];
+    },
   });
 
   const create = useMutation({
-    mutationFn: (data: CreateTaquilleroData) => createTaquillero(repository, data),
+    mutationFn: async (data: any) => {
+      const response = await taquillerosApi.crear(data);
+      return response.data.data;
+    },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['taquilleros'] }),
   });
 
   const update = useMutation({
-    mutationFn: ({ idusuario, data }: { idusuario: number; data: UpdateTaquilleroData }) =>
-      updateTaquillero(repository, idusuario, data),
+    mutationFn: async ({ idusuario, data }: { idusuario: number; data: any }) => {
+      const response = await taquillerosApi.actualizar(String(idusuario), data);
+      return response.data.data;
+    },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['taquilleros'] }),
   });
 
   const activar = useMutation({
-    mutationFn: (idusuario: number) => activarTaquillero(repository, idusuario),
+    mutationFn: async (idusuario: number) => {
+      const response = await taquillerosApi.activar(String(idusuario));
+      return response.data.data;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['taquilleros'] }),
+  });
+
+  const remove = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await taquillerosApi.eliminar(id);
+      return response.data.data;
+    },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['taquilleros'] }),
   });
 
@@ -39,5 +52,6 @@ export const useTaquilleros = () => {
     create,
     update,
     activar,
+    remove,
   };
 };

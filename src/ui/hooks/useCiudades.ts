@@ -1,38 +1,66 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ApiCiudadRepository } from '../../infrastructure/repositories/ApiCiudadRepository';
-import { getCiudades } from '../../application/use-cases/ciudades/getCiudades';
-import { createCiudad } from '../../application/use-cases/ciudades/createCiudad';
-import { updateCiudad } from '../../application/use-cases/ciudades/updateCiudad';
-import { deleteCiudad } from '../../application/use-cases/ciudades/deleteCiudad';
+import { ciudadesApi } from '../../infrastructure/services/ciudadesApi';
 import type { Ciudad } from '../../domain/entities/Ciudad';
-
-const repository = new ApiCiudadRepository();
 
 export const useCiudades = () => {
   const queryClient = useQueryClient();
 
   const { data: ciudades, isLoading, error } = useQuery({
     queryKey: ['ciudades'],
-    queryFn: () => getCiudades(repository),
+    queryFn: async () => {
+      const response = await ciudadesApi.obtenerTodas();
+      const data = response.data.data;
+      const ciudadesArray = data.ciudades || data || [];
+      
+      // Mapear campos del backend al frontend
+      return ciudadesArray.map((ciudad: any) => ({
+        id: ciudad.idciudad,
+        nombre: ciudad.nombre,
+        codigo: ciudad.codigopostal,
+        departamentoId: ciudad.iddepartamento ? String(ciudad.iddepartamento) : '',
+        departamentoNombre: ciudad.nombredepartamento,
+        activo: ciudad.activo !== false
+      }));
+    },
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: Omit<Ciudad, 'id' | 'createdAt' | 'updatedAt'>) => createCiudad(repository, data),
+    mutationFn: async (data: any) => {
+      // Mapear campos del frontend al backend
+      const backendData = {
+        nombre: data.nombre,
+        codigopostal: data.codigo || null,
+        iddepartamento: data.departamentoId ? parseInt(data.departamentoId, 10) : null
+      };
+      const response = await ciudadesApi.crear(backendData);
+      return response.data.data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ciudades'] });
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Ciudad> }) =>
-      updateCiudad(repository, id, data),
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      // Mapear campos del frontend al backend
+      const backendData: any = {};
+      if (data.nombre) backendData.nombre = data.nombre;
+      if (data.codigo !== undefined) backendData.codigopostal = data.codigo || null;
+      if (data.departamentoId) backendData.iddepartamento = parseInt(data.departamentoId, 10);
+      
+      const response = await ciudadesApi.actualizar(id, backendData);
+      return response.data.data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ciudades'] });
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteCiudad(repository, id),
+    mutationFn: async (id: string) => {
+      const response = await ciudadesApi.desactivar(id);
+      return response.data.data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ciudades'] });
     },

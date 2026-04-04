@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Layout } from '../../components/layout/Layout';
 import { useTaquilleros } from '../../hooks/useTaquilleros';
 import { useOficinas } from '../../hooks/useOficinas';
+import { useAgencias } from '../../hooks/useAgencias';
 import type { Taquillero } from '../../../domain/entities/Taquillero';
 
 const BLUE = '#0D3B8E';
@@ -53,17 +54,28 @@ export const TaquillerosPage = () => {
   const [tipodocumento, setTipodocumento] = useState('CC');
   const [documento, setDocumento] = useState('');
   const [telefono, setTelefono] = useState('');
+  const [idagencia, setIdagencia] = useState('');
   const [idoficina, setIdoficina] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formMsg, setFormMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+  const { agencias } = useAgencias();
+  const agenciasList = Array.isArray(agencias) ? agencias : [];
 
   /* ── table state ── */
   const [page, setPage] = useState(1);
   const [filterEstado, setFilterEstado] = useState<string>('TODOS');
 
+  const filteredOficinas = useMemo(() => {
+    if (!idagencia) return [];
+    return oficinasList.filter(o => String(o.idagencia) === String(idagencia));
+  }, [oficinasList, idagencia]);
+
   const list = useMemo(() => {
     if (filterEstado === 'TODOS') return taquillerosList;
-    return taquillerosList.filter(t => filterEstado === 'ACTIVO' ? t.estado : !t.estado);
+    return taquillerosList.filter(t => {
+      const isActivo = !!(t.estado || (t as any).activo);
+      return filterEstado === 'ACTIVO' ? isActivo : !isActivo;
+    });
   }, [taquillerosList, filterEstado]);
 
   const totalPages = Math.max(1, Math.ceil(list.length / ITEMS_PER_PAGE));
@@ -79,14 +91,14 @@ export const TaquillerosPage = () => {
   })();
 
   const oficinaCodigo = (id: number) => {
-    const of = oficinasList.find(o => String(o.id) === String(id));
+    const of = oficinasList.find(o => String(o.idoficina) === String(id));
     return of?.codigo ?? of?.nombre ?? '—';
   };
 
   const resetForm = () => {
     setNombre(''); setApellido(''); setCorreo(''); setPassword('');
     setTipodocumento('CC'); setDocumento(''); setTelefono('');
-    setIdoficina(''); setEditingId(null);
+    setIdagencia(''); setIdoficina(''); setEditingId(null);
   };
 
   const startEdit = (t: Taquillero) => {
@@ -98,6 +110,10 @@ export const TaquillerosPage = () => {
     setTipodocumento(t.tipodocumento || 'CC');
     setDocumento(t.documento);
     setTelefono(t.telefono);
+    
+    // Buscar la agencia de la oficina
+    const ofi = oficinasList.find(o => String(o.idoficina) === String(t.idoficina));
+    setIdagencia(ofi ? String(ofi.idagencia) : '');
     setIdoficina(String(t.idoficina));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -160,49 +176,52 @@ export const TaquillerosPage = () => {
           <span style={{ fontWeight: 700, fontSize: '15px', color: '#0f172a' }}>{editingId ? 'Editar Taquillero' : 'Registrar Nuevo Taquillero'}</span>
         </div>
         <form onSubmit={handleGuardar}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '14px' }}>
             <Field label="Nombre" required>
               <input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej. Juan" style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} />
             </Field>
             <Field label="Apellido" required>
               <input value={apellido} onChange={e => setApellido(e.target.value)} placeholder="Ej. Pérez" style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} />
             </Field>
-            <Field label="Tipo Documento">
+            <Field label="Correo" required>
+              <input type="email" value={correo} onChange={e => setCorreo(e.target.value)} placeholder="correo@ejemplo.com" style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} />
+            </Field>
+            <Field label="Contraseña" required={!editingId}>
+              <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="6-12 caracteres" style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} maxLength={12} />
+            </Field>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '14px', marginTop: '14px' }}>
+            <Field label="Tipo Doc." required>
               <select value={tipodocumento} onChange={e => setTipodocumento(e.target.value)} style={{ ...inputStyle, appearance: 'none' }} onFocus={focusBorder} onBlur={blurBorder}>
-                <option value="CC">CC - Cédula de Ciudadanía</option>
-                <option value="CE">CE - Cédula de Extranjería</option>
-                <option value="TI">TI - Tarjeta de Identidad</option>
+                <option value="CC">CC</option>
+                <option value="CE">CE</option>
+                <option value="TI">TI</option>
+                <option value="PAS">PAS</option>
+              </select>
+            </Field>
+            <Field label="Documento" required>
+              <input value={documento} onChange={e => setDocumento(e.target.value.replace(/\D/g, '').slice(0, 10))} placeholder="1234567890" style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} />
+            </Field>
+            <Field label="Teléfono" required>
+              <input value={telefono} onChange={e => setTelefono(e.target.value.replace(/\D/g, '').slice(0, 10))} placeholder="3001234567" style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} />
+            </Field>
+            <Field label="Agencia" required>
+              <select value={idagencia} onChange={e => { setIdagencia(e.target.value); setIdoficina(''); }} style={{ ...inputStyle, appearance: 'none' }} onFocus={focusBorder} onBlur={blurBorder}>
+                <option value="">Seleccionar agencia...</option>
+                {agenciasList.map((ag: any) => (
+                  <option key={ag.idagencia} value={ag.idagencia}>{ag.nombre}</option>
+                ))}
               </select>
             </Field>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px', marginTop: '14px' }}>
-            <Field label="Documento" required>
-              <input value={documento} onChange={e => setDocumento(e.target.value.replace(/\D/g, '').slice(0, 10))} placeholder="Ej. 12345678" style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} />
-            </Field>
-            <Field label="Correo Electrónico" required>
-              <div style={{ position: 'relative' }}>
-                <span className="material-symbols-outlined" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '16px', color: '#cbd5e1' }}>mail</span>
-                <input type="email" value={correo} onChange={e => setCorreo(e.target.value)} placeholder="correo@ejemplo.com" style={{ ...inputStyle, paddingLeft: '34px' }} onFocus={focusBorder} onBlur={blurBorder} />
-              </div>
-            </Field>
-            <Field label="Teléfono">
-              <div style={{ position: 'relative' }}>
-                <span className="material-symbols-outlined" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '16px', color: '#cbd5e1' }}>call</span>
-                <input value={telefono} onChange={e => setTelefono(e.target.value.replace(/\D/g, '').slice(0, 10))} placeholder="3001234567" style={{ ...inputStyle, paddingLeft: '34px' }} onFocus={focusBorder} onBlur={blurBorder} />
-              </div>
-            </Field>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginTop: '14px' }}>
-            {!editingId && (
-              <Field label="Contraseña" required>
-                <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="6-12 chars, 1 mayúscula, 1 número" style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} maxLength={12} />
-              </Field>
-            )}
-            <Field label="Oficina Asignada" required>
-              <select value={idoficina} onChange={e => setIdoficina(e.target.value)} style={{ ...inputStyle, appearance: 'none' }} onFocus={focusBorder} onBlur={blurBorder}>
-                <option value="">Seleccionar Oficina...</option>
-                {oficinasList.map(of => (
-                  <option key={of.id} value={of.id}>{of.codigo || of.nombre}</option>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', maxWidth: '300px', marginTop: '14px' }}>
+            <Field label="Oficina" required>
+              <select value={idoficina} onChange={e => setIdoficina(e.target.value)} style={{ ...inputStyle, appearance: 'none' }} onFocus={focusBorder} onBlur={blurBorder} disabled={!idagencia}>
+                <option value="">{idagencia ? 'Seleccionar Oficina...' : 'Primero seleccione una agencia...'}</option>
+                {filteredOficinas.map(of => (
+                  <option key={of.idoficina} value={of.idoficina}>{of.codigo || of.nombre}</option>
                 ))}
               </select>
             </Field>
@@ -263,11 +282,11 @@ export const TaquillerosPage = () => {
                     <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{t.telefono || '—'}</td>
                     <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{t.correo}</td>
                     <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{t.oficina_codigo || oficinaCodigo(t.idoficina)}</td>
-                    <td style={{ padding: '12px 16px' }}><EstadoBadge activo={t.estado} /></td>
+                    <td style={{ padding: '12px 16px' }}><EstadoBadge activo={!!(t.estado || (t as any).activo)} /></td>
                     <td style={{ padding: '12px 16px' }}>
                       <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                         <button title="Editar" onClick={() => startEdit(t)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center' }} onMouseEnter={e => (e.currentTarget.style.color = BLUE)} onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}><span className="material-symbols-outlined" style={{ fontSize: '18px' }}>edit</span></button>
-                        {!t.estado && (
+                        {! (t.estado || (t as any).activo) && (
                           <button title="Activar" onClick={() => handleActivar(t.idusuario)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center' }} onMouseEnter={e => (e.currentTarget.style.color = '#16a34a')} onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}><span className="material-symbols-outlined" style={{ fontSize: '18px' }}>check_circle</span></button>
                         )}
                       </div>

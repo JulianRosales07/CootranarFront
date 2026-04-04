@@ -4,7 +4,6 @@ import { conductoresApi } from '../../../infrastructure/services/conductoresApi'
 import DisenadorAsientos from './DisenadorAsientos';
 
 const PASOS = ['Propietario', 'Vehículo', 'Asientos', 'Documentos', 'Pólizas', 'Conductores'];
-const inputClass = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500';
 // Shared inline style constants
 const IS: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box', padding: '12px 16px',
@@ -36,6 +35,7 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
   const [pasoActual, setPasoActual] = useState(0);
   const [guardando, setGuardando] = useState(false);
   const [cargandoDatos, setCargandoDatos] = useState(modoEdicion);
+  const [exitoModal, setExitoModal] = useState<{ show: boolean; mensaje: string }>({ show: false, mensaje: '' });
 
   // Paso 1: Propietario
   const [docPropietario, setDocPropietario] = useState('');
@@ -511,7 +511,7 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
           }
         }
 
-        alert('Vehículo actualizado correctamente');
+        setExitoModal({ show: true, mensaje: 'El vehículo ha sido actualizado correctamente.' });
         onVehiculoCreado();
         return;
       }
@@ -596,7 +596,7 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
 
       console.log('=== Enviando al backend ===');
       await vehiculosApi.crear(fd);
-      alert('Vehículo registrado correctamente');
+      setExitoModal({ show: true, mensaje: 'El vehículo ha sido registrado correctamente en el sistema.' });
       onVehiculoCreado();
     } catch (err: any) { 
       alert(err.response?.data?.message || 'Error al guardar vehículo'); 
@@ -1268,7 +1268,18 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
 
   const pasos = [renderPaso1, renderPaso2, renderPaso3, renderPaso4, renderPaso5, renderPaso6];
 
+  if (cargandoDatos) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '100px 32px', backgroundColor: 'white', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
+        <span className="material-symbols-outlined" style={{ fontSize: '48px', color: '#0D3B8E', animation: 'spin 2s linear infinite', marginBottom: '20px' }}>progress_activity</span>
+        <p style={{ fontSize: '15px', color: '#64748b', fontWeight: 500 }}>Cargando información del vehículo...</p>
+        <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
   return (
+    <>
     <div style={{
       width: '100%', maxWidth: '100%',
       backgroundColor: 'white',
@@ -1413,5 +1424,31 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
         </div>
       </div>
     </div>
+
+    {/* Success Modal */}
+    {exitoModal.show && (
+      <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(15, 23, 42, 0.45)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px', animation: 'fadeIn 0.3s ease' }}>
+        <div style={{ backgroundColor: 'white', borderRadius: '24px', padding: '48px 32px', width: '100%', maxWidth: '400px', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', animation: 'popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
+          <div style={{ width: '80px', height: '80px', backgroundColor: '#dcfce7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+            <span className="material-symbols-outlined" style={{ color: '#16a34a', fontSize: '48px', fontWeight: 'bold' }}>check</span>
+          </div>
+          <h3 style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a', marginBottom: '12px', letterSpacing: '-0.02em' }}>¡Registro Exitoso!</h3>
+          <p style={{ fontSize: '15px', color: '#64748b', lineHeight: '1.6', marginBottom: '32px' }}>{exitoModal.mensaje}</p>
+          <button
+            onClick={onVehiculoCreado}
+            style={{ width: '100%', padding: '16px', backgroundColor: '#0D3B8E', color: 'white', borderRadius: '16px', fontSize: '15px', fontWeight: 700, border: 'none', cursor: 'pointer', boxShadow: '0 10px 15px -3px rgba(13,59,142,0.3)', transition: 'transform 0.2s, background 0.2s' }}
+            onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#0A265E')}
+            onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#0D3B8E')}
+          >
+            Entendido
+          </button>
+        </div>
+        <style>{`
+          @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+          @keyframes popIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        `}</style>
+      </div>
+    )}
+    </>
   );
 }

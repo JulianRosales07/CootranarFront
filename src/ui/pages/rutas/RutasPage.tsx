@@ -68,6 +68,7 @@ export const RutasPage = () => {
   const [modoTarifa, setModoTarifa] = useState<'normal' | 'alto'>('normal');
 
   /* ── form ────────────────────────────────────────────────── */
+  const [nombre, setNombre] = useState('');
   const [origenId, setOrigenId] = useState('');
   const [destinoId, setDestinoId] = useState('');
   const [duracion, setDuracion] = useState('');
@@ -91,20 +92,25 @@ export const RutasPage = () => {
     return p;
   })();
 
-  const agName = (id: string) => agenciasList.find(a => a.id === id)?.nombre ?? id;
+  const agName = (id: string) => agenciasList.find((a: any) => a.idagencia === parseInt(id))?.nombre ?? id;
 
-  const resetForm = () => { setOrigenId(''); setDestinoId(''); setDuracion(''); setDistancia(''); setVia(''); setEditingId(null); };
+  const resetForm = () => { setNombre(''); setOrigenId(''); setDestinoId(''); setDuracion(''); setDistancia(''); setVia(''); setEditingId(null); };
 
   const startEdit = (r: Ruta) => {
-    setEditingId(r.id); setOrigenId(r.origen); setDestinoId(r.destino);
-    setDuracion(String(r.duracionMinutos)); setDistancia(String(r.precioBase)); setVia('');
+    setEditingId(r.id);
+    setNombre(r.nombre || '');
+    setOrigenId(r.origen);
+    setDestinoId(r.destino);
+    setDuracion(String(r.duracionMinutos));
+    setDistancia(String(r.precioBase));
+    setVia('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleGuardar = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!origenId || !destinoId) { setFormMsg({ type: 'err', text: 'Origen y destino son requeridos.' }); return; }
-    const payload = { origen: origenId, destino: destinoId, duracionMinutos: Number(duracion) || 0, precioBase: Number(distancia) || 0, activa: true };
+    if (!nombre.trim() || !origenId || !destinoId) { setFormMsg({ type: 'err', text: 'Nombre, origen y destino son requeridos.' }); return; }
+    const payload = { nombre, origen: origenId, destino: destinoId, duracionMinutos: Number(duracion) || 0, precioBase: Number(distancia) || 0, activa: true };
     const cb = {
       onSuccess: () => { setFormMsg({ type: 'ok', text: editingId ? 'Ruta actualizada.' : 'Ruta guardada.' }); resetForm(); setTimeout(() => setFormMsg(null), 3000); },
       onError: () => { setFormMsg({ type: 'err', text: 'Error al guardar.' }); setTimeout(() => setFormMsg(null), 3000); },
@@ -148,19 +154,24 @@ export const RutasPage = () => {
         </div>
 
         <form onSubmit={handleGuardar}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr', gap: '14px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+            <Field label="Nombre de la Ruta" required>
+              <input value={nombre} onChange={e => setNombre(e.target.value)}
+                placeholder="Ej: Pasto - Cali" style={inputStyle}
+                onFocus={focusBorder} onBlur={blurBorder} />
+            </Field>
             <Field label="Agencia Origen" required>
               <select value={origenId} onChange={e => setOrigenId(e.target.value)}
                 style={{ ...inputStyle, appearance: 'none' }} onFocus={focusBorder} onBlur={blurBorder}>
                 <option value="">Seleccionar Agencia...</option>
-                {agenciasList.map(a => <option key={a.id} value={a.id}>{a.nombre}</option>)}
+                {agenciasList.map((a: any) => <option key={a.idagencia} value={a.idagencia}>{a.nombre}</option>)}
               </select>
             </Field>
             <Field label="Agencia Destino" required>
               <select value={destinoId} onChange={e => setDestinoId(e.target.value)}
                 style={{ ...inputStyle, appearance: 'none' }} onFocus={focusBorder} onBlur={blurBorder}>
                 <option value="">Seleccionar Agencia...</option>
-                {agenciasList.map(a => <option key={a.id} value={a.id}>{a.nombre}</option>)}
+                {agenciasList.map((a: any) => <option key={a.idagencia} value={a.idagencia}>{a.nombre}</option>)}
               </select>
             </Field>
             <Field label="Duración Aproximada" required>
@@ -177,6 +188,8 @@ export const RutasPage = () => {
                 <span style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '11px', color: '#94a3b8', fontWeight: 600 }}>km</span>
               </div>
             </Field>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '14px' }}>
             <Field label="Vía / Observaciones" optional>
               <input value={via} onChange={e => setVia(e.target.value)} placeholder="Ej: Vía Panamericana"
                 style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} />

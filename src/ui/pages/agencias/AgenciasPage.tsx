@@ -45,7 +45,6 @@ export const AgenciasPage = () => {
   const ciudadesList = Array.isArray(ciudades) ? ciudades : [];
   const agenciasList = useMemo(() => Array.isArray(agencias) ? agencias : [], [agencias]);
 
-  const [codigo, setCodigo] = useState('');
   const [nombre, setNombre] = useState('');
   const [ciudadId, setCiudadId] = useState('');
   const [direccion, setDireccion] = useState('');
@@ -59,7 +58,7 @@ export const AgenciasPage = () => {
 
   const list = useMemo(() => {
     if (filterEstado === 'TODOS') return agenciasList;
-    return agenciasList.filter(a => filterEstado === 'ACTIVO' ? a.activo : !a.activo);
+    return agenciasList.filter((a: any) => filterEstado === 'ACTIVO' ? a.activo : !a.activo);
   }, [agenciasList, filterEstado]);
 
   const totalPages = Math.max(1, Math.ceil(list.length / ITEMS_PER_PAGE));
@@ -68,26 +67,30 @@ export const AgenciasPage = () => {
     if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1);
     const p: (number | '...')[] = [1];
     if (page > 3) p.push('...');
-    for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) p.push(i);
+    for (let p = Math.max(2, page - 1); p <= Math.min(totalPages - 1, page + 1); p++) p.push(p);
     if (page < totalPages - 2) p.push('...');
     p.push(totalPages);
     return p;
   })();
 
-  const ciudadName = (id: string) => ciudadesList.find(c => c.id === id)?.nombre ?? id;
+  const ciudadName = (id: string) => ciudadesList.find((c: any) => c.idciudad === parseInt(id))?.nombre ?? id;
 
-  const resetForm = () => { setCodigo(''); setNombre(''); setCiudadId(''); setDireccion(''); setTelefono(''); setActivo(true); setEditingId(null); };
+  const resetForm = () => { setNombre(''); setCiudadId(''); setDireccion(''); setTelefono(''); setActivo(true); setEditingId(null); };
 
-  const startEdit = (a: Agencia) => {
-    setEditingId(a.id); setCodigo(a.codigo); setNombre(a.nombre); setCiudadId(a.ciudadId);
-    setDireccion(a.direccion); setTelefono(a.telefono); setActivo(a.activo);
+  const startEdit = (a: any) => {
+    setEditingId(a.idagencia);
+    setNombre(a.nombre);
+    setCiudadId(a.idciudad ? String(a.idciudad) : '');
+    setDireccion(a.direccion || '');
+    setTelefono(a.telefono || '');
+    setActivo(a.activo);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleGuardar = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!codigo.trim() || !nombre.trim()) { setFormMsg({ type: 'err', text: 'Código y nombre son requeridos.' }); return; }
-    const payload = { codigo, nombre, ciudadId, direccion, telefono, activo };
+    if (!nombre.trim()) { setFormMsg({ type: 'err', text: 'El nombre es requerido.' }); return; }
+    const payload = { nombre, ciudadId, direccion, telefono, activo };
     const onOk = () => { setFormMsg({ type: 'ok', text: editingId ? 'Agencia actualizada.' : 'Agencia guardada.' }); resetForm(); setTimeout(() => setFormMsg(null), 3000); };
     const onErr = () => { setFormMsg({ type: 'err', text: 'Error al guardar.' }); setTimeout(() => setFormMsg(null), 3000); };
     editingId ? updateAgencia({ id: editingId, data: payload }, { onSuccess: onOk, onError: onErr } as any) : createAgencia(payload, { onSuccess: onOk, onError: onErr } as any);
@@ -107,17 +110,14 @@ export const AgenciasPage = () => {
           <span style={{ fontWeight: 700, fontSize: '15px', color: '#0f172a' }}>{editingId ? 'Editar Agencia' : 'Registrar Nueva Agencia'}</span>
         </div>
         <form onSubmit={handleGuardar}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
-            <Field label="Código" required>
-              <input value={codigo} onChange={e => setCodigo(e.target.value)} placeholder="Ej. AG-001" style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} />
-            </Field>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
             <Field label="Nombre" required>
               <input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej. Terminal Pasto" style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} />
             </Field>
             <Field label="Ciudad">
               <select value={ciudadId} onChange={e => setCiudadId(e.target.value)} style={{ ...inputStyle, appearance: 'none' }} onFocus={focusBorder} onBlur={blurBorder}>
                 <option value="">Seleccionar Ciudad...</option>
-                {ciudadesList.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+                {ciudadesList.map((c: any) => <option key={c.idciudad} value={c.idciudad}>{c.nombre}</option>)}
               </select>
             </Field>
           </div>
@@ -184,26 +184,25 @@ export const AgenciasPage = () => {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ background: '#f8fafc' }}>
-                  {[{ l: 'Código', w: '100px' }, { l: 'Nombre', w: '180px' }, { l: 'Ciudad', w: '140px' }, { l: 'Dirección', w: '200px' }, { l: 'Teléfono', w: '120px' }, { l: 'Estado', w: '90px' }, { l: 'Acciones', w: '80px' }].map(({ l, w }) => (
+                  {[{ l: 'Nombre', w: '200px' }, { l: 'Ciudad', w: '180px' }, { l: 'Dirección', w: '250px' }, { l: 'Teléfono', w: '140px' }, { l: 'Estado', w: '90px' }, { l: 'Acciones', w: '80px' }].map(({ l, w }) => (
                     <th key={l} style={{ width: w, padding: '11px 16px', textAlign: 'left', fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', borderBottom: '1px solid #e8edf2', background: '#f8fafc' }}>{l}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {paginated.length === 0 ? (
-                  <tr><td colSpan={7} style={{ padding: '48px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>No se encontraron agencias.</td></tr>
-                ) : paginated.map(a => (
-                  <tr key={a.id} style={{ borderBottom: '1px solid #f1f5f9' }} onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')} onMouseLeave={e => (e.currentTarget.style.background = 'white')}>
-                    <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: '#64748b', fontFamily: 'monospace' }}>{a.codigo}</td>
+                  <tr><td colSpan={6} style={{ padding: '48px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>No se encontraron agencias.</td></tr>
+                ) : paginated.map((a: any) => (
+                  <tr key={a.idagencia} style={{ borderBottom: '1px solid #f1f5f9' }} onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')} onMouseLeave={e => (e.currentTarget.style.background = 'white')}>
                     <td style={{ padding: '12px 16px', fontSize: '13.5px', fontWeight: 600, color: '#1e293b' }}>{a.nombre}</td>
-                    <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{ciudadName(a.ciudadId)}</td>
+                    <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{a.nombreciudad || ciudadName(a.idciudad) || '—'}</td>
                     <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{a.direccion || '—'}</td>
                     <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{a.telefono || '—'}</td>
                     <td style={{ padding: '12px 16px' }}><EstadoBadge activo={a.activo} /></td>
                     <td style={{ padding: '12px 16px' }}>
                       <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                         <button title="Editar" onClick={() => startEdit(a)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center' }} onMouseEnter={e => (e.currentTarget.style.color = BLUE)} onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}><span className="material-symbols-outlined" style={{ fontSize: '18px' }}>edit</span></button>
-                        <button title="Eliminar" onClick={() => handleDelete(a.id)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center' }} onMouseEnter={e => (e.currentTarget.style.color = '#dc2626')} onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}><span className="material-symbols-outlined" style={{ fontSize: '18px' }}>delete</span></button>
+                        <button title="Eliminar" onClick={() => handleDelete(a.idagencia)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center' }} onMouseEnter={e => (e.currentTarget.style.color = '#dc2626')} onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}><span className="material-symbols-outlined" style={{ fontSize: '18px' }}>delete</span></button>
                       </div>
                     </td>
                   </tr>

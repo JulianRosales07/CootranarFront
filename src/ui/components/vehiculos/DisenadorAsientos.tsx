@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface DisenadorAsientosProps {
   capacidad: number;
@@ -33,7 +33,8 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial }:
             numero: null, 
             vacio: true, 
             esPasillo: true,
-            esBano: false 
+            esBano: false,
+            esPoltrona: false
           });
         } else {
           // Es un espacio potencial para un asiento
@@ -44,7 +45,8 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial }:
               numero: numeroAsiento, 
               vacio: false, 
               esPasillo: false,
-              esBano: false 
+              esBano: false,
+              esPoltrona: false
             });
           } else {
             // Espacio de asiento pero ya completamos la capacidad (vacio)
@@ -53,7 +55,8 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial }:
               numero: null, 
               vacio: true, 
               esPasillo: false,
-              esBano: false 
+              esBano: false,
+              esPoltrona: false
             });
           }
         }
@@ -93,27 +96,42 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial }:
   });
 
   // Efecto para actualizar los asientos si la capacidad cambia desde el paso anterior
+  const isUpdatingFromCapacity = useRef(false);
+  
   useEffect(() => {
     if (capacidad > 0) {
-      const cantActual = asientos.filter(a => !a.esPasillo && !a.vacio && !a.esBano).length;
-      if (cantActual !== capacidad) {
-        const nuevaDistribucion = generarDistribucion(capacidad);
-        setAsientos(nuevaDistribucion);
-        setNextId(nuevaDistribucion.length + 1);
-      }
+      setAsientos(prev => {
+        const cantActual = prev.filter(a => !a.esPasillo && !a.vacio && !a.esBano).length;
+        if (cantActual !== capacidad) {
+          isUpdatingFromCapacity.current = true;
+          const nuevaDistribucion = generarDistribucion(capacidad);
+          setNextId(nuevaDistribucion.length + 1);
+          // Usar requestAnimationFrame para asegurar que el flag se resetea después del render
+          requestAnimationFrame(() => {
+            isUpdatingFromCapacity.current = false;
+          });
+          return nuevaDistribucion;
+        }
+        return prev;
+      });
     }
-  }, [capacidad]); // Eliminado asientos.length para evitar bucles circulares
+  }, [capacidad]);
 
-  const [modo, setModo] = useState<'normal' | 'editar' | 'vaciar' | 'baño'>('normal');
+  const [modo, setModo] = useState<'normal' | 'editar' | 'vaciar' | 'baño' | 'poltrona'>('normal');
   const columnas = 5;
 
-  // Notificar al padre solo cuando los asientos cambien, pero comparando JSON para evitar bucles por referencia
+  // Notificar al padre solo cuando los asientos cambien, usando un ref para evitar bucles
+  const prevAsientosRef = useRef<string>('');
+  
   useEffect(() => {
-    if (onChange && asientos.length > 0) {
-      // Usar una marca de tiempo o hash pequeño sería ideal, pero comparamos asientos
-      onChange({ distribucion: asientos, columnas });
+    if (onChange && asientos.length > 0 && !isUpdatingFromCapacity.current) {
+      const asientosStr = JSON.stringify(asientos);
+      if (asientosStr !== prevAsientosRef.current) {
+        prevAsientosRef.current = asientosStr;
+        onChange({ distribucion: asientos, columnas });
+      }
     }
-  }, [asientos]);
+  }, [asientos, onChange, columnas]);
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, id: number) => {
     if (modo === 'editar' || modo === 'baño') return;
@@ -164,10 +182,19 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial }:
     if (modo === 'vaciar') {
       setAsientos(prev => {
         const next = prev.map(a =>
-          a.id === id ? { ...a, esPasillo: !a.esPasillo, vacio: !a.esPasillo, esBano: false } : a
+          a.id === id ? { ...a, esPasillo: !a.esPasillo, vacio: !a.esPasillo, esBano: false, esPoltrona: false } : a
         );
         return renumerarAsientos(next);
       });
+    } else if (modo === 'poltrona') {
+      // Alternar el estado de poltrona solo si es un asiento válido (no pasillo, no vacío, no baño)
+      if (!asiento.esPasillo && !asiento.vacio && !asiento.esBano) {
+        setAsientos(prev =>
+          prev.map(a =>
+            a.id === id ? { ...a, esPoltrona: !a.esPoltrona } : a
+          )
+        );
+      }
     } else if (modo === 'baño') {
       const idx = asientos.findIndex(a => a.id === id);
       if (idx === -1) return;
@@ -186,7 +213,8 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial }:
             esBano: !a.esBano, 
             esPasillo: false, 
             vacio: true, 
-            numero: null 
+            numero: null,
+            esPoltrona: false
           } : a
         );
         return renumerarAsientos(next);
@@ -196,7 +224,7 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial }:
 
   const cambiarNumeroEnVivo = (id: number, nuevoNum: string) => {
     setAsientos(prev => prev.map(a =>
-      a.id === id ? { ...a, numero: nuevoNum, vacio: false, esBano: false } : a
+      a.id === id ? { ...a, numero: nuevoNum, vacio: false, esBano: false, esPoltrona: a.esPoltrona || false } : a
     ));
   };
 
@@ -206,9 +234,9 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial }:
       let nid = nextId;
       const colIndex = nuevos.length % 5;
       if (colIndex === 2) {
-        nuevos.push({ id: nid++, esPasillo: true, vacio: true, numero: null, esBano: false });
+        nuevos.push({ id: nid++, esPasillo: true, vacio: true, numero: null, esBano: false, esPoltrona: false });
       }
-      nuevos.push({ id: nid++, esPasillo: false, vacio: false, numero: Math.max(0, ...prev.filter(a => !a.esPasillo && !a.esBano && !isNaN(Number(a.numero))).map(a => Number(a.numero))) + 1, esBano: false });
+      nuevos.push({ id: nid++, esPasillo: false, vacio: false, numero: Math.max(0, ...prev.filter(a => !a.esPasillo && !a.esBano && !isNaN(Number(a.numero))).map(a => Number(a.numero))) + 1, esBano: false, esPoltrona: false });
       setNextId(nid);
       return nuevos;
     });
@@ -244,6 +272,7 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial }:
           esPasillo: !willBeSeat,
           vacio: !willBeSeat,
           esBano: false,
+          esPoltrona: false,
           numero: willBeSeat
             ? (Math.max(0, ...prev.filter(x => !x.esPasillo && !x.esBano && !isNaN(Number(x.numero))).map(x => Number(x.numero))) + 1)
             : null
@@ -306,6 +335,15 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial }:
                 <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', backgroundColor: '#e2e8f0', padding: '6px', borderRadius: '12px', gap: '8px' }}>
                     <button
                         type="button"
+                        onClick={() => setModo(modo === 'poltrona' ? 'normal' : 'poltrona')}
+                        className={modo === 'poltrona' ? 'shadow-sm' : 'hover:bg-white hover:text-amber-700'}
+                        style={{ cursor: 'pointer', display: 'flex', flex: '1 1 auto', alignItems: 'center', justifyContent: 'center', padding: '10px 16px', fontSize: '14px', fontWeight: 'bold', color: modo === 'poltrona' ? '#d97706' : '#475569', backgroundColor: modo === 'poltrona' ? '#fffbeb' : 'transparent', border: modo === 'poltrona' ? '1px solid #fde68a' : '1px solid transparent', borderRadius: '8px', transition: 'all 0.2s', minWidth: 'max-content' }}
+                        title="Marca asientos como poltrona (asientos premium)">
+                        <span className="material-symbols-outlined" style={{ fontSize: '20px', marginRight: '8px' }}>airline_seat_recline_extra</span> Poltrona
+                    </button>
+                    <div style={{ width: '1px', height: '24px', backgroundColor: '#cbd5e1' }}></div>
+                    <button
+                        type="button"
                         onClick={() => setModo(modo === 'editar' ? 'normal' : 'editar')}
                         className={modo === 'editar' ? 'shadow-sm' : 'hover:bg-white hover:text-blue-700'}
                         style={{ cursor: 'pointer', display: 'flex', flex: '1 1 auto', alignItems: 'center', justifyContent: 'center', padding: '10px 16px', fontSize: '14px', fontWeight: 'bold', color: modo === 'editar' ? '#1d4ed8' : '#475569', backgroundColor: modo === 'editar' ? '#ffffff' : 'transparent', border: modo === 'editar' ? '1px solid #bfdbfe' : '1px solid transparent', borderRadius: '8px', transition: 'all 0.2s', minWidth: 'max-content' }}
@@ -338,13 +376,13 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial }:
         <div style={{ flex: 1, position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', overflowY: 'auto', minHeight: '500px', padding: '40px 24px', backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)', backgroundSize: '24px 24px', backgroundColor: '#f8fafc' }}>
             
             {/* CARROCERÍA DEL BUS */}
-            <div style={{ position: 'relative', width: '100%', maxWidth: '360px', backgroundColor: '#ffffff', borderRadius: '48px', padding: '24px 24px 32px 24px', boxShadow: '0 20px 50px -12px rgba(0,0,0,0.15)', border: '8px solid #f1f5f9' }}>
+            <div style={{ position: 'relative', width: '100%', maxWidth: '360px', backgroundColor: '#ffffff', borderRadius: '48px', padding: '24px 20px 28px 20px', boxShadow: '0 20px 50px -12px rgba(0,0,0,0.15)', border: '8px solid #f1f5f9' }}>
                 
                 {/* Sombra de Toldo / Parabrisas */}
                 <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: '180px', height: '40px', background: 'linear-gradient(to bottom, rgba(226, 232, 240, 0.6), transparent)', borderBottomLeftRadius: '32px', borderBottomRightRadius: '32px' }}></div>
                 
                 {/* Zona de Cabina */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '40px', marginTop: '16px', paddingBottom: '24px', borderBottom: '2px dashed #e2e8f0', position: 'relative' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '32px', marginTop: '12px', paddingBottom: '20px', borderBottom: '2px dashed #e2e8f0', position: 'relative' }}>
                     <div style={{ width: '56px', height: '56px', background: 'linear-gradient(135deg, #334155, #0f172a)', color: '#ffffff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', transform: 'rotate(-12deg)', border: '4px solid #f8fafc' }}>
                         <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>steering_wheel_heat</span>
                     </div>
@@ -355,7 +393,7 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial }:
                 </div>
 
                 {/* GRID DE ASIENTOS CON GRID NATIVO */}
-                <div style={{ display: 'grid', gridTemplateColumns: `repeat(${columnas}, 1fr)`, rowGap: '16px', columnGap: '12px', paddingBottom: '16px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: `repeat(${columnas}, 1fr)`, rowGap: '12px', columnGap: '8px', paddingBottom: '12px' }}>
                     {asientos.map((asiento, idx) => {
                         const esAsientoReal = !asiento.esPasillo && !asiento.vacio && !asiento.esBano;
                         const esBaño = asiento.esBano;
@@ -372,15 +410,15 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial }:
                            ? '#faf5ff'
                            : asiento.esPasillo 
                                ? (modo === 'vaciar' ? 'rgba(254, 226, 226, 0.8)' : 'transparent')
-                               : (asiento.vacio ? '#f8fafc' : 'linear-gradient(to bottom, #ffffff, #f1f5f9)');
+                               : (asiento.vacio ? '#f8fafc' : (asiento.esPoltrona ? 'linear-gradient(to bottom, #fef3c7, #fde68a)' : 'linear-gradient(to bottom, #ffffff, #f1f5f9)'));
                         
                         const borderColor = esBaño
                            ? '2px solid #d8b4fe'
                            : asiento.esPasillo
                                ? (modo === 'vaciar' ? '2px dashed #fca5a5' : '1px solid transparent')
-                               : (asiento.vacio ? '2px dashed #cbd5e1' : '1px solid #e2e8f0');
+                               : (asiento.vacio ? '2px dashed #cbd5e1' : (asiento.esPoltrona ? '2px solid #f59e0b' : '1px solid #e2e8f0'));
 
-                        const colorTxt = esBaño ? '#7e22ce' : (asiento.esPasillo ? 'transparent' : (asiento.vacio ? '#94a3b8' : '#334155'));
+                        const colorTxt = esBaño ? '#7e22ce' : (asiento.esPasillo ? 'transparent' : (asiento.vacio ? '#94a3b8' : (asiento.esPoltrona ? '#92400e' : '#334155')));
 
                         return (
                             <div
@@ -408,9 +446,9 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial }:
                                     color: colorTxt,
                                     boxShadow: (esAsientoReal || esBaño) ? '0 2px 4px rgba(0,0,0,0.1), 0 1px 1px rgba(0,0,0,0.05)' : 'none',
                                     transform: 'translateY(0)',
-                                    cursor: (modo === 'editar' || modo === 'baño' || modo === 'vaciar') ? 'pointer' : 'grab',
-                                    padding: '0 12px',
-                                    minHeight: '44px',
+                                    cursor: (modo === 'editar' || modo === 'baño' || modo === 'vaciar' || modo === 'poltrona') ? 'pointer' : 'grab',
+                                    padding: '0 8px',
+                                    minHeight: '40px',
                                     width: '100%',
                                     outline: 'none',
                                     overflow: 'visible' // Para que no corte el borde de 2px
@@ -439,7 +477,12 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial }:
                                             autoFocus
                                         />
                                     ) : (
-                                        !asiento.esPasillo && (asiento.vacio ? 'X' : asiento.numero)
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                            {!asiento.esPasillo && (asiento.vacio ? 'X' : asiento.numero)}
+                                            {asiento.esPoltrona && !asiento.vacio && !asiento.esPasillo && (
+                                                <span className="material-symbols-outlined" style={{ fontSize: '14px', color: '#f59e0b' }}>star</span>
+                                            )}
+                                        </div>
                                     )
                                 )}
                                 
@@ -465,6 +508,14 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial }:
                     </div>
                     <span style={{ fontSize: '14px', color: '#475569', fontWeight: 600 }}>
                         Disponibles: <span style={{ color: '#0f172a' }}>{asientos.filter(a => !a.esPasillo && !a.vacio && !a.esBano).length}</span>
+                    </span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ width: '16px', height: '16px', borderRadius: '4px', background: 'linear-gradient(to bottom, #fef3c7, #fde68a)', border: '1px solid #f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                         <span className="material-symbols-outlined" style={{ fontSize: '10px', color: '#92400e' }}>star</span>
+                    </div>
+                    <span style={{ fontSize: '14px', color: '#475569', fontWeight: 600 }}>
+                        Poltronas: <span style={{ color: '#0f172a' }}>{asientos.filter(a => a.esPoltrona && !a.vacio && !a.esPasillo && !a.esBano).length}</span>
                     </span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

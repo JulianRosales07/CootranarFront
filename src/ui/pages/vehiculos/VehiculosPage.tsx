@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Layout } from '../../components/layout/Layout';
 import { useVehiculos } from '../../hooks/useVehiculos';
 import { useTiposBus } from '../../hooks/useTiposBus';
@@ -103,8 +103,15 @@ export const VehiculosPage = () => {
   }, []);
 
   // Sincronizar capacidad si el diseñador cambia (solo si es necesario para evitar bucles)
+  const prevDistribucionRef = useRef<string>('');
+  
   useEffect(() => {
     if (!distribucionFinal?.distribucion) return;
+    
+    const distStr = JSON.stringify(distribucionFinal.distribucion);
+    if (distStr === prevDistribucionRef.current) return;
+    
+    prevDistribucionRef.current = distStr;
     
     const realCap = distribucionFinal.distribucion.filter((a: any) => !a.vacio && !a.esPasillo && !a.esBano).length;
     if (realCap > 0) {
@@ -113,7 +120,7 @@ export const VehiculosPage = () => {
         setCapacidad(String(realCap));
       }
     }
-  }, [distribucionFinal?.distribucion]);
+  }, [distribucionFinal?.distribucion, capacidad]);
 
   /* ── API functions for lista view ────────────────────────── */
   const cargarVehiculosApi = useCallback(async () => {
@@ -241,204 +248,13 @@ export const VehiculosPage = () => {
             <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>list</span>
             Lista de Vehículos
           </button>
-          <button
-            onClick={() => {
-              if (!editingId) resetForm();
-              setVistaActual('formulario');
-            }}
-            style={{
-              padding: '14px 24px',
-              border: 'none',
-              background: 'transparent',
-              borderBottom: vistaActual === 'formulario' ? `3px solid ${BLUE}` : '3px solid transparent',
-              color: vistaActual === 'formulario' ? BLUE : '#64748b',
-              fontSize: '14px',
-              fontWeight: vistaActual === 'formulario' ? 700 : 500,
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              transition: 'all 0.2s',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>{editingId ? 'edit_square' : 'add_circle'}</span>
-            {editingId ? 'Editar Vehículo' : 'Crear Vehículo'}
-          </button>
         </div>
       </div>
 
       {vistaActual === 'formulario' ? (
-        <>
-      {/* ── Row: Formulario + Asientos ─────────────────────── */}
-      <div style={{ display: 'flex', gap: '24px', alignItems: 'stretch', marginBottom: '24px' }}>
-
-      {/* ── Formulario Añadir / Editar Vehículo ────────────── */}
-      <div style={{
-        background: 'white', borderRadius: '10px',
-        border: '1px solid #e8edf2', padding: '24px 28px',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.05)', flex: 1,
-        display: 'flex', flexDirection: 'column',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px', borderBottom: '1px solid #f1f5f9', paddingBottom: '16px' }}>
-          <span className="material-symbols-outlined" style={{ fontSize: '20px', color: BLUE }}>
-            directions_bus
-          </span>
-          <span style={{ fontWeight: 700, fontSize: '15px', color: '#0f172a' }}>
-            {editingId ? 'Editar Vehículo' : 'Información del Vehículo'}
-          </span>
+        <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
+          <p>Use el botón "Nuevo Vehículo" para crear un vehículo.</p>
         </div>
-
-        <form onSubmit={handleGuardar} style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-          {/* Fila 1: Número Móvil + Placa */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-            <Field label="Número Móvil">
-              <input value={marca} onChange={e => setMarca(e.target.value)}
-                placeholder="Ej. 1045" style={inputStyle}
-                onFocus={focusBorder} onBlur={blurBorder} />
-            </Field>
-            <Field label="Placa" required>
-              <input value={placa} onChange={e => setPlaca(e.target.value)}
-                placeholder="EJ: ABC-123" style={inputStyle}
-                onFocus={focusBorder} onBlur={blurBorder} />
-            </Field>
-          </div>
-
-          {/* Fila 2: Tipo de Servicio + Tipo de Bus */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginTop: '14px' }}>
-            <Field label="Tipo de Servicio">
-              <select value={estado} onChange={e => setEstado(e.target.value as EstadoVehiculo)}
-                style={{ ...inputStyle, appearance: 'none' }}
-                onFocus={focusBorder} onBlur={blurBorder}>
-                <option value="">Seleccionar...</option>
-                <option value="DISPONIBLE">Disponible</option>
-                <option value="EN_RUTA">En Ruta</option>
-                <option value="MANTENIMIENTO">Mantenimiento</option>
-                <option value="FUERA_SERVICIO">Fuera de Servicio</option>
-              </select>
-            </Field>
-            <Field label="Tipo de Bus">
-              <select value={tipoBusId} onChange={e => setTipoBusId(e.target.value)}
-                style={{ ...inputStyle, appearance: 'none' }}
-                onFocus={focusBorder} onBlur={blurBorder}>
-                <option value="">Seleccionar...</option>
-                {tiposBusList.map((t) => (
-                  <option key={t.id} value={t.id}>{t.nombre}</option>
-                ))}
-              </select>
-            </Field>
-          </div>
-
-          {/* Fila 3: Modelo + Capacidad + Cantidad de Pisos */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px', marginTop: '14px' }}>
-            <Field label="Marca">
-              <input value={marca} onChange={e => setMarca(e.target.value)}
-                placeholder="Ej. Mercedes Benz" style={inputStyle}
-                onFocus={focusBorder} onBlur={blurBorder} />
-            </Field>
-            <Field label="Capacidad Pasajeros">
-              <input type="number" value={capacidad} onChange={e => setCapacidad(e.target.value)}
-                placeholder="Ej. 42" style={inputStyle}
-                onFocus={focusBorder} onBlur={blurBorder} />
-            </Field>
-            <Field label="Cantidad de Pisos">
-              <input type="number" value={año} onChange={e => setAño(e.target.value)}
-                placeholder="1" style={inputStyle}
-                onFocus={focusBorder} onBlur={blurBorder} />
-            </Field>
-          </div>
-
-          {/* Sección: Asignación de Conductores */}
-          <div style={{ marginTop: '28px', borderTop: '1px solid #f1f5f9', paddingTop: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '18px', color: BLUE }}>person</span>
-              <span style={{ fontWeight: 700, fontSize: '14px', color: '#0f172a' }}>Asignación de Conductores</span>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-              <Field label="Conductor Principal" required>
-                <div style={{ position: 'relative' }}>
-                  <span className="material-symbols-outlined" style={{
-                    position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)',
-                    fontSize: '16px', color: '#cbd5e1',
-                  }}>search</span>
-                  <input placeholder="Buscar por nombre o cc"
-                    style={{ ...inputStyle, paddingLeft: '34px' }}
-                    onFocus={focusBorder} onBlur={blurBorder} />
-                </div>
-              </Field>
-              <Field label="Segundo Conductor (Opcional)">
-                <div style={{ position: 'relative' }}>
-                  <span className="material-symbols-outlined" style={{
-                    position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)',
-                    fontSize: '16px', color: '#cbd5e1',
-                  }}>search</span>
-                  <input placeholder="Buscar por nombre o cc"
-                    style={{ ...inputStyle, paddingLeft: '34px' }}
-                    onFocus={focusBorder} onBlur={blurBorder} />
-                </div>
-              </Field>
-            </div>
-          </div>
-
-          {/* Botón Guardar - ancho completo */}
-          <div style={{ marginTop: 'auto', paddingTop: '24px' }}>
-            {editingId && (
-              <button type="button" onClick={resetForm} style={{
-                width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                background: 'white', color: '#64748b',
-                border: '1px solid #cbd5e1', borderRadius: '10px',
-                padding: '14px', fontSize: '14px', fontWeight: 600,
-                cursor: 'pointer', fontFamily: 'inherit', marginBottom: '10px',
-              }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '17px' }}>close</span>
-                Cancelar
-              </button>
-            )}
-            <button type="submit" style={{
-              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-              background: BLUE, color: 'white',
-              border: 'none', borderRadius: '10px',
-              padding: '14px', fontSize: '14px', fontWeight: 700,
-              cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.15s',
-            }}
-              onMouseEnter={e => (e.currentTarget.style.background = '#0a2f72')}
-              onMouseLeave={e => (e.currentTarget.style.background = BLUE)}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
-                {editingId ? 'edit' : 'save'}
-              </span>
-              {editingId ? 'Actualizar Vehículo' : 'Guardar Vehículo'}
-            </button>
-          </div>
-
-          {formMsg && (
-            <p style={{
-              marginTop: '10px', fontSize: '13px', fontWeight: 600,
-              color: formMsg.type === 'ok' ? '#16a34a' : '#dc2626',
-              textAlign: 'center',
-            }}>{formMsg.text}</p>
-          )}
-        </form>
-      </div>
-
-      {/* ── Configuración de Asientos (DisenadorAsientos Oficial) ── */}
-      <div style={{
-        background: 'white', borderRadius: '14px',
-        border: '1px solid #e2e8f0', padding: '24px',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
-        flex: 1, minWidth: 0, 
-        display: 'flex', flexDirection: 'column',
-      }}>
-        <DisenadorAsientos 
-          key={editingId || 'nuevo'}
-          capacidad={Number(capacidad) || 0}
-          onChange={handleDesignerChange}
-          valorInicial={initialDistribucion}
-        />
-      </div>
-
-      </div>{/* end flex row */}
-        </>
       ) : (
         /* ── Lista de Vehículos View ────────────────────────── */
         <>

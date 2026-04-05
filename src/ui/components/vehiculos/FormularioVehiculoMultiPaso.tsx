@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { vehiculosApi, propietariosApi, tiposBusApi, tiposServicioApi, aseguradorasApi } from '../../../infrastructure/services/vehiculosApi';
 import { conductoresApi } from '../../../infrastructure/services/conductoresApi';
 import DisenadorAsientos from './DisenadorAsientos';
+import gsap from 'gsap';
 
 const PASOS = ['Propietario', 'Vehículo', 'Asientos', 'Documentos', 'Pólizas', 'Conductores'];
 // Shared inline style constants
@@ -36,6 +37,11 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
   const [guardando, setGuardando] = useState(false);
   const [cargandoDatos, setCargandoDatos] = useState(modoEdicion);
   const [exitoModal, setExitoModal] = useState<{ show: boolean; mensaje: string }>({ show: false, mensaje: '' });
+
+  // Refs para animaciones GSAP
+  const contenidoPasoRef = useRef<HTMLDivElement>(null);
+  const botonSiguienteRef = useRef<HTMLButtonElement>(null);
+  const barraProgresoRef = useRef<HTMLDivElement>(null);
 
   // Paso 1: Propietario
   const [docPropietario, setDocPropietario] = useState('');
@@ -607,6 +613,42 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
 
   const siguiente = () => setPasoActual(p => Math.min(p + 1, PASOS.length - 1));
   const anterior = () => setPasoActual(p => Math.max(p - 1, 0));
+
+  // Animación cuando cambia el paso
+  useEffect(() => {
+    if (contenidoPasoRef.current) {
+      // Animación de entrada del contenido
+      gsap.fromTo(
+        contenidoPasoRef.current,
+        { opacity: 0, x: 50, scale: 0.98 },
+        { opacity: 1, x: 0, scale: 1, duration: 0.5, ease: 'power2.out' }
+      );
+    }
+
+    // Animar barra de progreso
+    if (barraProgresoRef.current) {
+      const porcentaje = ((pasoActual + 1) / PASOS.length) * 100;
+      gsap.to(barraProgresoRef.current, {
+        width: `${porcentaje}%`,
+        duration: 0.8,
+        ease: 'power2.out'
+      });
+    }
+  }, [pasoActual]);
+
+  // Animación del botón siguiente/guardar
+  useEffect(() => {
+    if (botonSiguienteRef.current) {
+      // Efecto de pulso sutil
+      gsap.to(botonSiguienteRef.current, {
+        scale: 1.02,
+        duration: 0.8,
+        repeat: -1,
+        yoyo: true,
+        ease: 'power1.inOut'
+      });
+    }
+  }, [pasoActual]);
 
   // ===== RENDER PASOS =====
   const renderPaso1 = () => (
@@ -1301,7 +1343,57 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
               {modoEdicion ? 'Editar Vehículo' : 'Registrar Vehículo'}
             </h3>
           </div>
-          <span style={{ fontSize: '13px', color: '#94a3b8' }}>Paso {pasoActual + 1} de {PASOS.length}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{ fontSize: '13px', color: '#94a3b8', fontWeight: 600 }}>
+              Paso {pasoActual + 1} de {PASOS.length}
+            </span>
+            <div style={{ 
+              fontSize: '15px', 
+              fontWeight: 700, 
+              color: '#0D3B8E',
+              backgroundColor: '#eff6ff',
+              padding: '4px 12px',
+              borderRadius: '20px',
+              border: '1px solid #bfdbfe'
+            }}>
+              {Math.round(((pasoActual + 1) / PASOS.length) * 100)}%
+            </div>
+          </div>
+        </div>
+
+        {/* Barra de progreso animada */}
+        <div style={{ 
+          width: '100%', 
+          height: '6px', 
+          backgroundColor: '#f1f5f9', 
+          borderRadius: '10px',
+          overflow: 'hidden',
+          marginBottom: '16px',
+          position: 'relative'
+        }}>
+          <div 
+            ref={barraProgresoRef}
+            style={{ 
+              height: '100%', 
+              width: `${((pasoActual + 1) / PASOS.length) * 100}%`,
+              background: 'linear-gradient(90deg, #0D3B8E 0%, #1e40af 100%)',
+              borderRadius: '10px',
+              position: 'relative',
+              boxShadow: '0 0 10px rgba(13, 59, 142, 0.3)',
+              transition: 'width 0.8s ease-out'
+            }}
+          >
+            {/* Brillo animado */}
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: '50%',
+              background: 'linear-gradient(to bottom, rgba(255,255,255,0.3), transparent)',
+              borderRadius: '10px 10px 0 0'
+            }} />
+          </div>
         </div>
 
         {/* Barra de pasos */}
@@ -1330,6 +1422,9 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
                     : '#94a3b8',
               }}
             >
+              {i < pasoActual && (
+                <span className="material-symbols-outlined" style={{ fontSize: '14px', marginRight: '4px' }}>check</span>
+              )}
               {paso}
             </button>
           ))}
@@ -1338,7 +1433,7 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
 
       {/* Contenido del paso actual */}
       <div style={{ padding: '32px', minHeight: '320px', backgroundColor: '#f8fafc' }}>
-        <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+        <div ref={contenidoPasoRef} style={{ maxWidth: '900px', margin: '0 auto' }}>
           {pasos[pasoActual]()}
         </div>
       </div>
@@ -1387,6 +1482,7 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
           </button>
           {pasoActual < PASOS.length - 1 ? (
             <button
+              ref={botonSiguienteRef}
               type="button"
               onClick={siguiente}
               style={{
@@ -1396,14 +1492,21 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
                 fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '6px',
                 boxShadow: '0 1px 3px rgba(13,59,142,0.3)', transition: 'background 0.15s',
               }}
-              onMouseEnter={e => (e.currentTarget.style.background = '#0A2E70')}
-              onMouseLeave={e => (e.currentTarget.style.background = '#0D3B8E')}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = '#0A2E70';
+                gsap.to(e.currentTarget, { scale: 1.05, duration: 0.2, ease: 'back.out(1.7)' });
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = '#0D3B8E';
+                gsap.to(e.currentTarget, { scale: 1, duration: 0.2 });
+              }}
             >
               Siguiente
               <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>chevron_right</span>
             </button>
           ) : (
             <button
+              ref={botonSiguienteRef}
               type="button"
               onClick={handleSubmit}
               disabled={guardando}
@@ -1414,8 +1517,16 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
                 fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '6px',
                 opacity: guardando ? 0.6 : 1, transition: 'background 0.15s',
               }}
-              onMouseEnter={e => { if (!guardando) e.currentTarget.style.background = '#15803d'; }}
-              onMouseLeave={e => (e.currentTarget.style.background = '#16a34a')}
+              onMouseEnter={e => { 
+                if (!guardando) {
+                  e.currentTarget.style.background = '#15803d';
+                  gsap.to(e.currentTarget, { scale: 1.05, duration: 0.2, ease: 'back.out(1.7)' });
+                }
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = '#16a34a';
+                if (!guardando) gsap.to(e.currentTarget, { scale: 1, duration: 0.2 });
+              }}
             >
               <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>save</span>
               {guardando ? 'Guardando...' : modoEdicion ? 'Actualizar Vehículo' : 'Guardar Vehículo'}
@@ -1427,9 +1538,38 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
 
     {/* Success Modal */}
     {exitoModal.show && (
-      <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(15, 23, 42, 0.45)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px', animation: 'fadeIn 0.3s ease' }}>
-        <div style={{ backgroundColor: 'white', borderRadius: '24px', padding: '48px 32px', width: '100%', maxWidth: '400px', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', animation: 'popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
-          <div style={{ width: '80px', height: '80px', backgroundColor: '#dcfce7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+      <div 
+        style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(15, 23, 42, 0.45)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px' }}
+        ref={(el) => {
+          if (el) {
+            gsap.fromTo(el, { opacity: 0 }, { opacity: 1, duration: 0.3 });
+          }
+        }}
+      >
+        <div 
+          style={{ backgroundColor: 'white', borderRadius: '24px', padding: '48px 32px', width: '100%', maxWidth: '400px', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }}
+          ref={(el) => {
+            if (el) {
+              gsap.fromTo(
+                el,
+                { scale: 0.7, opacity: 0, y: 50 },
+                { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: 'back.out(1.7)' }
+              );
+            }
+          }}
+        >
+          <div 
+            style={{ width: '80px', height: '80px', backgroundColor: '#dcfce7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}
+            ref={(el) => {
+              if (el) {
+                gsap.fromTo(
+                  el,
+                  { scale: 0, rotation: -180 },
+                  { scale: 1, rotation: 0, duration: 0.6, delay: 0.2, ease: 'elastic.out(1, 0.5)' }
+                );
+              }
+            }}
+          >
             <span className="material-symbols-outlined" style={{ color: '#16a34a', fontSize: '48px', fontWeight: 'bold' }}>check</span>
           </div>
           <h3 style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a', marginBottom: '12px', letterSpacing: '-0.02em' }}>¡Registro Exitoso!</h3>
@@ -1437,16 +1577,18 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
           <button
             onClick={onVehiculoCreado}
             style={{ width: '100%', padding: '16px', backgroundColor: '#0D3B8E', color: 'white', borderRadius: '16px', fontSize: '15px', fontWeight: 700, border: 'none', cursor: 'pointer', boxShadow: '0 10px 15px -3px rgba(13,59,142,0.3)', transition: 'transform 0.2s, background 0.2s' }}
-            onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#0A265E')}
-            onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#0D3B8E')}
+            onMouseEnter={e => {
+              e.currentTarget.style.backgroundColor = '#0A265E';
+              gsap.to(e.currentTarget, { scale: 1.03, duration: 0.2 });
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.backgroundColor = '#0D3B8E';
+              gsap.to(e.currentTarget, { scale: 1, duration: 0.2 });
+            }}
           >
             Entendido
           </button>
         </div>
-        <style>{`
-          @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-          @keyframes popIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-        `}</style>
       </div>
     )}
     </>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import gsap from 'gsap';
 
 interface DisenadorAsientosProps {
   capacidad: number;
@@ -174,10 +175,19 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial }:
     });
   };
 
-  const interactuarAsiento = (id: number) => {
+  const interactuarAsiento = (id: number, event?: React.MouseEvent<HTMLDivElement>) => {
     if (modo === 'editar') return;
     const asiento = asientos.find(a => a.id === id);
     if (!asiento) return;
+
+    // Animación de click
+    if (event?.currentTarget) {
+      gsap.fromTo(
+        event.currentTarget,
+        { scale: 0.9, rotation: -5 },
+        { scale: 1, rotation: 0, duration: 0.3, ease: 'back.out(1.7)' }
+      );
+    }
 
     if (modo === 'vaciar') {
       setAsientos(prev => {
@@ -423,12 +433,31 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial }:
                         return (
                             <div
                                 key={asiento.id}
-                                onClick={() => interactuarAsiento(asiento.id)}
+                                onClick={(e) => interactuarAsiento(asiento.id, e)}
                                 draggable={modo === 'normal'}
                                 onDragStart={(e) => handleDragStart(e, asiento.id)}
                                 onDragOver={(e) => e.preventDefault()}
                                 onDrop={(e) => handleDrop(e, asiento.id)}
-                                className="group hover:-translate-y-1 hover:shadow-md transition-all duration-200"
+                                onMouseEnter={(e) => {
+                                    if (modo !== 'editar' && !asiento.esPasillo) {
+                                        gsap.to(e.currentTarget, { 
+                                            y: -4, 
+                                            scale: 1.05,
+                                            duration: 0.2, 
+                                            ease: 'power2.out' 
+                                        });
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (modo !== 'editar') {
+                                        gsap.to(e.currentTarget, { 
+                                            y: 0, 
+                                            scale: 1,
+                                            duration: 0.2 
+                                        });
+                                    }
+                                }}
+                                className="group transition-all duration-200"
                                 style={{
                                     position: 'relative',
                                     aspectRatio: esParteIzquierda ? 'auto' : '1',

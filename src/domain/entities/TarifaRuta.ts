@@ -2,7 +2,11 @@ export interface TarifaRuta {
   id: string;
   idRuta: string;
   idTipoBus: string;
-  precio: number;
+  piso: number;
+  valorNormal: number;
+  valorTraficoAlto: number;
+  adicionalPoltrona?: number;
+  activo?: boolean;
   rutaNombre?: string;
   tipoBusNombre?: string;
 }

@@ -2,7 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { Layout } from '../../components/layout/Layout';
 import { useAgencias } from '../../hooks/useAgencias';
 import { useCiudades } from '../../hooks/useCiudades';
-import type { Agencia } from '../../../domain/entities/Agencia';
 
 const BLUE = '#0D3B8E';
 const ITEMS_PER_PAGE = 5;
@@ -67,13 +66,13 @@ export const AgenciasPage = () => {
     if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1);
     const p: (number | '...')[] = [1];
     if (page > 3) p.push('...');
-    for (let p = Math.max(2, page - 1); p <= Math.min(totalPages - 1, page + 1); p++) p.push(p);
+    for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) p.push(i);
     if (page < totalPages - 2) p.push('...');
     p.push(totalPages);
     return p;
   })();
 
-  const ciudadName = (id: string) => ciudadesList.find((c: any) => c.idciudad === parseInt(id))?.nombre ?? id;
+  const ciudadName = (id: string) => ciudadesList.find((c: any) => c.id === parseInt(id))?.nombre ?? id;
 
   const resetForm = () => { setNombre(''); setCiudadId(''); setDireccion(''); setTelefono(''); setActivo(true); setEditingId(null); };
 
@@ -92,7 +91,11 @@ export const AgenciasPage = () => {
     if (!nombre.trim()) { setFormMsg({ type: 'err', text: 'El nombre es requerido.' }); return; }
     const payload = { nombre, ciudadId, direccion, telefono, activo };
     const onOk = () => { setFormMsg({ type: 'ok', text: editingId ? 'Agencia actualizada.' : 'Agencia guardada.' }); resetForm(); setTimeout(() => setFormMsg(null), 3000); };
-    const onErr = () => { setFormMsg({ type: 'err', text: 'Error al guardar.' }); setTimeout(() => setFormMsg(null), 3000); };
+    const onErr = (error: any) => {
+      const msg = error?.response?.data?.message || error?.message || 'Error al guardar.';
+      setFormMsg({ type: 'err', text: msg });
+      setTimeout(() => setFormMsg(null), 5000);
+    };
     editingId ? updateAgencia({ id: editingId, data: payload }, { onSuccess: onOk, onError: onErr } as any) : createAgencia(payload, { onSuccess: onOk, onError: onErr } as any);
   };
 
@@ -117,7 +120,7 @@ export const AgenciasPage = () => {
             <Field label="Ciudad">
               <select value={ciudadId} onChange={e => setCiudadId(e.target.value)} style={{ ...inputStyle, appearance: 'none' }} onFocus={focusBorder} onBlur={blurBorder}>
                 <option value="">Seleccionar Ciudad...</option>
-                {ciudadesList.map((c: any) => <option key={c.idciudad} value={c.idciudad}>{c.nombre}</option>)}
+                {ciudadesList.map((c: any) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
               </select>
             </Field>
           </div>

@@ -2,7 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { Layout } from '../../components/layout/Layout';
 import { useCiudades } from '../../hooks/useCiudades';
 import { useDepartamentos } from '../../hooks/useDepartamentos';
-import type { Ciudad } from '../../../domain/entities/Ciudad';
 
 const BLUE = '#0D3B8E';
 const ITEMS_PER_PAGE = 5;
@@ -77,10 +76,10 @@ export const CiudadesPage = () => {
   const resetForm = () => { setCodigo(''); setNombre(''); setDepartamentoId(''); setActivo(true); setEditingId(null); };
 
   const startEdit = (c: any) => {
-    setEditingId(c.idciudad);
+    setEditingId(c.id);                              // hook mapea idciudad → id
     setNombre(c.nombre);
-    setCodigo(c.codigopostal || '');
-    setDepartamentoId(c.iddepartamento ? String(c.iddepartamento) : '');
+    setCodigo(c.codigo || '');                       // hook mapea codigopostal → codigo
+    setDepartamentoId(c.departamentoId || '');       // hook mapea iddepartamento → departamentoId
     setActivo(c.activo);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -90,7 +89,11 @@ export const CiudadesPage = () => {
     if (!nombre.trim()) { setFormMsg({ type: 'err', text: 'El nombre es requerido.' }); return; }
     const payload = { nombre, codigo, departamentoId, activo };
     const onOk = () => { setFormMsg({ type: 'ok', text: editingId ? 'Ciudad actualizada.' : 'Ciudad guardada.' }); resetForm(); setTimeout(() => setFormMsg(null), 3000); };
-    const onErr = () => { setFormMsg({ type: 'err', text: 'Error al guardar.' }); setTimeout(() => setFormMsg(null), 3000); };
+    const onErr = (error: any) => {
+      const msg = error?.response?.data?.message || error?.message || 'Error al guardar.';
+      setFormMsg({ type: 'err', text: msg });
+      setTimeout(() => setFormMsg(null), 5000);
+    };
     editingId ? updateCiudad({ id: editingId, data: payload }, { onSuccess: onOk, onError: onErr } as any) : createCiudad(payload, { onSuccess: onOk, onError: onErr } as any);
   };
 
@@ -182,15 +185,15 @@ export const CiudadesPage = () => {
                 {paginated.length === 0 ? (
                   <tr><td colSpan={5} style={{ padding: '48px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>No se encontraron ciudades.</td></tr>
                 ) : paginated.map((c: any) => (
-                  <tr key={c.idciudad} style={{ borderBottom: '1px solid #f1f5f9' }} onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')} onMouseLeave={e => (e.currentTarget.style.background = 'white')}>
+                  <tr key={c.id} style={{ borderBottom: '1px solid #f1f5f9' }} onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')} onMouseLeave={e => (e.currentTarget.style.background = 'white')}>
                     <td style={{ padding: '12px 16px', fontSize: '13.5px', fontWeight: 600, color: '#1e293b' }}>{c.nombre}</td>
-                    <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: '#64748b', fontFamily: 'monospace' }}>{c.codigopostal || '—'}</td>
-                    <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{c.nombredepartamento || departamentoName(c.iddepartamento) || '—'}</td>
+                    <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: '#64748b', fontFamily: 'monospace' }}>{c.codigo || '—'}</td>
+                    <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{c.departamentoNombre || departamentoName(c.departamentoId) || '—'}</td>
                     <td style={{ padding: '12px 16px' }}><EstadoBadge activo={c.activo} /></td>
                     <td style={{ padding: '12px 16px' }}>
                       <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                         <button title="Editar" onClick={() => startEdit(c)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center' }} onMouseEnter={e => (e.currentTarget.style.color = BLUE)} onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}><span className="material-symbols-outlined" style={{ fontSize: '18px' }}>edit</span></button>
-                        <button title="Eliminar" onClick={() => handleDelete(c.idciudad)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center' }} onMouseEnter={e => (e.currentTarget.style.color = '#dc2626')} onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}><span className="material-symbols-outlined" style={{ fontSize: '18px' }}>delete</span></button>
+                        <button title="Eliminar" onClick={() => handleDelete(c.id)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center' }} onMouseEnter={e => (e.currentTarget.style.color = '#dc2626')} onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}><span className="material-symbols-outlined" style={{ fontSize: '18px' }}>delete</span></button>
                       </div>
                     </td>
                   </tr>

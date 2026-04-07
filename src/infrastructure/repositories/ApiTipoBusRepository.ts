@@ -4,7 +4,8 @@ import { httpClient } from '../api/httpClient';
 
 export class ApiTipoBusRepository implements TipoBusRepository {
   async findAll(): Promise<TipoBus[]> {
-    const response = await httpClient.get('/tipobus');
+    // Usamos /tipoBus/activos porque la ruta raíz requiere rol admin
+    const response = await httpClient.get('/tipoBus/activos');
     const tipos = Array.isArray(response.data) ? response.data : response.data?.data?.tiposbus || [];
     return tipos.map((t: any) => ({
       id: String(t.idtipobus || t.id),
@@ -16,7 +17,7 @@ export class ApiTipoBusRepository implements TipoBusRepository {
 
   async findById(id: string): Promise<TipoBus | null> {
     try {
-      const response = await httpClient.get(`/tipobus/${id}`);
+      const response = await httpClient.get(`/tipoBus/${id}`);
       const t = response.data?.data?.tipobus || response.data;
       if (!t) return null;
       return {
@@ -31,7 +32,7 @@ export class ApiTipoBusRepository implements TipoBusRepository {
   }
 
   async save(data: Omit<TipoBus, 'id' | 'activo'>): Promise<TipoBus> {
-    const response = await httpClient.post('/tipobus', data);
+    const response = await httpClient.post('/tipoBus', data);
     const t = response.data?.data?.tipobus || response.data;
     return {
       id: String(t.idtipobus || t.id),
@@ -42,7 +43,7 @@ export class ApiTipoBusRepository implements TipoBusRepository {
   }
 
   async update(id: string, data: Partial<TipoBus>): Promise<TipoBus> {
-    const response = await httpClient.put(`/tipobus/${id}`, data);
+    const response = await httpClient.put(`/tipoBus/${id}`, data);
     const t = response.data?.data?.tipobus || response.data;
     return {
       id: String(t.idtipobus || t.id),
@@ -53,10 +54,10 @@ export class ApiTipoBusRepository implements TipoBusRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await httpClient.patch(`/tipobus/desactivar/${id}`);
+    await httpClient.patch(`/tipoBus/desactivar/${id}`);
   }
 
   async activate(id: string): Promise<void> {
-    await httpClient.patch(`/tipobus/activar/${id}`);
+    await httpClient.patch(`/tipoBus/activar/${id}`);
   }
 }

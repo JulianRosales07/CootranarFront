@@ -7,50 +7,47 @@ function mapFromBackend(raw: any): TarifaRuta {
     id: String(raw.idtarifaruta ?? raw.id),
     idRuta: String(raw.idruta ?? raw.idRuta ?? ''),
     idTipoBus: String(raw.idtipobus ?? raw.idTipoBus ?? ''),
-    precio: Number(raw.precio ?? raw.valor ?? 0),
-    rutaNombre: raw.ruta_nombre ?? raw.rutaNombre ?? '',
-    tipoBusNombre: raw.tipobus_nombre ?? raw.tipoBusNombre ?? '',
+    piso: Number(raw.piso ?? 1),
+    valorNormal: Number(raw.valornormal ?? raw.valorNormal ?? 0),
+    valorTraficoAlto: Number(raw.valortraficoalto ?? raw.valorTraficoAlto ?? 0),
+    adicionalPoltrona: raw.adicionalpoltrona !== undefined ? Number(raw.adicionalpoltrona) : 0,
+    activo: raw.activo ?? true,
+    rutaNombre: raw.nombreruta ?? raw.rutaNombre,
+    tipoBusNombre: raw.nombretipobus ?? raw.tipoBusNombre,
   };
 }
 
-function mapToBackend(data: Partial<TarifaRuta>) {
-  const payload: any = {};
-  if (data.idRuta !== undefined) payload.idruta = Number(data.idRuta) || data.idRuta;
-  if (data.idTipoBus !== undefined) payload.idtipobus = Number(data.idTipoBus) || data.idTipoBus;
-  if (data.precio !== undefined) payload.precio = data.precio;
-  return payload;
-}
-
 export class ApiTarifaRutaRepository implements TarifaRutaRepository {
-  async findByRuta(idRuta: string): Promise<TarifaRuta[]> {
+  async obtenerTodas(): Promise<TarifaRuta[]> {
+    const response = await httpClient.get('/tarifas-ruta');
+    const data = response.data.data;
+    const tarifasArray = data.tarifas || data || [];
+    return tarifasArray.map(mapFromBackend);
+  }
+
+  async obtenerPorRuta(idRuta: string): Promise<TarifaRuta[]> {
     const response = await httpClient.get(`/tarifas-ruta/ruta/${idRuta}`);
-    const data = response.data?.data ?? response.data;
-    return Array.isArray(data) ? data.map(mapFromBackend) : [];
+    const data = response.data.data;
+    const tarifasArray = data.tarifas || data || [];
+    return tarifasArray.map(mapFromBackend);
   }
 
-  async findByRutaYTipoBus(idRuta: string, idTipoBus: string): Promise<TarifaRuta | null> {
-    try {
-      const response = await httpClient.get(`/tarifas-ruta/ruta/${idRuta}/tipobus/${idTipoBus}`);
-      const raw = response.data?.data ?? response.data;
-      return mapFromBackend(raw);
-    } catch {
-      return null;
-    }
+  async obtenerPorId(id: string): Promise<TarifaRuta> {
+    const response = await httpClient.get(`/tarifas-ruta/${id}`);
+    return mapFromBackend(response.data.data);
   }
 
-  async save(data: Omit<TarifaRuta, 'id'>): Promise<TarifaRuta> {
-    const response = await httpClient.post('/tarifas-ruta', mapToBackend(data));
-    const raw = response.data?.data ?? response.data;
-    return mapFromBackend(raw);
+  async crear(data: Partial<TarifaRuta>): Promise<TarifaRuta> {
+    const response = await httpClient.post('/tarifas-ruta', data);
+    return mapFromBackend(response.data.data);
   }
 
-  async update(id: string, data: Partial<TarifaRuta>): Promise<TarifaRuta> {
-    const response = await httpClient.put(`/tarifas-ruta/${id}`, mapToBackend(data));
-    const raw = response.data?.data ?? response.data;
-    return mapFromBackend(raw);
+  async actualizar(id: string, data: Partial<TarifaRuta>): Promise<TarifaRuta> {
+    const response = await httpClient.put(`/tarifas-ruta/${id}`, data);
+    return mapFromBackend(response.data.data);
   }
 
-  async delete(id: string): Promise<void> {
+  async eliminar(id: string): Promise<void> {
     await httpClient.delete(`/tarifas-ruta/${id}`);
   }
 }

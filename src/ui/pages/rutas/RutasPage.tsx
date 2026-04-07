@@ -94,6 +94,18 @@ export const RutasPage = () => {
 
   const agName = (id: string) => agenciasList.find((a: any) => a.idagencia === parseInt(id))?.nombre ?? id;
 
+  // Agrupar rutas por ID para mostrar visualmente
+  const groupedRoutes = useMemo(() => {
+    const groups: { [key: string]: any[] } = {};
+    paginated.forEach(ruta => {
+      if (!groups[ruta.id]) {
+        groups[ruta.id] = [];
+      }
+      groups[ruta.id].push(ruta);
+    });
+    return groups;
+  }, [paginated]);
+
   const resetForm = () => { setNombre(''); setOrigenId(''); setDestinoId(''); setDuracion(''); setDistancia(''); setVia(''); setEditingId(null); };
 
   const startEdit = (r: Ruta) => {
@@ -252,13 +264,20 @@ export const RutasPage = () => {
               <thead>
                 <tr style={{ background: '#f8fafc' }}>
                   {[
-                    { label: 'Código Ruta', w: '120px' }, { label: 'Agencia Origen', w: '180px' },
-                    { label: 'Agencia Destino', w: '180px' }, { label: 'Duración', w: '100px' },
-                    { label: 'Distancia', w: '100px' }, { label: 'Estado', w: '90px' },
-                    { label: 'Acciones', w: '200px' },
+                    { label: 'Código Ruta', w: '100px' }, 
+                    { label: 'Agencia Origen', w: '140px' },
+                    { label: 'Agencia Destino', w: '140px' },
+                    { label: 'Tipo de Bus', w: '120px' },
+                    { label: 'Duración', w: '80px' },
+                    { label: 'Distancia', w: '80px' }, 
+                    { label: 'Precio Normal', w: '110px' },
+                    { label: 'Precio Tráfico Alto', w: '130px' },
+                    { label: 'Estado', w: '70px' },
+                    { label: 'Acciones', w: '90px' },
                   ].map(({ label, w }) => (
                     <th key={label} style={{
-                      width: w, padding: '11px 16px', textAlign: label === 'Duración' || label === 'Distancia' || label === 'Estado' ? 'center' : 'left',
+                      width: w, padding: '11px 16px', 
+                      textAlign: label === 'Duración' || label === 'Distancia' || label === 'Estado' || label === 'Precio Normal' || label === 'Precio Tráfico Alto' ? 'center' : 'left',
                       fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase',
                       letterSpacing: '0.08em', borderBottom: '1px solid #e8edf2', background: '#f8fafc',
                     }}>{label}</th>
@@ -266,38 +285,99 @@ export const RutasPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {paginated.length === 0 ? (
-                  <tr><td colSpan={7} style={{ padding: '48px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>No se encontraron rutas.</td></tr>
-                ) : paginated.map((r, idx) => (
-                  <tr key={r.id} style={{ borderBottom: '1px solid #f1f5f9' }}
-                    onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'white')}>
-                    <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: '#64748b', fontFamily: 'monospace' }}>
-                      #R-{String(idx + 1 + (page - 1) * ITEMS_PER_PAGE).padStart(3, '0')}
-                    </td>
-                    <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{agName(r.origen)}</td>
-                    <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{agName(r.destino)}</td>
-                    <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', textAlign: 'center' }}>
-                      {Math.floor(r.duracionMinutos / 60)}h {r.duracionMinutos % 60 > 0 ? `${r.duracionMinutos % 60}m` : '00m'}
-                    </td>
-                    <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', textAlign: 'center' }}>
-                      {r.precioBase} km
-                    </td>
-                    <td style={{ padding: '12px 16px', textAlign: 'center' }}><EstadoBadge activa={r.activa} /></td>
-                    <td style={{ padding: '12px 16px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <button title="Editar" onClick={() => startEdit(r)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center' }}
-                          onMouseEnter={e => (e.currentTarget.style.color = BLUE)} onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}>
-                          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>edit</span>
-                        </button>
-                        <button title="Eliminar" onClick={() => handleDelete(r.id)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center' }}
-                          onMouseEnter={e => (e.currentTarget.style.color = '#dc2626')} onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}>
-                          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>delete</span>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {Object.keys(groupedRoutes).length === 0 ? (
+                  <tr><td colSpan={10} style={{ padding: '48px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>No se encontraron rutas.</td></tr>
+                ) : Object.entries(groupedRoutes).map(([rutaId, rutasGrupo], groupIdx) => {
+                  return rutasGrupo.map((r, idx) => {
+                    const isFirstInGroup = idx === 0;
+                    const groupSize = rutasGrupo.length;
+                    
+                    return (
+                      <tr 
+                        key={`${r.id}-${r.idTipoBus || 'sin-tarifa'}-${idx}`} 
+                        style={{ 
+                          borderBottom: idx === groupSize - 1 ? '2px solid #e2e8f0' : '1px solid #f1f5f9',
+                          background: idx % 2 === 0 ? 'white' : '#fafbfc'
+                        }}
+                        onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')}
+                        onMouseLeave={e => (e.currentTarget.style.background = idx % 2 === 0 ? 'white' : '#fafbfc')}
+                      >
+                        {isFirstInGroup ? (
+                          <td 
+                            rowSpan={groupSize} 
+                            style={{ 
+                              padding: '12px 16px', 
+                              fontSize: '13px', 
+                              fontWeight: 600, 
+                              color: '#64748b', 
+                              fontFamily: 'monospace',
+                              borderRight: '1px solid #e8edf2',
+                              background: '#f8fafc'
+                            }}
+                          >
+                            #R-{String(groupIdx + 1 + (page - 1) * ITEMS_PER_PAGE).padStart(3, '0')}
+                          </td>
+                        ) : null}
+                        
+                        {isFirstInGroup ? (
+                          <td rowSpan={groupSize} style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', borderRight: '1px solid #e8edf2' }}>
+                            {agName(r.origen)}
+                          </td>
+                        ) : null}
+                        
+                        {isFirstInGroup ? (
+                          <td rowSpan={groupSize} style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', borderRight: '1px solid #e8edf2' }}>
+                            {agName(r.destino)}
+                          </td>
+                        ) : null}
+                        
+                        <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', fontWeight: 600 }}>
+                          {(r as any).tipoBus || <span style={{ color: '#cbd5e1', fontStyle: 'italic' }}>Sin tarifa</span>}
+                        </td>
+                        
+                        {isFirstInGroup ? (
+                          <td rowSpan={groupSize} style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', textAlign: 'center', borderRight: '1px solid #e8edf2' }}>
+                            {Math.floor(r.duracionMinutos / 60)}h {r.duracionMinutos % 60 > 0 ? `${r.duracionMinutos % 60}m` : '00m'}
+                          </td>
+                        ) : null}
+                        
+                        {isFirstInGroup ? (
+                          <td rowSpan={groupSize} style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', textAlign: 'center', borderRight: '1px solid #e8edf2' }}>
+                            {r.precioBase} km
+                          </td>
+                        ) : null}
+                        
+                        <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: '#16a34a', textAlign: 'center' }}>
+                          {(r as any).precioNormal ? `$${Number((r as any).precioNormal).toLocaleString()}` : <span style={{ color: '#cbd5e1' }}>—</span>}
+                        </td>
+                        <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: '#dc2626', textAlign: 'center' }}>
+                          {(r as any).precioTraficoAlto ? `$${Number((r as any).precioTraficoAlto).toLocaleString()}` : <span style={{ color: '#cbd5e1' }}>—</span>}
+                        </td>
+                        
+                        {isFirstInGroup ? (
+                          <td rowSpan={groupSize} style={{ padding: '12px 16px', textAlign: 'center', borderRight: '1px solid #e8edf2' }}>
+                            <EstadoBadge activa={r.activa} />
+                          </td>
+                        ) : null}
+                        
+                        {isFirstInGroup ? (
+                          <td rowSpan={groupSize} style={{ padding: '12px 16px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
+                              <button title="Editar" onClick={() => startEdit(r)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center' }}
+                                onMouseEnter={e => (e.currentTarget.style.color = BLUE)} onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}>
+                                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>edit</span>
+                              </button>
+                              <button title="Eliminar" onClick={() => handleDelete(r.id)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center' }}
+                                onMouseEnter={e => (e.currentTarget.style.color = '#dc2626')} onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}>
+                                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>delete</span>
+                              </button>
+                            </div>
+                          </td>
+                        ) : null}
+                      </tr>
+                    );
+                  });
+                })}
               </tbody>
             </table>
 

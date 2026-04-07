@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { rutasApi } from '../../infrastructure/services/rutasApi';
-import type { Ruta } from '../../domain/entities/Ruta';
 
 export const useRutas = () => {
   const queryClient = useQueryClient();
@@ -8,7 +7,7 @@ export const useRutas = () => {
   const { data: rutas, isLoading, error } = useQuery({
     queryKey: ['rutas'],
     queryFn: async () => {
-      const response = await rutasApi.obtenerTodas();
+      const response = await rutasApi.obtenerTodas({ limit: 1000, page: 1 });
       console.log('Response rutas:', response.data);
       const data = response.data.data;
       const rutasArray = data.rutas || data || [];
@@ -21,7 +20,11 @@ export const useRutas = () => {
         destino: ruta.idagenciadestino ? String(ruta.idagenciadestino) : '',
         duracionMinutos: ruta.duracionaprox || 0,
         precioBase: ruta.distanciakm || 0,
-        activa: ruta.activa !== false
+        activa: ruta.activa !== false,
+        precioNormal: ruta.precionormal ? Number(ruta.precionormal) : null,
+        precioTraficoAlto: ruta.preciotraficoalto ? Number(ruta.preciotraficoalto) : null,
+        tipoBus: ruta.nombretipobus || null,
+        idTipoBus: ruta.idtipobus || null
       }));
     },
   });

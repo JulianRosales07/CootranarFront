@@ -59,12 +59,30 @@ export const TarifasRutaPage = () => {
   const { tarifas, isLoading, create, update, remove } = useTarifasRuta(selectedRutaId || undefined);
 
   const [tipoBusId, setTipoBusId] = useState('');
-  const [precio, setPrecio] = useState('');
+  const [valorNormal, setValorNormal] = useState('');
+  const [valorTraficoAlto, setValorTraficoAlto] = useState('');
+  const [adicionalPoltrona, setAdicionalPoltrona] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formMsg, setFormMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
   const [page, setPage] = useState(1);
+  const [filtroTipoBus, setFiltroTipoBus] = useState('');
 
-  const list = useMemo(() => Array.isArray(tarifas) ? tarifas : [], [tarifas]);
+  // Deduplicar rutas por id para el selector (el backend devuelve N filas por ruta, una por tarifa)
+  const rutasUnicas = useMemo(() => {
+    const seen = new Set<string>();
+    return rutasList.filter(r => {
+      if (seen.has(r.id)) return false;
+      seen.add(r.id);
+      return true;
+    });
+  }, [rutasList]);
+
+  const list = useMemo(() => {
+    const arr = Array.isArray(tarifas) ? tarifas : [];
+    if (!filtroTipoBus) return arr;
+    return arr.filter(t => String((t as any).idTipoBus) === filtroTipoBus);
+  }, [tarifas, filtroTipoBus]);
+
   const totalPages = Math.max(1, Math.ceil(list.length / ITEMS_PER_PAGE));
   const paginated = list.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
   const visiblePages = (() => {
@@ -83,46 +101,113 @@ export const TarifasRutaPage = () => {
   const focusBorder = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => (e.currentTarget.style.borderColor = '#93b4e0');
   const blurBorder = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => (e.currentTarget.style.borderColor = '#e2e8f0');
 
-  const resetForm = () => { setTipoBusId(''); setPrecio(''); setEditingId(null); };
+  const resetForm = () => {
+    setTipoBusId('');
+    setValorNormal('');
+    setValorTraficoAlto('');
+    setAdicionalPoltrona('');
+    setEditingId(null);
+  };
 
   const handleGuardar = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedRutaId) { setFormMsg({ type: 'err', text: 'Selecciona una ruta primero.' }); return; }
-    if (!tipoBusId || !precio) { setFormMsg({ type: 'err', text: 'Tipo de bus y precio son requeridos.' }); return; }
     
-    // Mapear campos del frontend al backend
-    const payload = { 
+    if (!selectedRutaId) { 
+      setFormMsg({ type: 'err', text: 'Selecciona una ruta primero.' }); 
+      return; 
+    }
+    
+    if (!tipoBusId || !valorNormal || !valorTraficoAlto) {
+      setFormMsg({ type: 'err', text: 'Tipo de bus, valor normal y valor tráfico alto son requeridos.' });
+      return;
+    }
+
+    const payload: any = {
       idruta: parseInt(selectedRutaId, 10),
       idtipobus: parseInt(tipoBusId, 10),
-      piso: 1, // Por defecto piso 1
-      valornormal: Number(precio),
-      valortraficoalto: Number(precio) * 1.2 // 20% más para tráfico alto
+      piso: 1,
+      valornormal: Number(valorNormal),
+      valortraficoalto: Number(valorTraficoAlto),
     };
-    
+
+    if (adicionalPoltrona !== '') {
+      payload.adicionalpoltrona = Number(adicionalPoltrona);
+    }
+
     const cb = {
-      onSuccess: () => { setFormMsg({ type: 'ok', text: editingId ? 'Tarifa actualizada.' : 'Tarifa creada.' }); resetForm(); setTimeout(() => setFormMsg(null), 3000); },
-      onError: () => { setFormMsg({ type: 'err', text: 'Error al guardar tarifa.' }); setTimeout(() => setFormMsg(null), 3000); },
+      onSuccess: () => { 
+        setFormMsg({ type: 'ok', text: editingId ? 'Tarifa actualizada.' : 'Tarifa creada.' }); 
+        resetForm(); 
+        setTimeout(() => setFormMsg(null), 3000); 
+      },
+      onError: () => { 
+        setFormMsg({ type: 'err', text: 'Error al guardar tarifa.' }); 
+        setTimeout(() => setFormMsg(null), 3000); 
+      },
     };
+
     editingId ? update.mutate({ id: editingId, data: payload }, cb) : create.mutate(payload, cb);
   };
 
-  const handleDelete = (id: string) => { if (window.confirm('¿Eliminar esta tarifa?')) remove.mutate(id); };
+  const handleDelete = (id: string) => { 
+    if (window.confirm('¿Eliminar esta tarifa?')) remove.mutate(id); 
+  };
+
+  const handleEditar = (t: any) => {
+    setEditingId(t.id);
+    setTipoBusId(String(t.idTipoBus));
+    setValorNormal(String(t.valorNormal ?? 0));
+    setValorTraficoAlto(String(t.valorTraficoAlto ?? 0));
+    setAdicionalPoltrona(t.adicionalPoltrona ? String(t.adicionalPoltrona) : '');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Tipos de bus ya configurados para la ruta seleccionada (para el filtro)
+  const tiposBusEnRuta = useMemo(() => {
+    const arr = Array.isArray(tarifas) ? tarifas : [];
+    const seen = new Set<string>();
+    return arr.filter(t => {
+      const key = String((t as any).idTipoBus);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [tarifas]);
 
   return (
     <Layout>
-      {/* ── Selector de Ruta ───────────────────────────────── */}
+      {/* ── Selector de Ruta + Tipo de Bus ─────────────────── */}
       <div style={{ background: 'white', borderRadius: '10px', border: '1px solid #e8edf2', padding: '20px 24px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', marginBottom: '24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
           <span className="material-symbols-outlined" style={{ fontSize: '20px', color: BLUE }}>payments</span>
           <span style={{ fontWeight: 700, fontSize: '15px', color: '#0f172a' }}>Configuración de Tarifas por Ruta</span>
         </div>
-        <Field label="Seleccionar Ruta" required>
-          <select value={selectedRutaId} onChange={e => { setSelectedRutaId(e.target.value); resetForm(); setPage(1); }}
-            style={{ ...inputStyle, appearance: 'none', maxWidth: '500px' }} onFocus={focusBorder} onBlur={blurBorder}>
-            <option value="">Seleccionar una ruta...</option>
-            {rutasList.map(r => <option key={r.id} value={r.id}>{rutaLabel(r)}</option>)}
-          </select>
-        </Field>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', maxWidth: '860px' }}>
+          <Field label="Seleccionar Ruta" required>
+            <select value={selectedRutaId} onChange={e => { setSelectedRutaId(e.target.value); resetForm(); setPage(1); setFiltroTipoBus(''); }}
+              style={{ ...inputStyle, appearance: 'none' }} onFocus={focusBorder} onBlur={blurBorder}>
+              <option value="">Seleccionar una ruta...</option>
+              {rutasUnicas.map(r => <option key={r.id} value={r.id}>{rutaLabel(r)}</option>)}
+            </select>
+          </Field>
+          <Field label="Filtrar por Tipo de Bus">
+            <select 
+              value={filtroTipoBus} 
+              onChange={e => { setFiltroTipoBus(e.target.value); setPage(1); }}
+              style={{ ...inputStyle, appearance: 'none', background: selectedRutaId ? 'white' : '#f8fafc', color: selectedRutaId ? '#334155' : '#94a3b8' }} 
+              onFocus={focusBorder} 
+              onBlur={blurBorder}
+              disabled={!selectedRutaId}
+            >
+              <option value="">Todos los tipos de bus</option>
+              {tiposBusEnRuta.map(t => (
+                <option key={(t as any).idTipoBus} value={String((t as any).idTipoBus)}>
+                  {(t as any).tipoBusNombre || tiposBusList.find(tb => tb.id === String((t as any).idTipoBus))?.nombre || `Bus #${(t as any).idTipoBus}`}
+                </option>
+              ))}
+            </select>
+          </Field>
+        </div>
       </div>
 
       {/* ── Formulario de Tarifa ───────────────────────────── */}
@@ -133,18 +218,57 @@ export const TarifasRutaPage = () => {
             <span style={{ fontWeight: 700, fontSize: '15px', color: '#0f172a' }}>{editingId ? 'Editar Tarifa' : 'Agregar Tarifa'}</span>
           </div>
           <form onSubmit={handleGuardar}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
               <Field label="Tipo de Bus" required>
-                <select value={tipoBusId} onChange={e => setTipoBusId(e.target.value)}
-                  style={{ ...inputStyle, appearance: 'none' }} onFocus={focusBorder} onBlur={blurBorder}>
+                <select 
+                  value={tipoBusId} 
+                  onChange={e => setTipoBusId(e.target.value)}
+                  style={{ ...inputStyle, appearance: 'none' }} 
+                  onFocus={focusBorder} 
+                  onBlur={blurBorder}
+                >
                   <option value="">Seleccionar tipo de bus...</option>
                   {tiposBusList.map(tb => <option key={tb.id} value={tb.id}>{tb.nombre}</option>)}
                 </select>
               </Field>
-              <Field label="Precio ($)" required>
-                <input type="number" value={precio} onChange={e => setPrecio(e.target.value)} placeholder="Ej: 45000"
-                  style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} />
+              <Field label="Valor Normal ($)" required>
+                <input 
+                  type="number" 
+                  value={valorNormal} 
+                  onChange={e => setValorNormal(e.target.value)}
+                  placeholder="Ej: 45000" 
+                  style={inputStyle} 
+                  onFocus={focusBorder} 
+                  onBlur={blurBorder} 
+                />
               </Field>
+              <Field label="Valor Tráfico Alto ($)" required>
+                <input 
+                  type="number" 
+                  value={valorTraficoAlto} 
+                  onChange={e => setValorTraficoAlto(e.target.value)}
+                  placeholder="Ej: 54000" 
+                  style={inputStyle} 
+                  onFocus={focusBorder} 
+                  onBlur={blurBorder} 
+                />
+              </Field>
+            </div>
+            <div style={{ marginTop: '14px', maxWidth: '33%' }}>
+              <Field label="Adicional Poltrona ($) — Opcional">
+                <input 
+                  type="number" 
+                  value={adicionalPoltrona} 
+                  onChange={e => setAdicionalPoltrona(e.target.value)}
+                  placeholder="Ej: 5000" 
+                  style={inputStyle} 
+                  onFocus={focusBorder} 
+                  onBlur={blurBorder} 
+                />
+              </Field>
+              <p style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>
+                Costo adicional que se suma al valor base para asientos tipo poltrona.
+              </p>
             </div>
             <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
               {editingId && (
@@ -179,28 +303,87 @@ export const TarifasRutaPage = () => {
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ background: '#f8fafc' }}>
-                    {['Tipo de Bus', 'Precio', 'Acciones'].map(l => (
-                      <th key={l} style={{ padding: '11px 16px', textAlign: 'left', fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', borderBottom: '1px solid #e8edf2' }}>{l}</th>
+                    {['Ruta', 'Tipo de Bus', 'Valor Normal', 'Valor Tráfico Alto', 'Adicional Poltrona', 'Acciones'].map(l => (
+                      <th 
+                        key={l} 
+                        style={{ 
+                          padding: '11px 16px', 
+                          textAlign: 'left', 
+                          fontSize: '10.5px', 
+                          fontWeight: 700, 
+                          color: '#64748b', 
+                          textTransform: 'uppercase', 
+                          letterSpacing: '0.08em', 
+                          borderBottom: '1px solid #e8edf2' 
+                        }}
+                      >
+                        {l}
+                      </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {paginated.length === 0 ? (
-                    <tr><td colSpan={3} style={{ padding: '48px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>No hay tarifas configuradas para esta ruta.</td></tr>
+                    <tr>
+                      <td colSpan={6} style={{ padding: '48px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>
+                        No hay tarifas configuradas para esta ruta.
+                      </td>
+                    </tr>
                   ) : paginated.map(t => (
-                    <tr key={t.id} style={{ borderBottom: '1px solid #f1f5f9' }} onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')} onMouseLeave={e => (e.currentTarget.style.background = 'white')}>
-                      <td style={{ padding: '12px 16px', fontSize: '13.5px', fontWeight: 600, color: '#1e293b' }}>{t.tipoBusNombre || tiposBusList.find(tb => tb.id === String(t.idTipoBus))?.nombre || t.idTipoBus}</td>
-                      <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>${t.precio?.toLocaleString() || 0}</td>
+                    <tr 
+                      key={t.id} 
+                      style={{ borderBottom: '1px solid #f1f5f9' }} 
+                      onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')} 
+                      onMouseLeave={e => (e.currentTarget.style.background = 'white')}
+                    >
+                      <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: '#1e293b' }}>
+                        {(t as any).rutaNombre || rutasList.find(r => r.id === String((t as any).idRuta))?.nombre || '—'}
+                      </td>
+                      <td style={{ padding: '12px 16px', fontSize: '13.5px', fontWeight: 600, color: '#1e293b' }}>
+                        {t.tipoBusNombre || tiposBusList.find(tb => tb.id === String(t.idTipoBus))?.nombre || t.idTipoBus}
+                      </td>
+                      <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>
+                        ${((t as any).valorNormal ?? 0).toLocaleString()}
+                      </td>
+                      <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>
+                        ${((t as any).valorTraficoAlto ?? 0).toLocaleString()}
+                      </td>
+                      <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>
+                        {(t as any).adicionalPoltrona && (t as any).adicionalPoltrona > 0
+                          ? <span style={{ fontWeight: 600 }}>${(t as any).adicionalPoltrona.toLocaleString()}</span>
+                          : <span style={{ color: '#cbd5e1' }}>—</span>
+                        }
+                      </td>
                       <td style={{ padding: '12px 16px' }}>
                         <div style={{ display: 'flex', gap: '10px' }}>
-                          <button onClick={() => { setEditingId(t.id); setTipoBusId(String(t.idTipoBus)); setPrecio(String(t.precio)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8', display: 'flex' }}
-                            onMouseEnter={e => (e.currentTarget.style.color = BLUE)} onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}>
+                          <button 
+                            onClick={() => handleEditar(t)}
+                            style={{ 
+                              background: 'none', 
+                              border: 'none', 
+                              padding: 0, 
+                              cursor: 'pointer', 
+                              color: '#94a3b8', 
+                              display: 'flex' 
+                            }}
+                            onMouseEnter={e => (e.currentTarget.style.color = BLUE)} 
+                            onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}
+                          >
                             <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>edit</span>
                           </button>
-                          <button onClick={() => handleDelete(t.id)}
-                            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8', display: 'flex' }}
-                            onMouseEnter={e => (e.currentTarget.style.color = '#dc2626')} onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}>
+                          <button 
+                            onClick={() => handleDelete(t.id)}
+                            style={{ 
+                              background: 'none', 
+                              border: 'none', 
+                              padding: 0, 
+                              cursor: 'pointer', 
+                              color: '#94a3b8', 
+                              display: 'flex' 
+                            }}
+                            onMouseEnter={e => (e.currentTarget.style.color = '#dc2626')} 
+                            onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}
+                          >
                             <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>delete</span>
                           </button>
                         </div>

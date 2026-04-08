@@ -23,6 +23,9 @@ export const useRutas = () => {
         activa: ruta.activa !== false,
         precioNormal: ruta.precionormal ? Number(ruta.precionormal) : null,
         precioTraficoAlto: ruta.preciotraficoalto ? Number(ruta.preciotraficoalto) : null,
+        adicionalPoltrona: ruta.adicionalpoltrona ? Number(ruta.adicionalpoltrona) : null,
+        precioActual: ruta.precioactual ? Number(ruta.precioactual) : null,
+        estadoPrecio: ruta.estadoprecio || null,
         tipoBus: ruta.nombretipobus || null,
         idTipoBus: ruta.idtipobus || null
       }));

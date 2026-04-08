@@ -2,6 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { Layout } from '../../components/layout/Layout';
 import { useRutas } from '../../hooks/useRutas';
 import { useAgencias } from '../../hooks/useAgencias';
+import { EstadoPrecioToggle } from '../../components/common/EstadoPrecioToggle';
+import { useConfiguracionSistema } from '../../hooks/useConfiguracionSistema';
 import type { Ruta } from '../../../domain/entities/Ruta';
 
 const BLUE = '#0D3B8E';
@@ -63,9 +65,8 @@ const inputStyle: React.CSSProperties = {
 export const RutasPage = () => {
   const { rutas, isLoading, create, update, remove } = useRutas();
   const { agencias } = useAgencias();
+  const { esTraficoAlto } = useConfiguracionSistema();
   const agenciasList = Array.isArray(agencias) ? agencias : [];
-
-  const [modoTarifa, setModoTarifa] = useState<'normal' | 'alto'>('normal');
 
   /* ── form ────────────────────────────────────────────────── */
   const [nombre, setNombre] = useState('');
@@ -137,20 +138,9 @@ export const RutasPage = () => {
 
   return (
     <Layout>
-      {/* ── Modo Global de Tarifas (header row) ────────────── */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-        <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-          Modo Global de Tarifas:
-        </span>
-        {(['normal', 'alto'] as const).map(m => (
-          <button key={m} onClick={() => setModoTarifa(m)} style={{
-            padding: '8px 16px', borderRadius: '6px', fontSize: '12px', fontWeight: 700, border: 'none',
-            background: modoTarifa === m ? BLUE : '#f1f5f9', color: modoTarifa === m ? 'white' : '#64748b',
-            cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s',
-          }}>
-            {m === 'normal' ? 'Tráfico Normal' : 'Tráfico Alto'}
-          </button>
-        ))}
+      {/* ── Estado Global de Precios ────────────── */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+        <EstadoPrecioToggle />
       </div>
 
       {/* ── Formulario Nueva Ruta ──────────────────────────── */}
@@ -270,14 +260,14 @@ export const RutasPage = () => {
                     { label: 'Tipo de Bus', w: '120px' },
                     { label: 'Duración', w: '80px' },
                     { label: 'Distancia', w: '80px' }, 
-                    { label: 'Precio Normal', w: '110px' },
-                    { label: 'Precio Tráfico Alto', w: '130px' },
+                    { label: 'Precio Actual', w: '120px' },
+                    { label: 'Adic. Poltrona', w: '110px' },
                     { label: 'Estado', w: '70px' },
                     { label: 'Acciones', w: '90px' },
                   ].map(({ label, w }) => (
                     <th key={label} style={{
                       width: w, padding: '11px 16px', 
-                      textAlign: label === 'Duración' || label === 'Distancia' || label === 'Estado' || label === 'Precio Normal' || label === 'Precio Tráfico Alto' ? 'center' : 'left',
+                      textAlign: label === 'Duración' || label === 'Distancia' || label === 'Estado' || label === 'Precio Actual' || label === 'Adic. Poltrona' ? 'center' : 'left',
                       fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase',
                       letterSpacing: '0.08em', borderBottom: '1px solid #e8edf2', background: '#f8fafc',
                     }}>{label}</th>
@@ -347,11 +337,43 @@ export const RutasPage = () => {
                           </td>
                         ) : null}
                         
-                        <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: '#16a34a', textAlign: 'center' }}>
-                          {(r as any).precioNormal ? `$${Number((r as any).precioNormal).toLocaleString()}` : <span style={{ color: '#cbd5e1' }}>—</span>}
+                        <td style={{ 
+                          padding: '12px 16px', 
+                          fontSize: '13px', 
+                          fontWeight: 600, 
+                          color: esTraficoAlto ? '#dc2626' : '#16a34a', 
+                          textAlign: 'center' 
+                        }}>
+                          {(r as any).precioActual ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                              <span>${Number((r as any).precioActual).toLocaleString()}</span>
+                              <span style={{ 
+                                fontSize: '10px', 
+                                fontWeight: 500, 
+                                color: esTraficoAlto ? '#fca5a5' : '#86efac',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.05em'
+                              }}>
+                                {esTraficoAlto ? 'Alto' : 'Normal'}
+                              </span>
+                            </div>
+                          ) : (
+                            <span style={{ color: '#cbd5e1' }}>—</span>
+                          )}
                         </td>
-                        <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: '#dc2626', textAlign: 'center' }}>
-                          {(r as any).precioTraficoAlto ? `$${Number((r as any).precioTraficoAlto).toLocaleString()}` : <span style={{ color: '#cbd5e1' }}>—</span>}
+
+                        <td style={{ 
+                          padding: '12px 16px', 
+                          fontSize: '13px', 
+                          fontWeight: 600, 
+                          color: '#6366f1', 
+                          textAlign: 'center' 
+                        }}>
+                          {(r as any).adicionalPoltrona ? (
+                            `+$${Number((r as any).adicionalPoltrona).toLocaleString()}`
+                          ) : (
+                            <span style={{ color: '#cbd5e1' }}>—</span>
+                          )}
                         </td>
                         
                         {isFirstInGroup ? (

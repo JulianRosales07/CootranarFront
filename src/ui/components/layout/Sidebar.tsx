@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../../shared/constants';
 import { useAuth } from '../../hooks/useAuth';
 import { useSidebar } from '../../context/SidebarContext';
-import logoCootranar from '../../../assets/LOGO-COOTRANAR-.png';
+import logoCootranar from  '../../../assets/LOGO-COOTRANAR.png';
 
 const SIDEBAR_BG = '#0b2454';
 const SIDEBAR_WIDTH = 256;

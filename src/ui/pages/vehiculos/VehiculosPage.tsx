@@ -64,7 +64,7 @@ const inputStyle: React.CSSProperties = {
 
 /* ═══════════════════════════════════════════════════════════ */
 export const VehiculosPage = () => {
-  const { create, update } = useVehiculos();
+  const { create, update, remove } = useVehiculos();
   const { tiposBus } = useTiposBus();
   const tiposBusList = Array.isArray(tiposBus) ? tiposBus : [];
 
@@ -163,6 +163,21 @@ export const VehiculosPage = () => {
     }
   }, [vistaActual, cargarVehiculosApi]);
 
+  const handleEliminarVehiculo = (v: { idvehiculo: string | number; placa?: string }) => {
+    const placa = v.placa ?? 'este vehículo';
+    if (!window.confirm(`¿Eliminar el vehículo ${placa}? Esta acción no se puede deshacer.`)) return;
+    remove.mutate(String(v.idvehiculo), {
+      onSuccess: () => {
+        cargarVehiculosApi();
+        setVehiculoDetalle((d: any) => (d && String(d.idvehiculo) === String(v.idvehiculo) ? null : d));
+      },
+      onError: (err: any) => {
+        const msg =
+          err?.response?.data?.message ?? err?.message ?? 'No se pudo eliminar el vehículo.';
+        window.alert(msg);
+      },
+    });
+  };
 
   /* ── helpers ─────────────────────────────────────────────── */
   const resetForm = () => {
@@ -368,7 +383,7 @@ export const VehiculosPage = () => {
                     { label: 'Tipo Bus',    width: '140px' },
                     { label: 'Capacidad',   width: '90px'  },
                     { label: 'Estado',      width: '120px' },
-                    { label: 'Acciones',    width: '120px'  },
+                    { label: 'Acciones',    width: '150px'  },
                   ].map(({ label, width }) => (
                     <th key={label} style={{
                       width, padding: '11px 16px',
@@ -436,6 +451,25 @@ export const VehiculosPage = () => {
                             onMouseEnter={(e: any) => (e.currentTarget.style.color = BLUE)}
                             onMouseLeave={(e: any) => (e.currentTarget.style.color = '#94a3b8')}>
                             <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>edit</span>
+                          </button>
+                          <button
+                            title="Eliminar"
+                            type="button"
+                            disabled={remove.isPending}
+                            onClick={() => handleEliminarVehiculo(v)}
+                            style={{
+                              background: 'none', border: 'none', padding: 0,
+                              cursor: remove.isPending ? 'default' : 'pointer', color: '#94a3b8',
+                              display: 'flex', alignItems: 'center', transition: 'color 0.15s',
+                              opacity: remove.isPending ? 0.5 : 1,
+                            }}
+                            onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
+                              if (!remove.isPending) e.currentTarget.style.color = '#dc2626';
+                            }}
+                            onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
+                              e.currentTarget.style.color = '#94a3b8';
+                            }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>delete_outline</span>
                           </button>
                         </div>
                       </td>

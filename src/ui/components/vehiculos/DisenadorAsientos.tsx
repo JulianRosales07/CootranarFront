@@ -5,9 +5,11 @@ interface DisenadorAsientosProps {
   capacidad: number;
   onChange: (distribucion: any) => void;
   valorInicial?: any[];
+  /** Solo muestra el bus; oculta herramientas de edición (p. ej. detalle de vehículo). */
+  soloLectura?: boolean;
 }
 
-export default function DisenadorAsientos({ capacidad, onChange, valorInicial }: DisenadorAsientosProps) {
+export default function DisenadorAsientos({ capacidad, onChange, valorInicial, soloLectura = false }: DisenadorAsientosProps) {
   // Función auxiliar para generar la distribución inicial basada en la capacidad
   const generarDistribucion = (cap: number) => {
     if (!cap || cap <= 0) return [];
@@ -100,6 +102,7 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial }:
   const isUpdatingFromCapacity = useRef(false);
   
   useEffect(() => {
+    if (soloLectura) return;
     if (capacidad > 0) {
       setAsientos(prev => {
         const cantActual = prev.filter(a => !a.esPasillo && !a.vacio && !a.esBano).length;
@@ -116,7 +119,7 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial }:
         return prev;
       });
     }
-  }, [capacidad]);
+  }, [capacidad, soloLectura]);
 
   const [modo, setModo] = useState<'normal' | 'editar' | 'vaciar' | 'baño' | 'poltrona'>('normal');
   const columnas = 5;
@@ -125,6 +128,7 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial }:
   const prevAsientosRef = useRef<string>('');
   
   useEffect(() => {
+    if (soloLectura) return;
     if (onChange && asientos.length > 0 && !isUpdatingFromCapacity.current) {
       const asientosStr = JSON.stringify(asientos);
       if (asientosStr !== prevAsientosRef.current) {
@@ -132,15 +136,17 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial }:
         onChange({ distribucion: asientos, columnas });
       }
     }
-  }, [asientos, onChange, columnas]);
+  }, [asientos, onChange, columnas, soloLectura]);
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, id: number) => {
+    if (soloLectura) return;
     if (modo === 'editar' || modo === 'baño') return;
     e.dataTransfer.setData('sourceId', id.toString());
     e.dataTransfer.effectAllowed = 'move';
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>, targetId: number) => {
+    if (soloLectura) return;
     if (modo === 'editar' || modo === 'baño') return;
     e.preventDefault();
     const sourceIdStr = e.dataTransfer.getData('sourceId');
@@ -176,6 +182,7 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial }:
   };
 
   const interactuarAsiento = (id: number, event?: React.MouseEvent<HTMLDivElement>) => {
+    if (soloLectura) return;
     if (modo === 'editar') return;
     const asiento = asientos.find(a => a.id === id);
     if (!asiento) return;
@@ -297,7 +304,7 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial }:
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', backgroundColor: '#ffffff', borderRadius: '16px', overflow: 'hidden', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
         
         {/* ENCABEZADO Y HERRAMIENTAS PREMIUM */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '24px', borderBottom: '1px solid #f1f5f9', backgroundColor: '#f8fafc' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: soloLectura ? '0' : '20px', padding: '24px', borderBottom: '1px solid #f1f5f9', backgroundColor: '#f8fafc' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
                 <div>
                   <h3 style={{ margin: 0, color: '#1e293b', fontWeight: 'bold', fontSize: '20px', display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -306,10 +313,15 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial }:
                     </div>
                     Distribución del Bus
                   </h3>
-                  <p style={{ margin: '8px 0 0 0', color: '#64748b', fontSize: '14px', lineHeight: '1.5' }}>Diseña la estructura interna arrastrando o usando las herramientas de abajo.</p>
+                  <p style={{ margin: '8px 0 0 0', color: '#64748b', fontSize: '14px', lineHeight: '1.5' }}>
+                    {soloLectura
+                      ? 'Vista de solo lectura de la distribución registrada en el sistema.'
+                      : 'Diseña la estructura interna arrastrando o usando las herramientas de abajo.'}
+                  </p>
                 </div>
             </div>
 
+            {!soloLectura && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
                 {/* GRUPO 1: Modificadores estructurales */}
                 <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', backgroundColor: '#e2e8f0', padding: '6px', borderRadius: '12px', gap: '8px' }}>
@@ -380,6 +392,7 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial }:
                     </button>
                 </div>
             </div>
+            )}
         </div>
 
         {/* ÁREA DE DISEÑO RESPONSIVA */}
@@ -434,11 +447,12 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial }:
                             <div
                                 key={asiento.id}
                                 onClick={(e) => interactuarAsiento(asiento.id, e)}
-                                draggable={modo === 'normal'}
+                                draggable={!soloLectura && modo === 'normal'}
                                 onDragStart={(e) => handleDragStart(e, asiento.id)}
                                 onDragOver={(e) => e.preventDefault()}
                                 onDrop={(e) => handleDrop(e, asiento.id)}
                                 onMouseEnter={(e) => {
+                                    if (soloLectura) return;
                                     if (modo !== 'editar' && !asiento.esPasillo) {
                                         gsap.to(e.currentTarget, { 
                                             y: -4, 
@@ -449,6 +463,7 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial }:
                                     }
                                 }}
                                 onMouseLeave={(e) => {
+                                    if (soloLectura) return;
                                     if (modo !== 'editar') {
                                         gsap.to(e.currentTarget, { 
                                             y: 0, 
@@ -475,7 +490,7 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial }:
                                     color: colorTxt,
                                     boxShadow: (esAsientoReal || esBaño) ? '0 2px 4px rgba(0,0,0,0.1), 0 1px 1px rgba(0,0,0,0.05)' : 'none',
                                     transform: 'translateY(0)',
-                                    cursor: (modo === 'editar' || modo === 'baño' || modo === 'vaciar' || modo === 'poltrona') ? 'pointer' : 'grab',
+                                    cursor: soloLectura ? 'default' : ((modo === 'editar' || modo === 'baño' || modo === 'vaciar' || modo === 'poltrona') ? 'pointer' : 'grab'),
                                     padding: '0 8px',
                                     minHeight: '40px',
                                     width: '100%',
@@ -516,7 +531,7 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial }:
                                 )}
                                 
                                 {/* Reflexión 3D superior del asiento */}
-                                {(esAsientoReal || esBaño) && modo === 'normal' && (
+                                {(esAsientoReal || esBaño) && modo === 'normal' && !soloLectura && (
                                     <div style={{ position: 'absolute', top: '2px', width: '70%', height: '3px', backgroundColor: 'rgba(255,255,255,0.8)', borderRadius: '9999px', pointerEvents: 'none' }}></div>
                                 )}
                             </div>

@@ -1,9 +1,28 @@
 import { useState, useEffect } from 'react';
 import { vehiculosApi, archivosApi } from '../../../infrastructure/services/vehiculosApi';
+import DisenadorAsientos from './DisenadorAsientos';
 
 interface ModalDetalleVehiculoProps {
   vehiculo: any;
   onCerrar: () => void;
+}
+
+const BLUE = '#0D3B8E';
+
+/** Extrae el array de celdas desde JSON guardado en BD o desde el objeto { distribucion }. */
+function parseDistribucionAsientos(raw: unknown): any[] | null {
+  if (raw == null) return null;
+  try {
+    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    if (parsed && typeof parsed === 'object' && Array.isArray((parsed as { distribucion?: unknown }).distribucion)) {
+      const d = (parsed as { distribucion: unknown[] }).distribucion;
+      return d.length > 0 ? d : null;
+    }
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 const formatDate = (isoStr?: string) => {
@@ -17,13 +36,20 @@ export default function ModalDetalleVehiculo({ vehiculo, onCerrar }: ModalDetall
   const [conductores, setConductores] = useState<any[]>([]);
   const [cargando, setCargando] = useState(true);
   const [cargandoArchivo, setCargandoArchivo] = useState<string | null>(null);
+  const [verAsientos, setVerAsientos] = useState(false);
+  const [distribucionAsientos, setDistribucionAsientos] = useState<any[] | null>(null);
 
   useEffect(() => {
     if (vehiculo) cargarDetalles();
   }, [vehiculo]);
 
+  useEffect(() => {
+    setVerAsientos(false);
+  }, [vehiculo?.idvehiculo]);
+
   const cargarDetalles = async () => {
     setCargando(true);
+    setDistribucionAsientos(null);
     try {
       const [docs, pols, conds] = await Promise.all([
         vehiculosApi.obtenerDocumentos(vehiculo.idvehiculo).catch(() => ({ data: { data: { documentos: [] } } })),
@@ -33,6 +59,18 @@ export default function ModalDetalleVehiculo({ vehiculo, onCerrar }: ModalDetall
       setDocumentos(docs.data.data?.documentos || []);
       setPolizas(pols.data.data?.polizas || []);
       setConductores(conds.data.data?.conductores || []);
+
+      let distRaw: unknown = vehiculo?.distribucionasientos;
+      try {
+        const resVeh = await vehiculosApi.obtenerPorId(String(vehiculo.idvehiculo));
+        const full = resVeh?.data?.data?.vehiculo;
+        if (full?.distribucionasientos != null) {
+          distRaw = full.distribucionasientos;
+        }
+      } catch {
+        /* usar distribucionasientos del listado si falla el detalle */
+      }
+      setDistribucionAsientos(parseDistribucionAsientos(distRaw));
     } catch (err) { 
       console.error(err); 
     } finally { 
@@ -133,6 +171,63 @@ export default function ModalDetalleVehiculo({ vehiculo, onCerrar }: ModalDetall
                      </span>
                   </div>
                 </div>
+
+                <div style={{ gridColumn: '1 / -1', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px', paddingTop: '8px', borderTop: '1px solid #e2e8f0', marginTop: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setVerAsientos((v) => !v)}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '10px 16px',
+                      backgroundColor: verAsientos ? '#e0e7ff' : '#f8fafc',
+                      border: `1px solid ${verAsientos ? '#a5b4fc' : '#e2e8f0'}`,
+                      borderRadius: '8px',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      color: verAsientos ? BLUE : '#475569',
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>event_seat</span>
+                    {verAsientos ? 'Ocultar distribución de asientos' : 'Visualizar asientos'}
+                  </button>
+                  {!distribucionAsientos?.length && (
+                    <span style={{ fontSize: '12px', color: '#94a3b8' }}>Sin plano guardado en sistema</span>
+                  )}
+                </div>
+
+                {verAsientos && (
+                  <div style={{ gridColumn: '1 / -1', marginTop: '8px' }}>
+                    {distribucionAsientos && distribucionAsientos.length > 0 ? (
+                      <div style={{ maxHeight: 'min(70vh, 720px)', overflow: 'auto', borderRadius: '12px' }}>
+                        <DisenadorAsientos
+                          capacidad={Number(vehiculo.capacidad) || 0}
+                          valorInicial={distribucionAsientos}
+                          soloLectura
+                          onChange={() => {}}
+                        />
+                      </div>
+                    ) : (
+                      <div
+                        style={{
+                          padding: '24px',
+                          backgroundColor: '#f8fafc',
+                          border: '1px dashed #cbd5e1',
+                          borderRadius: '12px',
+                          textAlign: 'center',
+                          color: '#94a3b8',
+                          fontSize: '13px',
+                        }}
+                      >
+                        No hay distribución de asientos registrada para este vehículo.
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </section>
 

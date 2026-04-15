@@ -101,6 +101,9 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
   // IDs de documentos/polizas existentes para poder actualizarlos
   const [idsDocumentos, setIdsDocumentos] = useState<Record<string,string>>({});
   const [idsPolizas, setIdsPolizas] = useState<Record<string,string>>({});
+  
+  // IDs de conductores originales (para no reasignarlos en edición)
+  const [conductoresOriginalesIds, setConductoresOriginalesIds] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     cargarCatalogos();
@@ -206,6 +209,15 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
         const reemplazos = condsRaw.filter((c: any) => c.esremplazo).map((c: any) => ({ ...c, esNuevo: false }));
         setConductores(principales);
         setConductoresReemplazo(reemplazos);
+        
+        // Guardar los IDs de todos los conductores originales
+        const idsOriginales = new Set<number>();
+        condsRaw.forEach((c: any) => {
+          if (c.idusuario) {
+            idsOriginales.add(c.idusuario);
+          }
+        });
+        setConductoresOriginalesIds(idsOriginales);
 
       } catch (err: any) {
         alert('Error al cargar datos del vehículo: ' + (err.message || 'Error desconocido'));
@@ -461,8 +473,11 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
           }
         }
         
-        // 5. Conductores principales existentes (solo asignar)
-        const conductoresExistentesParaAsignar = conductores.filter(c => !c.esNuevo && c.idusuario);
+        // 5. Conductores principales existentes (solo asignar si NO estaban originalmente)
+        // Filtramos los que ya estaban asignados al vehículo cuando se cargó
+        const conductoresExistentesParaAsignar = conductores.filter(c => 
+          !c.esNuevo && c.idusuario && !conductoresOriginalesIds.has(c.idusuario)
+        );
         for (const c of conductoresExistentesParaAsignar) {
           try {
             await vehiculosApi.asignarConductor(vehiculoId, c.idusuario, false);
@@ -507,8 +522,11 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
           }
         }
         
-        // 7. Conductores de reemplazo existentes (solo asignar)
-        const conductoresReemplazoExistentesParaAsignar = conductoresReemplazo.filter(c => !c.esNuevo && c.idusuario);
+        // 7. Conductores de reemplazo existentes (solo asignar si NO estaban originalmente)
+        // Filtramos los que ya estaban asignados al vehículo cuando se cargó
+        const conductoresReemplazoExistentesParaAsignar = conductoresReemplazo.filter(c => 
+          !c.esNuevo && c.idusuario && !conductoresOriginalesIds.has(c.idusuario)
+        );
         for (const c of conductoresReemplazoExistentesParaAsignar) {
           try {
             await vehiculosApi.asignarConductor(vehiculoId, c.idusuario, true);

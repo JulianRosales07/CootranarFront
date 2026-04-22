@@ -268,19 +268,7 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial, s
     ));
   };
 
-  const agregarAsiento = () => {
-    setAsientos(prev => {
-      let nuevos = [...prev];
-      let nid = nextId;
-      const colIndex = nuevos.length % 5;
-      if (colIndex === 2) {
-        nuevos.push({ id: nid++, esPasillo: true, vacio: true, numero: null, esBano: false, esPoltrona: false });
-      }
-      nuevos.push({ id: nid++, esPasillo: false, vacio: false, numero: Math.max(0, ...prev.filter(a => !a.esPasillo && !a.esBano && !isNaN(Number(a.numero))).map(a => Number(a.numero))) + 1, esBano: false, esPoltrona: false });
-      setNextId(nid);
-      return nuevos;
-    });
-  };
+
 
   const eliminarUltimo = () => {
     setAsientos(prev => {

@@ -121,7 +121,7 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial, s
     }
   }, [capacidad, soloLectura]);
 
-  const [modo, setModo] = useState<'normal' | 'editar' | 'vaciar' | 'baño' | 'poltrona'>('normal');
+  const [modo, setModo] = useState<'normal' | 'editar' | 'vaciar' | 'baño' | 'poltrona' | 'insertar'>('normal');
   const columnas = 5;
 
   // Notificar al padre solo cuando los asientos cambien, usando un ref para evitar bucles
@@ -194,6 +194,29 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial, s
         { scale: 0.9, rotation: -5 },
         { scale: 1, rotation: 0, duration: 0.3, ease: 'back.out(1.7)' }
       );
+    }
+
+    // Modo insertar: insertar un nuevo asiento en la posición seleccionada
+    if (modo === 'insertar') {
+      const idx = asientos.findIndex(a => a.id === id);
+      if (idx === -1) return;
+      
+      setAsientos(prev => {
+        const nuevos = [...prev];
+        const nuevoAsiento = {
+          id: nextId,
+          esPasillo: false,
+          vacio: false,
+          numero: Math.max(0, ...prev.filter(a => !a.esPasillo && !a.esBano && !isNaN(Number(a.numero))).map(a => Number(a.numero))) + 1,
+          esBano: false,
+          esPoltrona: false
+        };
+        nuevos.splice(idx, 0, nuevoAsiento);
+        setNextId(nextId + 1);
+        return renumerarAsientos(nuevos);
+      });
+      setModo('normal'); // Volver al modo normal después de insertar
+      return;
     }
 
     if (modo === 'vaciar') {
@@ -316,6 +339,8 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial, s
                   <p style={{ margin: '8px 0 0 0', color: '#64748b', fontSize: '14px', lineHeight: '1.5' }}>
                     {soloLectura
                       ? 'Vista de solo lectura de la distribución registrada en el sistema.'
+                      : modo === 'insertar'
+                      ? '🎯 Haz clic en cualquier posición para insertar un nuevo asiento ahí.'
                       : 'Diseña la estructura interna arrastrando o usando las herramientas de abajo.'}
                   </p>
                 </div>
@@ -327,10 +352,10 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial, s
                 <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', backgroundColor: '#e2e8f0', padding: '6px', borderRadius: '12px', gap: '8px' }}>
                     <button
                         type="button"
-                        onClick={agregarAsiento}
-                        className="hover:bg-white hover:text-green-700 hover:shadow-sm"
-                        style={{ cursor: 'pointer', display: 'flex', flex: '1 1 auto', alignItems: 'center', justifyContent: 'center', padding: '10px 16px', fontSize: '14px', fontWeight: 'bold', color: '#475569', backgroundColor: 'transparent', border: 'none', borderRadius: '8px', transition: 'all 0.2s', minWidth: 'max-content' }}
-                        title="Añade un nuevo asiento al final">
+                        onClick={() => setModo(modo === 'insertar' ? 'normal' : 'insertar')}
+                        className={modo === 'insertar' ? 'shadow-sm' : 'hover:bg-white hover:text-green-700 hover:shadow-sm'}
+                        style={{ cursor: 'pointer', display: 'flex', flex: '1 1 auto', alignItems: 'center', justifyContent: 'center', padding: '10px 16px', fontSize: '14px', fontWeight: 'bold', color: modo === 'insertar' ? '#15803d' : '#475569', backgroundColor: modo === 'insertar' ? '#f0fdf4' : 'transparent', border: modo === 'insertar' ? '1px solid #86efac' : 'none', borderRadius: '8px', transition: 'all 0.2s', minWidth: 'max-content' }}
+                        title="Haz clic en una posición para insertar un asiento ahí">
                         <span className="material-symbols-outlined" style={{ fontSize: '20px', marginRight: '8px' }}>add_circle</span> Añadir
                     </button>
                     <div style={{ width: '1px', height: '24px', backgroundColor: '#cbd5e1' }}></div>
@@ -490,7 +515,7 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial, s
                                     color: colorTxt,
                                     boxShadow: (esAsientoReal || esBaño) ? '0 2px 4px rgba(0,0,0,0.1), 0 1px 1px rgba(0,0,0,0.05)' : 'none',
                                     transform: 'translateY(0)',
-                                    cursor: soloLectura ? 'default' : ((modo === 'editar' || modo === 'baño' || modo === 'vaciar' || modo === 'poltrona') ? 'pointer' : 'grab'),
+                                    cursor: soloLectura ? 'default' : ((modo === 'editar' || modo === 'baño' || modo === 'vaciar' || modo === 'poltrona') ? 'pointer' : (modo === 'insertar' ? 'copy' : 'grab')),
                                     padding: '0 8px',
                                     minHeight: '40px',
                                     width: '100%',
@@ -528,6 +553,23 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial, s
                                             )}
                                         </div>
                                     )
+                                )}
+                                
+                                {/* Indicador de inserción */}
+                                {modo === 'insertar' && !soloLectura && (
+                                    <div style={{ 
+                                        position: 'absolute', 
+                                        top: '-8px', 
+                                        left: '50%', 
+                                        transform: 'translateX(-50%)', 
+                                        width: '0', 
+                                        height: '0', 
+                                        borderLeft: '6px solid transparent', 
+                                        borderRight: '6px solid transparent', 
+                                        borderTop: '8px solid #22c55e',
+                                        pointerEvents: 'none',
+                                        opacity: 0.8
+                                    }}></div>
                                 )}
                                 
                                 {/* Reflexión 3D superior del asiento */}

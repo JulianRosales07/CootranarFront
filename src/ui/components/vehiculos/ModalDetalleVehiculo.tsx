@@ -30,6 +30,44 @@ const formatDate = (isoStr?: string) => {
   return isoStr.split('T')[0];
 };
 
+// Calcula días restantes y porcentaje de progreso
+const calcularProgreso = (fechaVencimiento?: string) => {
+  if (!fechaVencimiento) return { diasRestantes: 0, porcentaje: 0, color: '#cbd5e1', estado: 'Sin fecha' };
+  
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+  const vencimiento = new Date(fechaVencimiento);
+  vencimiento.setHours(0, 0, 0, 0);
+  
+  const diasRestantes = Math.ceil((vencimiento.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
+  
+  // Asumimos que un documento típico tiene validez de 1 año (365 días)
+  const diasTotales = 365;
+  const porcentaje = Math.max(0, Math.min(100, (diasRestantes / diasTotales) * 100));
+  
+  let color = '#cbd5e1';
+  let estado = 'Vencido';
+  
+  if (diasRestantes < 0) {
+    color = '#dc2626'; // Rojo - Vencido
+    estado = 'Vencido';
+  } else if (diasRestantes <= 15) {
+    color = '#dc2626'; // Rojo - Crítico
+    estado = 'Crítico';
+  } else if (diasRestantes <= 30) {
+    color = '#f97316'; // Naranja - Urgente
+    estado = 'Urgente';
+  } else if (diasRestantes <= 60) {
+    color = '#eab308'; // Amarillo - Próximo
+    estado = 'Próximo';
+  } else {
+    color = '#22c55e'; // Verde - Vigente
+    estado = 'Vigente';
+  }
+  
+  return { diasRestantes, porcentaje, color, estado };
+};
+
 export default function ModalDetalleVehiculo({ vehiculo, onCerrar }: ModalDetalleVehiculoProps) {
   const [documentos, setDocumentos] = useState<any[]>([]);
   const [polizas, setPolizas] = useState<any[]>([]);
@@ -241,33 +279,76 @@ export default function ModalDetalleVehiculo({ vehiculo, onCerrar }: ModalDetall
               </h4>
               {documentos.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {documentos.map(doc => (
-                    <div key={doc.iddocumento} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                         <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
-                            <span className="material-symbols-outlined">draft</span>
-                         </div>
-                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                            <span style={{ fontSize: '14px', fontWeight: 600, color: '#1e293b' }}>{doc.tipodocumento}</span>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '12px', color: '#64748b' }}>
-                               <span>Nº {doc.numerodocumento || 'N/A'}</span>
-                               <span style={{ color: '#cbd5e1' }}>•</span>
-                               <span>Vence: <strong style={{ color: '#475569' }}>{formatDate(doc.fechavencimiento)}</strong></span>
-                            </div>
-                         </div>
+                  {documentos.map(doc => {
+                    const progreso = calcularProgreso(doc.fechavencimiento);
+                    return (
+                    <div key={doc.iddocumento} style={{ display: 'flex', flexDirection: 'column', backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1 }}>
+                           <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
+                              <span className="material-symbols-outlined">draft</span>
+                           </div>
+                           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ fontSize: '14px', fontWeight: 600, color: '#1e293b' }}>{doc.tipodocumento}</span>
+                                <span style={{ 
+                                  backgroundColor: progreso.color + '20', 
+                                  color: progreso.color, 
+                                  padding: '2px 8px', 
+                                  borderRadius: '12px', 
+                                  fontSize: '11px',
+                                  fontWeight: 700,
+                                  border: `1px solid ${progreso.color}40`
+                                }}>
+                                  {progreso.estado}
+                                </span>
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '12px', color: '#64748b' }}>
+                                 <span>Nº {doc.numerodocumento || 'N/A'}</span>
+                                 <span style={{ color: '#cbd5e1' }}>•</span>
+                                 <span>Vence: <strong style={{ color: progreso.diasRestantes < 0 ? '#dc2626' : '#475569' }}>{formatDate(doc.fechavencimiento)}</strong></span>
+                                 {progreso.diasRestantes >= 0 && (
+                                   <>
+                                     <span style={{ color: '#cbd5e1' }}>•</span>
+                                     <span style={{ color: progreso.color, fontWeight: 600 }}>{progreso.diasRestantes} días</span>
+                                   </>
+                                 )}
+                                 {progreso.diasRestantes < 0 && (
+                                   <>
+                                     <span style={{ color: '#cbd5e1' }}>•</span>
+                                     <span style={{ color: '#dc2626', fontWeight: 700 }}>Vencido hace {Math.abs(progreso.diasRestantes)} días</span>
+                                   </>
+                                 )}
+                              </div>
+                           </div>
+                        </div>
+                        {doc.archivourl && (
+                          <button 
+                            onClick={() => handleVerArchivo(doc.archivourl, doc.iddocumento)} 
+                            disabled={cargandoArchivo === doc.iddocumento}
+                            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '12px', fontWeight: 600, color: '#0D3B8E', cursor: 'pointer', transition: 'all 0.2s', opacity: cargandoArchivo === doc.iddocumento ? 0.7 : 1 }}
+                          >
+                            {cargandoArchivo === doc.iddocumento ? 'Cargando...' : 'Ver Archivo'}
+                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>{cargandoArchivo === doc.iddocumento ? 'progress_activity' : 'open_in_new'}</span>
+                          </button>
+                        )}
                       </div>
-                      {doc.archivourl && (
-                        <button 
-                          onClick={() => handleVerArchivo(doc.archivourl, doc.iddocumento)} 
-                          disabled={cargandoArchivo === doc.iddocumento}
-                          style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '12px', fontWeight: 600, color: '#0D3B8E', cursor: 'pointer', transition: 'all 0.2s', opacity: cargandoArchivo === doc.iddocumento ? 0.7 : 1 }}
-                        >
-                          {cargandoArchivo === doc.iddocumento ? 'Cargando...' : 'Ver Archivo'}
-                          <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>{cargandoArchivo === doc.iddocumento ? 'progress_activity' : 'open_in_new'}</span>
-                        </button>
-                      )}
+                      
+                      {/* Barra de progreso */}
+                      <div style={{ width: '100%', height: '8px', backgroundColor: '#f1f5f9', borderRadius: '999px', overflow: 'hidden', position: 'relative' }}>
+                        <div 
+                          style={{ 
+                            height: '100%', 
+                            width: `${progreso.porcentaje}%`, 
+                            backgroundColor: progreso.color,
+                            borderRadius: '999px',
+                            transition: 'width 0.5s ease',
+                            boxShadow: `0 0 8px ${progreso.color}60`
+                          }}
+                        />
+                      </div>
                     </div>
-                  ))}
+                  )})}
                 </div>
               ) : <div style={{ padding: '24px', backgroundColor: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: '12px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>No hay documentos requeridos cargados.</div>}
             </section>
@@ -282,35 +363,78 @@ export default function ModalDetalleVehiculo({ vehiculo, onCerrar }: ModalDetall
               </h4>
               {polizas.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {polizas.map(pol => (
-                    <div key={pol.idpoliza} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                         <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: '#fff7ed', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ea580c' }}>
-                            <span className="material-symbols-outlined">verified</span>
-                         </div>
-                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                            <span style={{ fontSize: '14px', fontWeight: 600, color: '#1e293b' }}>{pol.tipopoliza}</span>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '12px', color: '#64748b', flexWrap: 'wrap' }}>
-                               <span>Código: {pol.codigopoliza || 'N/A'}</span>
-                               <span style={{ color: '#cbd5e1' }}>•</span>
-                               <span>Aseguradora: <strong style={{ color: '#475569' }}>{pol.nombreaseguradora || 'N/A'}</strong></span>
-                               <span style={{ color: '#cbd5e1' }}>•</span>
-                               <span>Vence: <strong style={{ color: '#475569' }}>{formatDate(pol.fechavencimiento)}</strong></span>
-                            </div>
-                         </div>
+                  {polizas.map(pol => {
+                    const progreso = calcularProgreso(pol.fechavencimiento);
+                    return (
+                    <div key={pol.idpoliza} style={{ display: 'flex', flexDirection: 'column', backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1 }}>
+                           <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: '#fff7ed', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ea580c' }}>
+                              <span className="material-symbols-outlined">verified</span>
+                           </div>
+                           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ fontSize: '14px', fontWeight: 600, color: '#1e293b' }}>{pol.tipopoliza}</span>
+                                <span style={{ 
+                                  backgroundColor: progreso.color + '20', 
+                                  color: progreso.color, 
+                                  padding: '2px 8px', 
+                                  borderRadius: '12px', 
+                                  fontSize: '11px',
+                                  fontWeight: 700,
+                                  border: `1px solid ${progreso.color}40`
+                                }}>
+                                  {progreso.estado}
+                                </span>
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '12px', color: '#64748b', flexWrap: 'wrap' }}>
+                                 <span>Código: {pol.codigopoliza || 'N/A'}</span>
+                                 <span style={{ color: '#cbd5e1' }}>•</span>
+                                 <span>Aseguradora: <strong style={{ color: '#475569' }}>{pol.nombreaseguradora || 'N/A'}</strong></span>
+                                 <span style={{ color: '#cbd5e1' }}>•</span>
+                                 <span>Vence: <strong style={{ color: progreso.diasRestantes < 0 ? '#dc2626' : '#475569' }}>{formatDate(pol.fechavencimiento)}</strong></span>
+                                 {progreso.diasRestantes >= 0 && (
+                                   <>
+                                     <span style={{ color: '#cbd5e1' }}>•</span>
+                                     <span style={{ color: progreso.color, fontWeight: 600 }}>{progreso.diasRestantes} días</span>
+                                   </>
+                                 )}
+                                 {progreso.diasRestantes < 0 && (
+                                   <>
+                                     <span style={{ color: '#cbd5e1' }}>•</span>
+                                     <span style={{ color: '#dc2626', fontWeight: 700 }}>Vencida hace {Math.abs(progreso.diasRestantes)} días</span>
+                                   </>
+                                 )}
+                              </div>
+                           </div>
+                        </div>
+                        {pol.archivourl && (
+                          <button 
+                            onClick={() => handleVerArchivo(pol.archivourl, pol.idpoliza)}
+                            disabled={cargandoArchivo === pol.idpoliza}
+                            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '12px', fontWeight: 600, color: '#0D3B8E', cursor: 'pointer', transition: 'all 0.2s', opacity: cargandoArchivo === pol.idpoliza ? 0.7 : 1 }}
+                          >
+                            {cargandoArchivo === pol.idpoliza ? 'Cargando...' : 'Certificado'}
+                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>{cargandoArchivo === pol.idpoliza ? 'progress_activity' : 'open_in_new'}</span>
+                          </button>
+                        )}
                       </div>
-                      {pol.archivourl && (
-                        <button 
-                          onClick={() => handleVerArchivo(pol.archivourl, pol.idpoliza)}
-                          disabled={cargandoArchivo === pol.idpoliza}
-                          style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '12px', fontWeight: 600, color: '#0D3B8E', cursor: 'pointer', transition: 'all 0.2s', opacity: cargandoArchivo === pol.idpoliza ? 0.7 : 1 }}
-                        >
-                          {cargandoArchivo === pol.idpoliza ? 'Cargando...' : 'Certificado'}
-                          <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>{cargandoArchivo === pol.idpoliza ? 'progress_activity' : 'open_in_new'}</span>
-                        </button>
-                      )}
+                      
+                      {/* Barra de progreso */}
+                      <div style={{ width: '100%', height: '8px', backgroundColor: '#f1f5f9', borderRadius: '999px', overflow: 'hidden', position: 'relative' }}>
+                        <div 
+                          style={{ 
+                            height: '100%', 
+                            width: `${progreso.porcentaje}%`, 
+                            backgroundColor: progreso.color,
+                            borderRadius: '999px',
+                            transition: 'width 0.5s ease',
+                            boxShadow: `0 0 8px ${progreso.color}60`
+                          }}
+                        />
+                      </div>
                     </div>
-                  ))}
+                  )})}
                 </div>
               ) : <div style={{ padding: '24px', backgroundColor: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: '12px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>No hay pólizas registradas vigentes.</div>}
             </section>

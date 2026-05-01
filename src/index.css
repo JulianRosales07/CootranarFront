@@ -1,13 +1,90 @@
 @import "tailwindcss";
 
 @theme {
-  /* Colores primarios en oklch para que funcionen los modificadores de opacidad (/) */
-  --color-primary: oklch(29.4% 0.149 258.08);
-  --color-primary-hover: oklch(24% 0.138 258.08);
-
-  /* Fuentes */
+  /* ============================================
+     COLORES CORPORATIVOS - COOTRANAR
+     ============================================ */
+  
+  /* Colores Primarios */
+  --color-primary: oklch(29.4% 0.149 258.08);        /* #0D3B8E */
+  --color-primary-dark: oklch(20% 0.138 258.08);     /* #0b2454 */
+  --color-primary-hover: oklch(24% 0.138 258.08);    /* #1e4ed8 */
+  --color-primary-light: oklch(88% 0.05 258.08);     /* #e0e7ff */
+  
+  /* Colores Secundarios */
+  --color-secondary: oklch(62% 0.12 45);             /* #c2844a */
+  --color-secondary-light: oklch(95% 0.08 85);       /* #fef3c7 */
+  
+  /* Colores de Estado */
+  --color-success: oklch(65% 0.18 145);              /* #22c55e */
+  --color-success-light: oklch(92% 0.08 145);        /* #dcfce7 */
+  --color-success-dark: oklch(42% 0.15 145);         /* #166534 */
+  
+  --color-warning: oklch(70% 0.18 65);               /* #f59e0b */
+  --color-warning-light: oklch(95% 0.08 85);         /* #fef3c7 */
+  --color-warning-dark: oklch(52% 0.16 55);          /* #b45309 */
+  
+  --color-danger: oklch(55% 0.22 25);                /* #dc2626 */
+  --color-danger-light: oklch(95% 0.08 25);          /* #fef2f2 */
+  --color-danger-dark: oklch(45% 0.20 25);           /* #b91c1c */
+  
+  --color-info: oklch(60% 0.20 250);                 /* #3b82f6 */
+  --color-info-light: oklch(92% 0.08 250);           /* #dbeafe */
+  --color-info-dark: oklch(42% 0.18 250);            /* #1e40af */
+  
+  /* Colores Especiales */
+  --color-purple: oklch(62% 0.24 295);               /* #8b5cf6 */
+  --color-purple-light: oklch(92% 0.08 295);         /* #ede9fe */
+  --color-purple-dark: oklch(48% 0.22 295);          /* #6d28d9 */
+  
+  /* Escala de Grises (Slate) */
+  --color-gray-50: oklch(98% 0.005 240);             /* #f8fafc */
+  --color-gray-100: oklch(96% 0.008 240);            /* #f1f5f9 */
+  --color-gray-200: oklch(92% 0.012 240);            /* #e2e8f0 */
+  --color-gray-300: oklch(85% 0.015 240);            /* #cbd5e1 */
+  --color-gray-400: oklch(68% 0.018 240);            /* #94a3b8 */
+  --color-gray-500: oklch(52% 0.020 240);            /* #64748b */
+  --color-gray-600: oklch(42% 0.018 240);            /* #475569 */
+  --color-gray-700: oklch(35% 0.015 240);            /* #334155 */
+  --color-gray-800: oklch(25% 0.012 240);            /* #1e293b */
+  --color-gray-900: oklch(15% 0.008 240);            /* #0f172a */
+  
+  /* ============================================
+     TIPOGRAFÍA
+     ============================================ */
+  
+  /* Familias de Fuentes */
   --font-sans: 'Public Sans', system-ui, Avenir, Helvetica, Arial, sans-serif;
-  --font-display: 'Plus Jakarta Sans', 'Public Sans', sans-serif;
+  --font-display: 'Montserrat', 'Public Sans', sans-serif;
+  
+  /* ============================================
+     ESPACIADO
+     ============================================ */
+  
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 20px;
+  --spacing-2xl: 24px;
+  --spacing-3xl: 32px;
+  --spacing-4xl: 40px;
+  --spacing-5xl: 48px;
+  --spacing-6xl: 64px;
+  
+  /* ============================================
+     BORDES REDONDEADOS
+     ============================================ */
+  
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-3xl: 20px;
+  --radius-4xl: 22px;
+  --radius-full: 9999px;
 }
 
 :root {

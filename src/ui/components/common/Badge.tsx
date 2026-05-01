@@ -1,21 +1,48 @@
-import { ReactNode } from 'react';
+/**
+ * Badge Component - COOTRANAR Design System
+ * 
+ * Componente de badge para indicadores de estado
+ * @see ../../../DESIGN.md
+ */
 
-interface BadgeProps {
+import type { CSSProperties, ReactNode } from 'react';
+import { components } from '../../../styles/design-tokens';
+
+export interface BadgeProps {
   children: ReactNode;
-  variant?: 'success' | 'warning' | 'danger' | 'info' | 'default';
+  variant?: 'success' | 'warning' | 'danger' | 'info';
+  className?: string;
+  style?: CSSProperties;
 }
 
-export const Badge = ({ children, variant = 'default' }: BadgeProps) => {
-  const variants = {
-    success: 'bg-green-100 text-green-800',
-    warning: 'bg-yellow-100 text-yellow-800',
-    danger: 'bg-red-100 text-red-800',
-    info: 'bg-blue-100 text-blue-800',
-    default: 'bg-gray-100 text-gray-800',
-  };
+export const Badge = ({
+  children,
+  variant = 'info',
+  className = '',
+  style = {},
+}: BadgeProps) => {
+  // Seleccionar estilos según variante
+  const baseStyles = (() => {
+    switch (variant) {
+      case 'success':
+        return components.badgeSuccess;
+      case 'warning':
+        return components.badgeWarning;
+      case 'danger':
+        return components.badgeDanger;
+      case 'info':
+        return components.badgeInfo;
+    }
+  })();
 
   return (
-    <span className={`px-2 py-1 text-xs font-medium rounded-full ${variants[variant]}`}>
+    <span
+      className={className}
+      style={{
+        ...baseStyles,
+        ...style,
+      }}
+    >
       {children}
     </span>
   );

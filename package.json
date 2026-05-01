@@ -7,7 +7,11 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "design:lint": "design.md lint DESIGN.md",
+    "design:export:tailwind": "design.md export --format tailwind DESIGN.md > design-tokens.tailwind.json",
+    "design:export:dtcg": "design.md export --format dtcg DESIGN.md > design-tokens.dtcg.json",
+    "design:spec": "design.md spec"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",
@@ -25,6 +29,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@google/design.md": "^0.1.1",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",

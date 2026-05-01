@@ -1,39 +1,129 @@
-import { ButtonHTMLAttributes, ReactNode } from 'react';
+/**
+ * Button Component - COOTRANAR Design System
+ * 
+ * Componente de botón que implementa los tokens del sistema de diseño
+ * @see ../../../DESIGN.md
+ */
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
+import type { CSSProperties, ReactNode } from 'react';
+import { components, getButtonHoverStyles } from '../../../styles/design-tokens';
+
+export interface ButtonProps {
   children: ReactNode;
+  onClick?: () => void;
+  variant?: 'primary' | 'secondary' | 'danger';
+  disabled?: boolean;
+  type?: 'button' | 'submit' | 'reset';
+  fullWidth?: boolean;
+  loading?: boolean;
+  icon?: ReactNode;
+  className?: string;
+  style?: CSSProperties;
 }
 
 export const Button = ({
-  variant = 'primary',
-  size = 'md',
-  className = '',
   children,
-  ...props
+  onClick,
+  variant = 'primary',
+  disabled = false,
+  type = 'button',
+  fullWidth = false,
+  loading = false,
+  icon,
+  className = '',
+  style = {},
 }: ButtonProps) => {
-  const baseStyles = 'rounded-lg font-medium transition-colors focus:outline-none focus:ring-2';
-  
-  const variants = {
-    primary: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500',
-    secondary: 'bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500',
-    danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
-    ghost: 'bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-500',
+  // Seleccionar estilos base según variante
+  const baseStyles = (() => {
+    switch (variant) {
+      case 'primary':
+        return components.buttonPrimary;
+      case 'secondary':
+        return components.buttonSecondary;
+      case 'danger':
+        return components.buttonDanger;
+    }
+  })();
+
+  // Estilos combinados
+  const buttonStyles: CSSProperties = {
+    ...baseStyles,
+    width: fullWidth ? '100%' : 'auto',
+    opacity: disabled || loading ? 0.6 : 1,
+    cursor: disabled || loading ? 'not-allowed' : 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    ...style,
   };
 
-  const sizes = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-base',
-    lg: 'px-6 py-3 text-lg',
+  // Handlers de hover
+  const handleMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (disabled || loading) return;
+    const hoverStyles = getButtonHoverStyles(variant);
+    Object.assign(e.currentTarget.style, hoverStyles);
+  };
+
+  const handleMouseLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (disabled || loading) return;
+    Object.assign(e.currentTarget.style, {
+      backgroundColor: baseStyles.backgroundColor,
+      transform: 'translateY(0)',
+      boxShadow: baseStyles.boxShadow,
+    });
+  };
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (disabled || loading) return;
+    e.currentTarget.style.transform = 'scale(0.98)';
+  };
+
+  const handleMouseUp = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (disabled || loading) return;
+    e.currentTarget.style.transform = 'translateY(-1px)';
   };
 
   return (
     <button
-      className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
-      {...props}
+      type={type}
+      onClick={onClick}
+      disabled={disabled || loading}
+      className={className}
+      style={buttonStyles}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
     >
+      {loading && (
+        <span
+          className="material-symbols-outlined"
+          style={{
+            fontSize: '18px',
+            animation: 'spin 1s linear infinite',
+          }}
+        >
+          autorenew
+        </span>
+      )}
+      {!loading && icon && icon}
       {children}
     </button>
   );
 };
+
+// Estilos de animación para el spinner
+if (typeof document !== 'undefined') {
+  const styleId = 'button-animations';
+  if (!document.getElementById(styleId)) {
+    const style = document.createElement('style');
+    style.id = styleId;
+    style.textContent = `
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+}

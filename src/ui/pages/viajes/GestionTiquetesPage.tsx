@@ -89,6 +89,7 @@ const BuscadorViajes = ({ onBuscar, cargando }: BuscadorProps) => {
   const [origen, setOrigen] = useState('');
   const [destino, setDestino] = useState('');
   const [fecha, setFecha] = useState('');
+  const [numeroTiquete, setNumeroTiquete] = useState('');
 
   const inputStyle: React.CSSProperties = {
     padding: '10px 14px', border: `1.5px solid ${C.outlineVariant}`, borderRadius: '10px',
@@ -115,8 +116,17 @@ const BuscadorViajes = ({ onBuscar, cargando }: BuscadorProps) => {
         <label style={{ fontSize: '11px', fontWeight: '700', color: C.onSurfaceVariant, textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: '6px', fontFamily: FONT }}>Fecha de Salida</label>
         <input type="date" value={fecha} onChange={e => setFecha(e.target.value)} style={inputStyle} />
       </div>
+      <div style={{ flex: '1 1 140px', minWidth: '130px' }}>
+        <label style={{ fontSize: '11px', fontWeight: '700', color: C.onSurfaceVariant, textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: '6px', fontFamily: FONT }}>Nº de Tiquete</label>
+        <input value={numeroTiquete} onChange={e => setNumeroTiquete(e.target.value)} placeholder="Ej: 12345 o FACT..." style={inputStyle} />
+      </div>
       <button
-        onClick={() => onBuscar({ ciudadorigen: origen || undefined, ciudaddestino: destino || undefined, fecha: fecha || undefined })}
+        onClick={() => onBuscar({ 
+          ciudadorigen: origen || undefined, 
+          ciudaddestino: destino || undefined, 
+          fecha: fecha || undefined,
+          numerotiquete: numeroTiquete || undefined 
+        })}
         disabled={cargando}
         style={{
           padding: '11px 24px', background: C.primary, color: '#fff', border: 'none',
@@ -222,8 +232,13 @@ const TiqueteFila = ({ t, onVerDetalle, onValidar, validando }: {
       onClick={() => onVerDetalle(t)}
     >
       <td style={TD}>
-        <div style={{ fontWeight: '700', fontSize: '13px', color: C.primary, fontFamily: FONT }}>#{t.numeroasiento}</div>
-        <div style={{ fontSize: '11px', color: C.onSurfaceVariant, fontFamily: FONT }}>
+        <div style={{ fontWeight: '800', fontSize: '12px', color: C.onSurface, fontFamily: FONT, letterSpacing: '0.02em', marginBottom: '2px' }}>
+          {t.codigotiquete || `#${t.idtiquete}`}
+        </div>
+        <div style={{ fontWeight: '700', fontSize: '12px', color: C.primary, fontFamily: FONT }}>
+          Asiento {t.numeroasiento}
+        </div>
+        <div style={{ fontSize: '10px', color: C.onSurfaceVariant, fontFamily: FONT, textTransform: 'uppercase', letterSpacing: '0.04em', marginTop: '2px' }}>
           {t.piso === 1 ? '1er Piso' : t.piso === 2 ? '2do Piso' : '—'}
           {t.espoltrona ? ' · Poltrona' : ''}
         </div>
@@ -491,7 +506,14 @@ export const GestionTiquetesPage = () => {
     setTiquetes([]);
     try {
       const res = await taquillaApiService.buscarViajes(params);
-      setViajes(res.data.data.viajes || []);
+      const viajesEncontrados = res.data.data.viajes || [];
+      setViajes(viajesEncontrados);
+
+      // Si se buscó por número de tiquete y encontró exactamente 1 viaje, auto-seleccionarlo y fijar filtro
+      if (params.numerotiquete && viajesEncontrados.length === 1) {
+        handleSeleccionarViaje(viajesEncontrados[0]);
+        setFiltroBusqueda(params.numerotiquete);
+      }
     } catch (err: any) {
       alert(err.response?.data?.message || 'Error al buscar viajes');
     } finally {
@@ -761,7 +783,7 @@ export const GestionTiquetesPage = () => {
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                       <tr>
-                        {['Asiento', 'Pasajero', 'Tramo', 'Valor / Pago', 'Estado', ''].map(h => (
+                        {['Nº Tiquete / Asiento', 'Pasajero', 'Tramo', 'Valor / Pago', 'Estado', ''].map(h => (
                           <th key={h} style={{ ...TH, textAlign: h === '' ? 'right' : 'left' }}>{h}</th>
                         ))}
                       </tr>

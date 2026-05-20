@@ -26,6 +26,7 @@ export interface BuscarViajesParams {
   ciudadorigen?: string;
   ciudaddestino?: string;
   fecha?: string;
+  numerotiquete?: string;
   page?: number;
   limit?: number;
 }

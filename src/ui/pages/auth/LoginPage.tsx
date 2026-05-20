@@ -245,10 +245,16 @@ export const LoginPage = () => {
 
     setLoading(true);
     try {
-      await login(email, password);
+      const loggedUser = await login(email, password);
       setLoginSuccess(true);
-      // Reducido de 2400ms a 800ms para un flujo más rápido
-      setTimeout(() => navigate(ROUTES.DASHBOARD), 800);
+      // Redirección condicional según el rol del usuario
+      setTimeout(() => {
+        if (loggedUser?.nombrerol === 'TAQUILLERO') {
+          navigate(ROUTES.TAQUILLA);
+        } else {
+          navigate(ROUTES.DASHBOARD);
+        }
+      }, 800);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Error al iniciar sesión. Verifica tus credenciales.';
       setError(msg);

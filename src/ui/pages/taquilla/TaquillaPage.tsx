@@ -100,6 +100,21 @@ export const TaquillaPage = () => {
     confirmarVenta, cancelarOperacion, descargarPdf, obtenerTarifaTramo,
   } = useTaquilla();
 
+  // ── Safety-net: liberar asientos si el componente se desmonta inesperadamente
+  // (cierre de pestaña, navegación del navegador, etc.)
+  useEffect(() => {
+    return () => {
+      // Solo ejecutar si hay asientos reservados sin completar la venta
+      if (viajeSeleccionado && asientosReservados.length) {
+        // Usamos el servicio directamente (no mutation) porque el componente ya se desmonta
+        import('../../../infrastructure/services/taquillaApi').then(({ default: svc }) => {
+          svc.cancelarOperacion({ idviaje: viajeSeleccionado.idviaje }).catch(() => {});
+        });
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     cargarMetodosPago();
     cargarViajesSugeridos();
@@ -403,11 +418,26 @@ export const TaquillaPage = () => {
     }
   };
 
-  // ── Cancelar / Nueva venta ────────────────────────────────────────────────
-  const handleCancelar = async () => {
+  // ── Liberar asientos y refrescar la vista del mapa ───────────────────────
+  const liberarAsientosYRefrescar = async () => {
     if (viajeSeleccionado && asientosReservados.length) {
       try { await cancelarOperacion.mutateAsync(viajeSeleccionado.idviaje); } catch {}
     }
+    // Refrescar lista de asientos para que el mapa quede actualizado
+    if (viajeSeleccionado) {
+      try {
+        const resAsientos = await obtenerAsientos.mutateAsync(viajeSeleccionado.idviaje);
+        const asientosData = resAsientos.data?.data?.asientos || resAsientos.data?.asientos || [];
+        if (asientosData.length) setAsientos(asientosData);
+      } catch { /* silencioso: el mapa igual se mostrará */ }
+    }
+    setAsientosReservados([]);
+    setAsientosConDatos([]);
+  };
+
+  // ── Cancelar / Nueva venta ────────────────────────────────────────────────
+  const handleCancelar = async () => {
+    await liberarAsientosYRefrescar();
     handleNuevaVenta();
   };
 
@@ -708,7 +738,17 @@ export const TaquillaPage = () => {
             asientosSeleccionados={asientosReservados}
             onSeleccionar={(id) => setAsientosReservados([id])}
             onContinuar={handleAsientoSeleccionadoPasajero}
-            onCancelar={() => setPasoActual('seleccion-tramo')}
+            onCancelar={async () => {
+              // Si ya había asientos reservados para pasajeros anteriores del grupo,
+              // hay que liberarlos antes de volver a selección de tramo
+              if (asientosYaSeleccionadosGrupo.length > 0 || asientosReservados.length > 0) {
+                await liberarAsientosYRefrescar();
+                setAsientosYaSeleccionadosGrupo([]);
+                setConfigPasajeros(prev => prev.map(p => ({ ...p, idasientoviaje: undefined, numeroAsiento: undefined })));
+                setPasajeroActualIdx(0);
+              }
+              setPasoActual('seleccion-tramo');
+            }}
             cargando={reservarAsientos.isPending}
             precioBase={tramoSeleccionado?.precio}
             adicionalPoltrona={tramoSeleccionado?.tarifaCompleta?.adicionalPoltrona}
@@ -744,7 +784,21 @@ export const TaquillaPage = () => {
           onBuscarPasajero={handleBuscarPasajero}
           onAsignarPasajero={handleAsignarPasajero}
           onContinuar={handleContinuarAResumen}
-          onVolver={() => setPasoActual('seleccion-asientos')}
+          onVolver={async () => {
+            // ¡CRÍTICO! Liberar los asientos reservados en el backend antes de volver.
+            // Sin esto, los asientos quedan bloqueados y nadie más puede comprarlos.
+            await liberarAsientosYRefrescar();
+            // Para el flujo grupal, volver al selector de asiento del primer pasajero
+            if (configuracionGrupo && configPasajeros.length > 1) {
+              setAsientosYaSeleccionadosGrupo([]);
+              setConfigPasajeros(prev => prev.map(p => ({ ...p, idasientoviaje: undefined, numeroAsiento: undefined })));
+              setPasajeroActualIdx(0);
+              setTramoSeleccionado(null);
+              setPasoActual('seleccion-tramo');
+            } else {
+              setPasoActual('seleccion-asientos');
+            }
+          }}
           cargando={buscarOCrearPasajero.isPending}
         />
       )}

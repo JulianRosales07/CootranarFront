@@ -4,6 +4,7 @@ import { DashboardPage } from '../pages/dashboard/DashboardPage';
 import { TiquetesPage } from '../pages/tiquetes/TiquetesPage';
 import { TaquillaPage } from '../pages/taquilla/TaquillaPage';
 import { EncomiendaPage } from '../pages/encomiendas/EncomiendaPage';
+import { GestionTiquetesPage } from '../pages/viajes/GestionTiquetesPage';
 import { AgenciasPage } from '../pages/agencias/AgenciasPage';
 import { AseguradorasPage } from '../pages/aseguradoras/AseguradorasPage';
 import { CiudadesPage } from '../pages/ciudades/CiudadesPage';
@@ -31,9 +32,16 @@ export const AppRouter = () => {
         <Routes>
           <Route path={ROUTES.LOGIN} element={<LoginPage />} />
           
-          <Route element={<PrivateRoute />}>
-            <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
+          {/* Rutas compartidas (Administrador y Taquillero) */}
+          <Route element={<PrivateRoute allowedRoles={['ADMINISTRADOR', 'TAQUILLERO']} />}>
             <Route path={ROUTES.TAQUILLA} element={<TaquillaPage />} />
+            <Route path={ROUTES.VIAJES} element={<ViajesPage />} />
+            <Route path={ROUTES.GESTION_TIQUETES} element={<GestionTiquetesPage />} />
+          </Route>
+
+          {/* Rutas exclusivas del Administrador */}
+          <Route element={<PrivateRoute allowedRoles={['ADMINISTRADOR']} />}>
+            <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
             <Route path={ROUTES.TIQUETES} element={<TiquetesPage />} />
             <Route path={ROUTES.ENCOMIENDAS} element={<EncomiendaPage />} />
             <Route path={ROUTES.RUTAS} element={<RutasPage />} />
@@ -45,7 +53,6 @@ export const AppRouter = () => {
             <Route path={ROUTES.OFICINAS} element={<OficinasPage />} />
             <Route path={ROUTES.POLIZAS} element={<PolizasPage />} />
             <Route path={ROUTES.VEHICULOS} element={<VehiculosPage />} />
-            <Route path={ROUTES.VIAJES} element={<ViajesPage />} />
             <Route path={ROUTES.TIPOS_SERVICIO} element={<TiposServicioPage />} />
             <Route path={ROUTES.TIPOS_BUS} element={<TiposBusPage />} />
             <Route path={ROUTES.TAQUILLEROS} element={<TaquillerosPage />} />

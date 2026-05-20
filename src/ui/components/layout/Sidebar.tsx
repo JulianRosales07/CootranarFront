@@ -17,6 +17,7 @@ const sections: NavSection[] = [
   ]},
   { title: 'Taquilla', items: [
     { path: ROUTES.TAQUILLA, label: 'Venta de Tiquetes', icon: 'point_of_sale' },
+    { path: ROUTES.GESTION_TIQUETES, label: 'Tiquetes por Viaje', icon: 'confirmation_number' },
   ]},
   { title: 'Gestión Base', items: [
     { path: ROUTES.CIUDADES, label: 'Gestión de Ciudades', icon: 'location_city' },
@@ -55,6 +56,18 @@ export const Sidebar = () => {
 
   const handleLogout = async () => { await logout(); navigate(ROUTES.LOGIN); };
 
+  // Filtrar secciones según el rol del usuario
+  const filteredSections = sections.map(section => {
+    const items = section.items.filter(item => {
+      if (user?.nombrerol === 'TAQUILLERO') {
+        // El taquillero solo tiene acceso a Venta de Tiquetes (TAQUILLA), Gestión de Viajes (VIAJES) y Tiquetes por Viaje
+        return item.path === ROUTES.TAQUILLA || item.path === ROUTES.VIAJES || item.path === ROUTES.GESTION_TIQUETES;
+      }
+      return true;
+    });
+    return { ...section, items };
+  }).filter(section => section.items.length > 0);
+
   /* ── Collapsed view: logo + nav icons + expand + logout ── */
   if (collapsed) {
     return (
@@ -86,7 +99,7 @@ export const Sidebar = () => {
 
         {/* Nav icons */}
         <nav style={{ flex: 1, overflowY: 'auto', padding: '8px 0', width: '100%', scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.1) transparent' }}>
-          {sections.map((section, si) => (
+          {filteredSections.map((section, si) => (
             <div key={section.title}>
               {si > 0 && <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', margin: '6px 12px' }} />}
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', padding: '4px 0' }}>
@@ -158,7 +171,7 @@ export const Sidebar = () => {
 
       {/* Nav */}
       <nav style={{ flex: 1, overflowY: 'auto', padding: '20px 0', scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.1) transparent' }}>
-        {sections.map(section => (
+        {filteredSections.map(section => (
           <div key={section.title} style={{ marginBottom: '24px', padding: '0 16px' }}>
             <p style={{ fontSize: '9.5px', fontWeight: '700', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: '6px', paddingLeft: '12px' }}>{section.title}</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>

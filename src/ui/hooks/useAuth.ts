@@ -8,7 +8,7 @@ interface AuthState {
   user: User | null;
   token: string | null;
   isAuthenticated: boolean;
-  login: (correo: string, password: string) => Promise<void>;
+  login: (correo: string, password: string) => Promise<User>;
   logout: () => Promise<void>;
   setUser: (user: User | null) => void;
 }
@@ -25,6 +25,7 @@ export const useAuth = create<AuthState>((set) => ({
     localStorage.setItem('authToken', result.token);
     localStorage.setItem('usuario', JSON.stringify(result.user));
     set({ user: result.user, token: result.token, isAuthenticated: true });
+    return result.user;
   },
 
   logout: async () => {

@@ -107,6 +107,11 @@ export const taquillaApiService = {
       params: { idPuntoOrigen, idPuntoDestino, idTipoBus, piso }
     });
   },
+
+  // Obtener tiquetes de un viaje
+  obtenerTiquetesViaje: (idViaje: number) => {
+    return taquillaApi.get(`/viajes/${idViaje}/tiquetes`);
+  },
 };
 
 export default taquillaApiService;

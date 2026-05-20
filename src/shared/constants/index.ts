@@ -3,6 +3,7 @@ export const ROUTES = {
   DASHBOARD: '/dashboard',
   TAQUILLA: '/taquilla',
   TIQUETES: '/tiquetes',
+  GESTION_TIQUETES: '/gestion-tiquetes',
   TIQUETE_DETAIL: '/tiquetes/:id',
   ENCOMIENDAS: '/encomiendas',
   ENCOMIENDA_DETAIL: '/encomiendas/:id',

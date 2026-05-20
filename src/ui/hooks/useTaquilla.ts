@@ -123,6 +123,11 @@ export const useTaquilla = () => {
     }) => taquillaApiService.obtenerTarifaTramo(idPuntoOrigen, idPuntoDestino, idTipoBus, piso),
   });
 
+  // Obtener tiquetes de un viaje
+  const obtenerTiquetesViaje = useMutation({
+    mutationFn: (idViaje: number) => taquillaApiService.obtenerTiquetesViaje(idViaje),
+  });
+
   return {
     // Estado
     viajeSeleccionado,
@@ -144,5 +149,6 @@ export const useTaquilla = () => {
     descargarPdf,
     abrirTaquilla,
     obtenerTarifaTramo,
+    obtenerTiquetesViaje,
   };
 };

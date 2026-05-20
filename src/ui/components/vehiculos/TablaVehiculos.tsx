@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { vehiculosApi } from '../../services/vehiculosApi';
+import { vehiculosApi } from '../../../infrastructure/services/vehiculosApi';
 import ModalEditarVehiculo from './ModalEditarVehiculo';
 
 export default function TablaVehiculos({ vehiculos, paginacion, onCambiarPagina, onToggleEstado, onVerDetalle, cargando }: any) {

@@ -14,7 +14,7 @@ export const useTarifasRuta = (idRuta?: string) => {
       const tarifasArray = data.tarifas || data || [];
       
       return tarifasArray.map((tarifa: any) => ({
-        id: String(tarifa.idtarifaruta ?? tarifa.id),
+        id: String(tarifa.idtarifatramo ?? tarifa.idtarifaruta ?? tarifa.id),
         idRuta: String(tarifa.idruta ?? tarifa.idRuta ?? ''),
         idTipoBus: String(tarifa.idtipobus ?? tarifa.idTipoBus ?? ''),
         piso: Number(tarifa.piso ?? 1),

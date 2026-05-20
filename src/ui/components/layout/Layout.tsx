@@ -5,9 +5,10 @@ import { useSidebar } from '../../context/SidebarContext';
 
 interface LayoutProps {
   children: ReactNode;
+  hideHeader?: boolean;
 }
 
-export const Layout = ({ children }: LayoutProps) => {
+export const Layout = ({ children, hideHeader }: LayoutProps) => {
   const { collapsed } = useSidebar();
   const ml = collapsed ? 64 : 256;
 
@@ -16,7 +17,7 @@ export const Layout = ({ children }: LayoutProps) => {
       <Sidebar />
       {/* Main content area - scrollable */}
       <div className="flex-1 flex flex-col overflow-hidden" style={{ marginLeft: `${ml}px`, transition: 'margin-left 0.2s ease' }}>
-        <Header />
+        {!hideHeader && <Header />}
         <div className="flex-1 overflow-y-auto">
           <div style={{ padding: '24px 32px 40px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
             {children}

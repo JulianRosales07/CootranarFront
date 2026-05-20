@@ -104,6 +104,16 @@ const getPageHeaderInfo = (pathname: string) => {
           </>
         ),
       };
+    case ROUTES.TAQUILLA:
+      return {
+        title: 'Venta de Tiquetes',
+        breadcrumbs: (
+          <>
+            Inicio &rsaquo; Taquilla &rsaquo;{' '}
+            <span style={{ color: '#0D3B8E', fontWeight: 600 }}>Venta de Tiquetes</span>
+          </>
+        ),
+      };
     case ROUTES.TIQUETES:
       return {
         title: 'Gestión de Tiquetes',

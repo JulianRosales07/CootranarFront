@@ -15,6 +15,9 @@ const sections: NavSection[] = [
   { title: 'Análisis', items: [
     { path: ROUTES.DASHBOARD, label: 'Dashboard', icon: 'analytics' },
   ]},
+  { title: 'Taquilla', items: [
+    { path: ROUTES.TAQUILLA, label: 'Venta de Tiquetes', icon: 'point_of_sale' },
+  ]},
   { title: 'Gestión Base', items: [
     { path: ROUTES.CIUDADES, label: 'Gestión de Ciudades', icon: 'location_city' },
     { path: ROUTES.AGENCIAS, label: 'Gestión de Agencias', icon: 'store' },
@@ -25,7 +28,6 @@ const sections: NavSection[] = [
     { path: ROUTES.TIPOS_SERVICIO, label: 'Gestión de Tipos de Servicio', icon: 'service_toolbox' },
     { path: ROUTES.VEHICULOS, label: 'Gestión de Vehículos', icon: 'airport_shuttle' },
     { path: ROUTES.RUTAS, label: 'Gestión de Rutas', icon: 'map' },
-    { path: ROUTES.TARIFAS_RUTA, label: 'Tarifas de Ruta', icon: 'payments' },
     { path: ROUTES.VIAJES, label: 'Gestión de Viajes', icon: 'departure_board' },
   ]},
   { title: 'Recursos y Legal', items: [
@@ -39,7 +41,7 @@ const sections: NavSection[] = [
     { path: ROUTES.EMPLEADOS_ENCOMIENDAS, label: 'Empleados Encomiendas', icon: 'package_2' },
   ]},
   { title: 'Gestión de Empleados', items: [
-    { path: ROUTES.TAQUILLEROS, label: 'Taquilleros', icon: 'point_of_sale' },
+    { path: ROUTES.TAQUILLEROS, label: 'Taquilleros', icon: 'badge' },
   ]},
 ];
 

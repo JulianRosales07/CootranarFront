@@ -1,4 +1,4 @@
-import type { Ruta } from '../entities/Ruta';
+import type { Ruta, PuntoRuta } from '../entities/Ruta';
 
 export interface RutaRepository {
   findById(id: string): Promise<Ruta | null>;
@@ -7,4 +7,5 @@ export interface RutaRepository {
   save(ruta: Omit<Ruta, 'id'>): Promise<Ruta>;
   update(id: string, data: Partial<Ruta>): Promise<Ruta>;
   delete(id: string): Promise<void>;
+  findPuntos(id: string): Promise<PuntoRuta[]>;
 }

@@ -28,6 +28,8 @@ httpClient.interceptors.response.use(
     const data = error.response?.data;
 
     console.error(`[HTTP Error] ${status} en ${url}`, data);
+    console.log('[HTTP Error] Config:', error.config);
+    console.log('[HTTP Error] Headers:', error.config?.headers);
 
     if (status === 403) {
       console.warn('⚠️ Error 403: Sin permisos para este recurso.');
@@ -37,18 +39,30 @@ httpClient.interceptors.response.use(
       const msg = (data?.message || '').toLowerCase();
       const esPermisos = msg.includes('permiso') || msg.includes('autorizado') || msg.includes('rol') || msg.includes('acceso') || msg.includes('no tiene');
 
+      console.log('[401 Debug] Mensaje:', msg);
+      console.log('[401 Debug] Es permisos:', esPermisos);
+      console.log('[401 Debug] Token:', localStorage.getItem('authToken'));
+      console.log('[401 Debug] Path:', window.location.pathname);
+      console.log('[401 Debug] Has Authorization header:', !!error.config?.headers?.Authorization);
+
       if (esPermisos) {
         console.warn('⚠️ Error 401: Sin permisos suficientes. No se cierra sesión.');
       } else {
         // Verificar si hay un token válido guardado; si no lo hay, no redirigir (evita loops)
         const token = localStorage.getItem('authToken');
-        if (token && token !== 'cookie-based-auth') {
+        const isLoginPage = window.location.pathname.includes('/login');
+        
+        // Solo cerrar sesión si:
+        // 1. Hay un token guardado
+        // 2. No estamos en la página de login
+        // 3. El error viene de una petición autenticada (no de páginas públicas)
+        if (token && token !== 'cookie-based-auth' && !isLoginPage && error.config?.headers?.Authorization) {
           console.warn('⚠️ Error 401: Token inválido o expirado. Redirigiendo a Login...');
           localStorage.removeItem('authToken');
           localStorage.removeItem('usuario');
-          if (!window.location.pathname.includes('/login')) {
-            window.location.href = '/login';
-          }
+          window.location.href = '/login';
+        } else {
+          console.log('[401 Debug] No se cierra sesión porque no cumple condiciones');
         }
       }
     }

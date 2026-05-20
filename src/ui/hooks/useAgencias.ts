@@ -8,9 +8,22 @@ export const useAgencias = () => {
   const { data: agencias, isLoading, error } = useQuery({
     queryKey: ['agencias'],
     queryFn: async () => {
-      const response = await agenciasApi.obtenerTodas();
+      const response = await agenciasApi.obtenerTodas({ limit: 1000, page: 1 });
       console.log('Response agencias:', response.data);
-      return response.data.data.agencias || [];
+      const data = response.data.data;
+      const agenciasArray = data.agencias || data || [];
+      console.log('Agencias array:', agenciasArray);
+      
+      // Asegurarse de que cada agencia tenga los campos necesarios
+      return agenciasArray.map((ag: any) => ({
+        idagencia: ag.idagencia,
+        nombre: ag.nombre,
+        idciudad: ag.idciudad,
+        direccion: ag.direccion,
+        telefono: ag.telefono,
+        activo: ag.activo,
+        nombreciudad: ag.nombreciudad
+      }));
     },
   });
 

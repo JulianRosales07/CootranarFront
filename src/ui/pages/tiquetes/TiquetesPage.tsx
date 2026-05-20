@@ -1,60 +1,28 @@
+import React from 'react';
 import { Layout } from '../../components/layout/Layout';
-import { useTiquetes } from '../../hooks/useTiquetes';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/common/Table';
-import { Badge } from '../../components/common/Badge';
-import { formatDate, formatCurrency } from '../../../shared/utils/formatters';
 
 export const TiquetesPage = () => {
-  const { tiquetes, isLoading } = useTiquetes();
-
-  const getEstadoBadge = (estado: string) => {
-    const variants: Record<string, 'success' | 'warning' | 'danger' | 'info'> = {
-      CONFIRMADO: 'success',
-      PENDIENTE: 'warning',
-      CANCELADO: 'danger',
-      USADO: 'info',
-    };
-    return variants[estado] || 'default';
-  };
-
-  if (isLoading) return <Layout><div>Cargando...</div></Layout>;
-
   return (
     <Layout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Tiquetes</h1>
-        </div>
-
-        <div className="bg-white rounded-lg shadow">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Pasajero</TableHead>
-                <TableHead>Ruta</TableHead>
-                <TableHead>Fecha</TableHead>
-                <TableHead>Asiento</TableHead>
-                <TableHead>Precio</TableHead>
-                <TableHead>Estado</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {tiquetes?.map((tiquete) => (
-                <TableRow key={tiquete.id}>
-                  <TableCell>{tiquete.pasajeroNombre}</TableCell>
-                  <TableCell>{tiquete.origen} - {tiquete.destino}</TableCell>
-                  <TableCell>{formatDate(tiquete.fechaViaje)}</TableCell>
-                  <TableCell>{tiquete.asiento}</TableCell>
-                  <TableCell>{formatCurrency(tiquete.precio)}</TableCell>
-                  <TableCell>
-                    <Badge variant={getEstadoBadge(tiquete.estado)}>
-                      {tiquete.estado}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+      <div style={{ padding: '32px', maxWidth: '1600px', margin: '0 auto' }}>
+        {/* Mensaje temporal */}
+        <div style={{
+          background: 'white',
+          borderRadius: '12px',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #f1f5f9',
+          padding: '64px',
+          textAlign: 'center'
+        }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '64px', color: '#cbd5e1' }}>
+            confirmation_number
+          </span>
+          <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#1e293b', margin: '16px 0 8px 0' }}>
+            Gestión de Tiquetes
+          </h3>
+          <p style={{ fontSize: '14px', color: '#64748b', margin: 0 }}>
+            Esta sección está en desarrollo. Por ahora, puede vender tiquetes desde la sección de Taquilla.
+          </p>
         </div>
       </div>
     </Layout>

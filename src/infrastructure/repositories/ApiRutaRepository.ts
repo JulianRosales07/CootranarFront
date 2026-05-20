@@ -1,5 +1,5 @@
 import type { RutaRepository } from '../../domain/repositories/RutaRepository';
-import type { Ruta } from '../../domain/entities/Ruta';
+import type { Ruta, PuntoRuta } from '../../domain/entities/Ruta';
 import { httpClient } from '../api/httpClient';
 
 export class ApiRutaRepository implements RutaRepository {
@@ -34,5 +34,10 @@ export class ApiRutaRepository implements RutaRepository {
 
   async delete(id: string): Promise<void> {
     await httpClient.delete(`/rutas/${id}`);
+  }
+
+  async findPuntos(id: string): Promise<PuntoRuta[]> {
+    const response = await httpClient.get(`/rutas/${id}/puntos`);
+    return response.data?.puntos || [];
   }
 }

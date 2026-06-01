@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { Layout } from '../../components/layout/Layout';
 import { SeleccionTramo } from '../../components/taquilla/SeleccionTramo';
@@ -11,8 +11,10 @@ import { TiquetesGenerados } from '../../components/taquilla/TiquetesGenerados';
 import { SelectorGrupo } from '../../components/taquilla/SelectorGrupo';
 import { IndicadorProgresoPasajero } from '../../components/taquilla/IndicadorProgresoPasajero';
 import { useTaquilla } from '../../hooks/useTaquilla';
+import { useAsientosRealtime } from '../../hooks/useAsientosRealtime';
 import metodosPagoApiService from '../../../infrastructure/services/metodosPagoApi';
 import taquillaApiService from '../../../infrastructure/services/taquillaApi';
+import asientosApiService from '../../../infrastructure/services/asientosApi';
 
 // ── Paleta MD3 ────────────────────────────────────────────────────────────────
 const C = {
@@ -99,6 +101,53 @@ export const TaquillaPage = () => {
     obtenerPuntoOrigen, buscarOCrearPasajero,
     confirmarVenta, cancelarOperacion, descargarPdf, obtenerTarifaTramo,
   } = useTaquilla();
+
+  // ── Ref para asientos pendientes de confirmación Realtime ────────────────
+  const asientosPendientesRef = useRef<Set<number>>(new Set());
+
+  // ── Realtime: actualizar asientos cuando cambian externamente ──────────
+  useAsientosRealtime(
+    viajeSeleccionado?.idviaje ?? null,
+    useCallback((idasientoviaje: number, nuevoEstado: 'LIBRE' | 'RESERVADO' | 'VENDIDO') => {
+      // Si el asiento está en "pendientes" (yo lo acabo de reservar, esperando confirmación Realtime)
+      if (asientosPendientesRef.current.has(idasientoviaje) && nuevoEstado === 'RESERVADO') {
+        // Realtime confirmó MI reserva — ahora sí pintarlo como seleccionado (verde)
+        asientosPendientesRef.current.delete(idasientoviaje);
+        setAsientosReservados(prev => prev.includes(idasientoviaje) ? prev : [...prev, idasientoviaje]);
+        // No actualizar el estado del asiento en el array — el VisualizadorAsientos
+        // lo pintará verde porque está en asientosReservados (asientosSeleccionados prop)
+        return;
+      }
+
+      // Si el asiento es MÍO (ya confirmado en mis reservados)
+      setAsientosReservados(prev => {
+        const esMio = prev.includes(idasientoviaje);
+        if (esMio) {
+          if (nuevoEstado === 'VENDIDO') {
+            // Conflicto: alguien más lo vendió — quitarlo
+            setAsientos(prevA => prevA.map(a =>
+              a.idasientoviaje === idasientoviaje ? { ...a, estado: nuevoEstado } : a
+            ));
+            return prev.filter(id => id !== idasientoviaje);
+          }
+          if (nuevoEstado === 'LIBRE') {
+            // Fue liberado externamente — quitarlo de mis reservados
+            setAsientos(prevA => prevA.map(a =>
+              a.idasientoviaje === idasientoviaje ? { ...a, estado: nuevoEstado } : a
+            ));
+            return prev.filter(id => id !== idasientoviaje);
+          }
+          // RESERVADO para mi propio asiento — no hacer nada
+          return prev;
+        }
+        // No es mío — actualizar normalmente el mapa de asientos
+        setAsientos(prevA => prevA.map(a =>
+          a.idasientoviaje === idasientoviaje ? { ...a, estado: nuevoEstado } : a
+        ));
+        return prev;
+      });
+    }, [])
+  );
 
   // ── Safety-net: liberar asientos si el componente se desmonta inesperadamente
   // (cierre de pestaña, navegación del navegador, etc.)
@@ -252,8 +301,32 @@ export const TaquillaPage = () => {
   };
 
   // ── Paso 3 ────────────────────────────────────────────────────────────────
-  const handleToggleAsiento = (id: number) =>
-    setAsientosReservados(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  const [reservandoAsiento, setReservandoAsiento] = useState<number | null>(null);
+
+  const handleToggleAsiento = async (id: number) => {
+    if (reservandoAsiento) return; // Evitar doble clic mientras procesa
+    setReservandoAsiento(id);
+    try {
+      if (asientosReservados.includes(id)) {
+        // Liberar — el backend actualiza BD → Realtime notifica a todos al mismo tiempo
+        await asientosApiService.liberarAsientos(viajeSeleccionado.idviaje, [id]);
+        // NO quitar localmente — Realtime enviará LIBRE y el callback lo quitará
+        setAsientosReservados(prev => prev.filter(x => x !== id));
+      } else {
+        // Reservar — marcar como pendiente, NO pintar aún
+        asientosPendientesRef.current.add(id);
+        await asientosApiService.reservarAsientos({ idviaje: viajeSeleccionado.idviaje, asientos: [id] });
+        // NO agregar a asientosReservados aquí — Realtime confirmará y el callback lo pintará
+        // Así taquilla y plataforma ecommerce pintan al mismo tiempo (cuando Realtime llega)
+      }
+    } catch (err: any) {
+      // Si falló, quitar de pendientes
+      asientosPendientesRef.current.delete(id);
+      console.error('[Taquilla] Error al reservar/liberar asiento:', err);
+    } finally {
+      setReservandoAsiento(null);
+    }
+  };
 
   // ── Paso 4 ────────────────────────────────────────────────────────────────
   const handleContinuarAPasajeros = async () => {

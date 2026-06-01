@@ -6,4 +6,5 @@ export interface ConductorRepository {
   save(conductor: Omit<Conductor, 'id' | 'createdAt' | 'updatedAt'> | FormData): Promise<Conductor>;
   update(id: string, data: Partial<Conductor> | FormData): Promise<Conductor>;
   delete(id: string): Promise<void>;
+  activate(id: string): Promise<void>;
 }

@@ -26,5 +26,13 @@ export const ciudadesApi = {
     httpClient.patch(`/ciudades/activar/${id}`),
   
   desactivar: (id) => 
-    httpClient.patch(`/ciudades/desactivar/${id}`)
+    httpClient.patch(`/ciudades/desactivar/${id}`),
+
+  subirImagen: (id: string, archivo: File) => {
+    const formData = new FormData();
+    formData.append('archivo', archivo);
+    return httpClient.patch(`/ciudades/${id}/imagen`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  }
 };

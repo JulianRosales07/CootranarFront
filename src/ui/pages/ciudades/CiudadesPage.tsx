@@ -39,7 +39,7 @@ const inputStyle: React.CSSProperties = {
 };
 
 export const CiudadesPage = () => {
-  const { ciudades, isLoading, createCiudad, updateCiudad, deleteCiudad } = useCiudades();
+  const { ciudades, isLoading, createCiudad, updateCiudad, deleteCiudad, subirImagen } = useCiudades();
   const { departamentos } = useDepartamentos();
   const ciudadesList = useMemo(() => Array.isArray(ciudades) ? ciudades : [], [ciudades]);
   const departamentosList = useMemo(() => Array.isArray(departamentos) ? departamentos : [], [departamentos]);
@@ -50,6 +50,9 @@ export const CiudadesPage = () => {
   const [activo, setActivo] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formMsg, setFormMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+  const [codigoDane, setCodigoDane] = useState('');
+  const [imagenFile, setImagenFile] = useState<File | null>(null);
+  const [imagenPreview, setImagenPreview] = useState<string | null>(null);
 
   const [page, setPage] = useState(1);
   const [filterEstado, setFilterEstado] = useState<string>('TODOS');
@@ -73,7 +76,7 @@ export const CiudadesPage = () => {
 
   const departamentoName = (id: string) => departamentosList.find((d: any) => d.iddepartamento === parseInt(id))?.nombre ?? id;
 
-  const resetForm = () => { setCodigo(''); setNombre(''); setDepartamentoId(''); setActivo(true); setEditingId(null); };
+  const resetForm = () => { setCodigo(''); setNombre(''); setDepartamentoId(''); setActivo(true); setEditingId(null); setCodigoDane(''); setImagenFile(null); setImagenPreview(null); };
 
   const startEdit = (c: any) => {
     setEditingId(c.id);                              // hook mapea idciudad → id
@@ -81,14 +84,40 @@ export const CiudadesPage = () => {
     setCodigo(c.codigo || '');                       // hook mapea codigopostal → codigo
     setDepartamentoId(c.departamentoId || '');       // hook mapea iddepartamento → departamentoId
     setActivo(c.activo);
+    setCodigoDane(c.codigoDane || '');
+    setImagenFile(null);
+    setImagenPreview(c.urlImagenCiudad || null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleGuardar = (e: React.FormEvent) => {
     e.preventDefault();
     if (!nombre.trim()) { setFormMsg({ type: 'err', text: 'El nombre es requerido.' }); return; }
-    const payload = { nombre, codigo, departamentoId, activo };
-    const onOk = () => { setFormMsg({ type: 'ok', text: editingId ? 'Ciudad actualizada.' : 'Ciudad guardada.' }); resetForm(); setTimeout(() => setFormMsg(null), 3000); };
+    const payload = { nombre, codigo, departamentoId, activo, codigoDane };
+    const onOk = (result?: any) => {
+      // Si estamos editando y hay imagen seleccionada, subirla
+      if (editingId && imagenFile) {
+        subirImagen(
+          { id: editingId, archivo: imagenFile },
+          {
+            onSuccess: () => {
+              setFormMsg({ type: 'ok', text: 'Ciudad actualizada con imagen.' });
+              resetForm();
+              setTimeout(() => setFormMsg(null), 3000);
+            },
+            onError: (error: any) => {
+              const msg = error?.response?.data?.message || error?.message || 'Ciudad guardada, pero falló la subida de imagen.';
+              setFormMsg({ type: 'err', text: msg });
+              setTimeout(() => setFormMsg(null), 5000);
+            },
+          } as any
+        );
+      } else {
+        setFormMsg({ type: 'ok', text: editingId ? 'Ciudad actualizada.' : 'Ciudad guardada.' });
+        resetForm();
+        setTimeout(() => setFormMsg(null), 3000);
+      }
+    };
     const onErr = (error: any) => {
       const msg = error?.response?.data?.message || error?.message || 'Error al guardar.';
       setFormMsg({ type: 'err', text: msg });
@@ -111,12 +140,15 @@ export const CiudadesPage = () => {
           <span style={{ fontWeight: 700, fontSize: '15px', color: '#0f172a' }}>{editingId ? 'Editar Ciudad' : 'Registrar Nueva Ciudad'}</span>
         </div>
         <form onSubmit={handleGuardar}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '14px' }}>
             <Field label="Nombre" required>
               <input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej. Pasto" style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} />
             </Field>
             <Field label="Código Postal">
               <input value={codigo} onChange={e => setCodigo(e.target.value)} placeholder="Ej. 520001" style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} />
+            </Field>
+            <Field label="Código DANE">
+              <input value={codigoDane} onChange={e => setCodigoDane(e.target.value)} placeholder="Ej. 52001" maxLength={10} style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} />
             </Field>
             <Field label="Departamento">
               <select value={departamentoId} onChange={e => setDepartamentoId(e.target.value)} style={{ ...inputStyle, appearance: 'none' }} onFocus={focusBorder} onBlur={blurBorder}>
@@ -126,13 +158,36 @@ export const CiudadesPage = () => {
             </Field>
           </div>
           {editingId && (
-            <div style={{ marginTop: '14px', maxWidth: '200px' }}>
-              <Field label="Estado">
-                <select value={activo ? 'true' : 'false'} onChange={e => setActivo(e.target.value === 'true')} style={{ ...inputStyle, appearance: 'none' }} onFocus={focusBorder} onBlur={blurBorder}>
-                  <option value="true">Activo</option>
-                  <option value="false">Inactivo</option>
-                </select>
-              </Field>
+            <div style={{ marginTop: '14px', display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
+              <div style={{ maxWidth: '200px' }}>
+                <Field label="Estado">
+                  <select value={activo ? 'true' : 'false'} onChange={e => setActivo(e.target.value === 'true')} style={{ ...inputStyle, appearance: 'none' }} onFocus={focusBorder} onBlur={blurBorder}>
+                    <option value="true">Activo</option>
+                    <option value="false">Inactivo</option>
+                  </select>
+                </Field>
+              </div>
+              <div style={{ flex: 1 }}>
+                <Field label="Imagen de Ciudad">
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={e => {
+                      const file = e.target.files?.[0] || null;
+                      setImagenFile(file);
+                      setImagenPreview(file ? URL.createObjectURL(file) : null);
+                    }}
+                    style={{ ...inputStyle, padding: '7px 12px' }}
+                  />
+                </Field>
+                {imagenPreview && (
+                  <img
+                    src={imagenPreview}
+                    alt="Vista previa"
+                    style={{ marginTop: '8px', height: '48px', width: '72px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #e2e8f0' }}
+                  />
+                )}
+              </div>
             </div>
           )}
           <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
@@ -176,18 +231,37 @@ export const CiudadesPage = () => {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ background: '#f8fafc' }}>
-                  {[{ l: 'Nombre', w: '200px' }, { l: 'Código Postal', w: '150px' }, { l: 'Departamento', w: '200px' }, { l: 'Estado', w: '100px' }, { l: 'Acciones', w: '90px' }].map(({ l, w }) => (
+                  {[{ l: 'Nombre', w: '180px' }, { l: 'Código Postal', w: '120px' }, { l: 'Cód. DANE', w: '110px' }, { l: 'Imagen', w: '80px' }, { l: 'Departamento', w: '170px' }, { l: 'Estado', w: '90px' }, { l: 'Acciones', w: '90px' }].map(({ l, w }) => (
                     <th key={l} style={{ width: w, padding: '11px 16px', textAlign: 'left', fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', borderBottom: '1px solid #e8edf2', background: '#f8fafc' }}>{l}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {paginated.length === 0 ? (
-                  <tr><td colSpan={5} style={{ padding: '48px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>No se encontraron ciudades.</td></tr>
+                  <tr><td colSpan={7} style={{ padding: '48px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>No se encontraron ciudades.</td></tr>
                 ) : paginated.map((c: any) => (
                   <tr key={c.id} style={{ borderBottom: '1px solid #f1f5f9' }} onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')} onMouseLeave={e => (e.currentTarget.style.background = 'white')}>
                     <td style={{ padding: '12px 16px', fontSize: '13.5px', fontWeight: 600, color: '#1e293b' }}>{c.nombre}</td>
                     <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: '#64748b', fontFamily: 'monospace' }}>{c.codigo || '—'}</td>
+                    <td style={{ padding: '12px 16px' }}>
+                      {c.codigoDane ? (
+                        <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: '4px', background: '#dbeafe', color: '#1d4ed8', fontSize: '12px', fontWeight: 600, fontFamily: 'monospace' }}>{c.codigoDane}</span>
+                      ) : (
+                        <span style={{ fontSize: '12px', color: '#94a3b8' }}>Sin código</span>
+                      )}
+                    </td>
+                    <td style={{ padding: '12px 16px' }}>
+                      {c.urlImagenCiudad ? (
+                        <img
+                          src={c.urlImagenCiudad}
+                          alt={c.nombre}
+                          style={{ height: '32px', width: '48px', objectFit: 'cover', borderRadius: '4px' }}
+                          onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                        />
+                      ) : (
+                        <span style={{ fontSize: '12px', color: '#94a3b8' }}>Sin imagen</span>
+                      )}
+                    </td>
                     <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{c.departamentoNombre || departamentoName(c.departamentoId) || '—'}</td>
                     <td style={{ padding: '12px 16px' }}><EstadoBadge activo={c.activo} /></td>
                     <td style={{ padding: '12px 16px' }}>

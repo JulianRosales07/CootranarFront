@@ -17,6 +17,8 @@ export const useCiudades = () => {
         id: ciudad.idciudad,
         nombre: ciudad.nombre,
         codigo: ciudad.codigopostal,
+        codigoDane: ciudad.codigodane || null,
+        urlImagenCiudad: ciudad.urlimagenCiudad || null,
         departamentoId: ciudad.iddepartamento ? String(ciudad.iddepartamento) : '',
         departamentoNombre: ciudad.nombredepartamento,
         activo: ciudad.activo !== false
@@ -30,6 +32,7 @@ export const useCiudades = () => {
       const backendData = {
         nombre: data.nombre,
         codigopostal: data.codigo || null,
+        codigodane: data.codigoDane || null,
         iddepartamento: data.departamentoId ? parseInt(data.departamentoId, 10) : null
       };
       const response = await ciudadesApi.crear(backendData);
@@ -46,6 +49,7 @@ export const useCiudades = () => {
       const backendData: any = {};
       if (data.nombre) backendData.nombre = data.nombre;
       if (data.codigo !== undefined) backendData.codigopostal = data.codigo || null;
+      if (data.codigoDane !== undefined) backendData.codigodane = data.codigoDane || null;
       if (data.departamentoId) backendData.iddepartamento = parseInt(data.departamentoId, 10);
       
       const response = await ciudadesApi.actualizar(id, backendData);
@@ -66,6 +70,16 @@ export const useCiudades = () => {
     },
   });
 
+  const subirImagenMutation = useMutation({
+    mutationFn: async ({ id, archivo }: { id: string; archivo: File }) => {
+      const response = await ciudadesApi.subirImagen(id, archivo);
+      return response.data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ciudades'] });
+    },
+  });
+
   return {
     ciudades,
     isLoading,
@@ -73,5 +87,6 @@ export const useCiudades = () => {
     createCiudad: createMutation.mutate,
     updateCiudad: updateMutation.mutate,
     deleteCiudad: deleteMutation.mutate,
+    subirImagen: subirImagenMutation.mutate,
   };
 };

@@ -4,6 +4,7 @@ import { getConductores } from '../../application/use-cases/conductores/getCondu
 import { createConductor } from '../../application/use-cases/conductores/createConductor';
 import { updateConductor } from '../../application/use-cases/conductores/updateConductor';
 import { deleteConductor } from '../../application/use-cases/conductores/deleteConductor';
+import { activateConductor } from '../../application/use-cases/conductores/activateConductor';
 import type { Conductor } from '../../domain/entities/Conductor';
 
 const repository = new ApiConductorRepository();
@@ -33,6 +34,11 @@ export const useConductores = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['conductores'] }),
   });
 
+  const activate = useMutation({
+    mutationFn: (id: string) => activateConductor(repository, id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['conductores'] }),
+  });
+
   return {
     conductores,
     isLoading,
@@ -40,5 +46,6 @@ export const useConductores = () => {
     create,
     update,
     remove,
+    activate,
   };
 };

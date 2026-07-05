@@ -109,7 +109,7 @@ const inputWithIconStyle: React.CSSProperties = {
 
 /* ═══════════════════════════════════════════════════════════ */
 export const ConductoresPage = () => {
-  const { conductores, isLoading, create, update, remove, activate } = useConductores();
+  const { conductores, isLoading, create, update, remove, activate: _activate } = useConductores();
 
   /* ── form state ──────────────────────────────────────────── */
   const [nombre, setNombre]                     = useState('');

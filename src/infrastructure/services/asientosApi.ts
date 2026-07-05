@@ -56,7 +56,7 @@ export const asientosApiService = {
   },
 
   // Liberar asientos reservados (múltiples)
-  liberarAsientos: async (idViaje: number, asientos: number[]) => {
+  liberarAsientos: async (_idViaje: number, asientos: number[]) => {
     const promesas = asientos.map(idAsiento => 
       asientosApi.post(`/${idAsiento}/liberar`)
     );

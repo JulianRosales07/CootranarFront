@@ -2,7 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { Layout } from '../../components/layout/Layout';
 import { useOficinas } from '../../hooks/useOficinas';
 import { useAgencias } from '../../hooks/useAgencias';
-import type { Oficina } from '../../../domain/entities/Oficina';
 
 const BLUE = '#0D3B8E';
 const ITEMS_PER_PAGE = 5;
@@ -74,11 +73,6 @@ const inputStyle: React.CSSProperties = {
   border: '1px solid #e2e8f0', borderRadius: '7px',
   fontSize: '13px', color: '#334155', outline: 'none',
   background: 'white', fontFamily: 'inherit',
-};
-
-const inputWithIconStyle: React.CSSProperties = {
-  ...inputStyle,
-  paddingLeft: '34px',
 };
 
 /* ═══════════════════════════════════════════════════════════ */
@@ -163,7 +157,12 @@ export const OficinasPage = () => {
 
   const handleDelete = (id: string) => {
     if (window.confirm('¿Seguro que deseas eliminar esta oficina?')) {
-      remove.mutate(id);
+      remove.mutate(id, {
+        onError: (error: any) => {
+          const msg = error?.response?.data?.message || error?.message || 'Error al eliminar la oficina.';
+          alert(msg);
+        }
+      });
     }
   };
 

@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { oficinasApi } from '../../infrastructure/services/oficinasApi';
-import type { Oficina } from '../../domain/entities/Oficina';
 
 export const useOficinas = () => {
   const queryClient = useQueryClient();

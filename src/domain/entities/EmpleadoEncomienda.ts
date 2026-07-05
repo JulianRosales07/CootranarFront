@@ -13,4 +13,5 @@ export interface EmpleadoEncomienda {
   idciudad?: number;
   nombreciudad?: string;
   activo: boolean;
+  agencia?: string;
 }

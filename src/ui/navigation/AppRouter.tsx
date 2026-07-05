@@ -17,6 +17,7 @@ import { TiposServicioPage } from '../pages/tipos-servicio/TiposServicioPage';
 import { TiposBusPage } from '../pages/tipos-bus/TiposBusPage';
 import { RutasPage } from '../pages/rutas/RutasPage';
 import { TarifasRutaPage } from '../pages/rutas/TarifasRutaPage';
+import { ConfiguracionMasivaTarifasPage } from '../pages/rutas/ConfiguracionMasivaTarifasPage';
 import { TaquillerosPage } from '../pages/empleados/TaquillerosPage';
 import { EmpleadosEncomiendasPage } from '../pages/empleados/EmpleadosEncomiendasPage';
 import { OficinasEncomiendasPage } from '../pages/oficinas-encomiendas/OficinasEncomiendasPage';
@@ -46,6 +47,7 @@ export const AppRouter = () => {
             <Route path={ROUTES.ENCOMIENDAS} element={<EncomiendaPage />} />
             <Route path={ROUTES.RUTAS} element={<RutasPage />} />
             <Route path="/rutas/:idruta/tarifas" element={<TarifasRutaPage />} />
+            <Route path="/rutas/:idruta/tarifas-masivas" element={<ConfiguracionMasivaTarifasPage />} />
             <Route path={ROUTES.AGENCIAS} element={<AgenciasPage />} />
             <Route path={ROUTES.ASEGURADORAS} element={<AseguradorasPage />} />
             <Route path={ROUTES.CIUDADES} element={<CiudadesPage />} />

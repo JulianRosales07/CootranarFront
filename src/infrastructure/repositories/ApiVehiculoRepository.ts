@@ -28,6 +28,10 @@ export class ApiVehiculoRepository implements VehiculoRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await httpClient.delete(`/vehiculos/${id}`);
+    await httpClient.patch(`/vehiculos/${id}/desactivar`, {});
+  }
+
+  async activar(id: string): Promise<void> {
+    await httpClient.patch(`/vehiculos/${id}/activar`, {});
   }
 }

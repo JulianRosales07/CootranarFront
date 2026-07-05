@@ -1,9 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 interface PuntoRuta {
   idpuntoruta: number;
   nombre: string;
   orden: number;
+}
+
+interface SelectorDestinoInlineProps {
+  puntosRuta: PuntoRuta[];
+  puntoOrigenDefault: number;
+  puntoDestinoDefault?: number;
+  onDestinoChange: (puntoDestino: number, precio: number, tarifaCompleta?: any) => void;
+  onConsultarTarifa: (idPuntoOrigen: number, idPuntoDestino: number, piso: number) => Promise<any>;
+  esPoltrona: boolean;
 }
 
 interface SeleccionTramoProps {
@@ -601,6 +610,170 @@ export const SeleccionTramo: React.FC<SeleccionTramoProps> = ({
           100% { transform: rotate(360deg); }
         }
       `}</style>
+    </div>
+  );
+};
+
+/**
+ * SelectorDestinoInline — Variante compacta del selector de destino.
+ * Se embebe dentro de cada tarjeta de pasajero en el acordeón de FormularioPasajeros.
+ * Renderiza un <select> de destino con label "Destino" y el precio calculado al lado.
+ */
+export const SelectorDestinoInline: React.FC<SelectorDestinoInlineProps> = ({
+  puntosRuta,
+  puntoOrigenDefault,
+  puntoDestinoDefault,
+  onDestinoChange,
+  onConsultarTarifa,
+  esPoltrona,
+}) => {
+  const [puntoDestino, setPuntoDestino] = useState<number>(puntoDestinoDefault || 0);
+  const [precio, setPrecio] = useState<number>(0);
+  const [cargando, setCargando] = useState(false);
+  const [error, setError] = useState<string>('');
+
+  // Filtrar puntos de destino: solo los que tienen orden > puntoOrigen.orden
+  const puntoOrigenObj = puntosRuta.find(p => p.idpuntoruta === puntoOrigenDefault);
+  const puntosDestinoDisponibles = puntosRuta.filter(p =>
+    puntoOrigenObj ? p.orden > puntoOrigenObj.orden : false
+  );
+
+  // Consultar tarifa para un destino dado
+  const consultarTarifa = useCallback(async (idDestino: number) => {
+    if (!idDestino || !puntoOrigenDefault) return;
+    setCargando(true);
+    setError('');
+    try {
+      const res = await onConsultarTarifa(puntoOrigenDefault, idDestino, 1);
+      const tarifa = res?.data?.data?.tarifa;
+      if (tarifa) {
+        const valorBase = Number(tarifa.valorBase) || 0;
+        const adicionalPoltrona = Number(tarifa.adicionalPoltrona) || 0;
+        const precioCalculado = esPoltrona ? valorBase + adicionalPoltrona : valorBase;
+        setPrecio(precioCalculado);
+        onDestinoChange(idDestino, precioCalculado, tarifa);
+      } else {
+        setError('No se pudo obtener la tarifa para este tramo');
+        setPrecio(0);
+      }
+    } catch (_err) {
+      setError('No se pudo obtener la tarifa para este tramo');
+      setPrecio(0);
+    } finally {
+      setCargando(false);
+    }
+  }, [puntoOrigenDefault, esPoltrona, onConsultarTarifa, onDestinoChange]);
+
+  // On initial render, if puntoDestinoDefault is provided, trigger tariff lookup
+  useEffect(() => {
+    if (puntoDestinoDefault && puntoDestinoDefault > 0) {
+      consultarTarifa(puntoDestinoDefault);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Handle destination change
+  const handleDestinoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newDestino = Number(e.target.value);
+    setPuntoDestino(newDestino);
+    if (newDestino > 0) {
+      consultarTarifa(newDestino);
+    } else {
+      setPrecio(0);
+      setError('');
+    }
+  };
+
+  return (
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: 12,
+      padding: '10px 14px',
+      background: '#f8fafc',
+      border: '1.5px solid #e2e8f0',
+      borderRadius: 12,
+      fontFamily: "'Hanken Grotesk', 'Inter', 'Segoe UI', sans-serif",
+    }}>
+      {/* Label */}
+      <label style={{
+        fontSize: 12,
+        fontWeight: 700,
+        color: '#64748b',
+        whiteSpace: 'nowrap',
+        letterSpacing: '0.3px',
+      }}>
+        Destino
+      </label>
+
+      {/* Select */}
+      <div style={{ position: 'relative', flex: 1, display: 'flex', alignItems: 'center' }}>
+        <select
+          value={puntoDestino}
+          onChange={handleDestinoChange}
+          disabled={puntosRuta.length === 0}
+          style={{
+            width: '100%',
+            background: 'transparent',
+            border: 'none',
+            outline: 'none',
+            fontSize: 13,
+            fontWeight: 600,
+            color: '#0f172a',
+            appearance: 'none',
+            cursor: puntosRuta.length > 0 ? 'pointer' : 'not-allowed',
+            padding: '2px 20px 2px 0',
+          }}
+        >
+          {puntosRuta.length === 0 ? (
+            <option value={0}>Cargando destinos...</option>
+          ) : (
+            <>
+              <option value={0}>Seleccione destino</option>
+              {puntosDestinoDisponibles.map(p => (
+                <option key={p.idpuntoruta} value={p.idpuntoruta}>{p.nombre}</option>
+              ))}
+            </>
+          )}
+        </select>
+        <div style={{ position: 'absolute', right: 0, pointerEvents: 'none', display: 'flex', alignItems: 'center' }}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </div>
+      </div>
+
+      {/* Price / Loading / Error */}
+      <div style={{ flexShrink: 0, minWidth: 80, textAlign: 'right' }}>
+        {cargando && (
+          <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>
+            Calculando...
+          </span>
+        )}
+        {!cargando && error && (
+          <span style={{ fontSize: 11, color: '#ef4444', fontWeight: 600 }}>
+            Error tarifa
+          </span>
+        )}
+        {!cargando && !error && precio > 0 && (
+          <span style={{ fontSize: 14, fontWeight: 800, color: '#0f172a' }}>
+            ${Math.round(precio).toLocaleString('es-CO')}
+          </span>
+        )}
+      </div>
+
+      {/* Tooltip for error details */}
+      {!cargando && error && (
+        <div style={{
+          position: 'absolute',
+          bottom: -24,
+          left: 0,
+          fontSize: 11,
+          color: '#ef4444',
+          fontWeight: 500,
+        }}>
+          {error}
+        </div>
+      )}
     </div>
   );
 };

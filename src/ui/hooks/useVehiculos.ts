@@ -4,6 +4,7 @@ import { getVehiculos } from '../../application/use-cases/vehiculos/getVehiculos
 import { createVehiculo } from '../../application/use-cases/vehiculos/createVehiculo';
 import { updateVehiculo } from '../../application/use-cases/vehiculos/updateVehiculo';
 import { deleteVehiculo } from '../../application/use-cases/vehiculos/deleteVehiculo';
+import { activateVehiculo } from '../../application/use-cases/vehiculos/activateVehiculo';
 import type { Vehiculo } from '../../domain/entities/Vehiculo';
 
 const repository = new ApiVehiculoRepository();
@@ -33,6 +34,11 @@ export const useVehiculos = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['vehiculos'] }),
   });
 
+  const activar = useMutation({
+    mutationFn: (id: string) => activateVehiculo(repository, id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['vehiculos'] }),
+  });
+
   return {
     vehiculos,
     isLoading,
@@ -40,5 +46,6 @@ export const useVehiculos = () => {
     create,
     update,
     remove,
+    activar,
   };
 };

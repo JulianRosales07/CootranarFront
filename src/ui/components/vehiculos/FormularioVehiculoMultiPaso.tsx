@@ -59,6 +59,11 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
   });
   const [tiposBus, setTiposBus] = useState<any[]>([]);
   const [tiposServicio, setTiposServicio] = useState<any[]>([]);
+  
+  const [errorPlaca, setErrorPlaca] = useState<string | null>(null);
+  const [validandoPlaca, setValidandoPlaca] = useState(false);
+  const [errorNumeroMovil, setErrorNumeroMovil] = useState<string | null>(null);
+  const [validandoNumeroMovil, setValidandoNumeroMovil] = useState(false);
 
   // Paso 3: Asientos
   const [distribucion, setDistribucion] = useState<any>(null);
@@ -244,6 +249,46 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
     }
   };
 
+  const handleValidarPlaca = async (val: string) => {
+    const placaLimpia = val.trim().toUpperCase();
+    if (!placaLimpia) {
+      setErrorPlaca('La placa es obligatoria.');
+      return;
+    }
+    setValidandoPlaca(true);
+    setErrorPlaca(null);
+    try {
+      const res = await vehiculosApi.verificarExistePlaca(placaLimpia, vehiculoId || undefined);
+      if (res.data.success && res.data.data.existe) {
+        setErrorPlaca('Esta placa ya está registrada en el sistema.');
+      }
+    } catch (err: any) {
+      console.error('Error validando placa:', err);
+    } finally {
+      setValidandoPlaca(false);
+    }
+  };
+
+  const handleValidarNumeroMovil = async (val: string) => {
+    const movilLimpio = val.trim();
+    if (!movilLimpio) {
+      setErrorNumeroMovil('El número móvil es obligatorio.');
+      return;
+    }
+    setValidandoNumeroMovil(true);
+    setErrorNumeroMovil(null);
+    try {
+      const res = await vehiculosApi.verificarExisteNumeroMovil(movilLimpio, vehiculoId || undefined);
+      if (res.data.success && res.data.data.existe) {
+        setErrorNumeroMovil('Este número móvil ya está en uso.');
+      }
+    } catch (err: any) {
+      console.error('Error validando número móvil:', err);
+    } finally {
+      setValidandoNumeroMovil(false);
+    }
+  };
+
   const buscarPropietario = useCallback(async (doc?: string) => {
     const d = (doc || docPropietario).trim();
     if (!d || d.length < 5) return;
@@ -372,6 +417,9 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
   };
 
   const handleSubmit = async () => {
+    if (errorPlaca || errorNumeroMovil) {
+      return alert('Por favor corrija los errores de validación antes de guardar.');
+    }
     if (!propietario) return alert('Debe asignar un propietario');
     const totalCond = conductores.length + (propEsConductor ? 1 : 0);
     if (!modoEdicion && totalCond < 2) return alert('Debe asignar al menos 2 conductores');
@@ -629,7 +677,23 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
     }
   };
 
-  const siguiente = () => setPasoActual(p => Math.min(p + 1, PASOS.length - 1));
+  const siguiente = () => {
+    if (pasoActual === 1) {
+      if (!vehiculo.idtiposervicio || !vehiculo.idtipobus || !vehiculo.placa || !vehiculo.numeromovil || !vehiculo.capacidad) {
+        alert('Complete todos los campos obligatorios del vehículo.');
+        return;
+      }
+      if (errorPlaca) {
+        alert('Por favor corrija el error en la placa: ' + errorPlaca);
+        return;
+      }
+      if (errorNumeroMovil) {
+        alert('Por favor corrija el error en el número móvil: ' + errorNumeroMovil);
+        return;
+      }
+    }
+    setPasoActual(p => Math.min(p + 1, PASOS.length - 1));
+  };
   const anterior = () => setPasoActual(p => Math.max(p - 1, 0));
 
   // Animación cuando cambia el paso
@@ -870,11 +934,63 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
         <FLD>
           <label style={LB}>Placa <span style={REQ}>*</span></label>
-          <input type="text" style={{ ...IS, textTransform: 'uppercase' }} value={vehiculo.placa} onChange={(e) => setVehiculo(v => ({ ...v, placa: e.target.value }))} placeholder="ABC-123" onFocus={onFocus} onBlur={onBlur} />
+          <input 
+            type="text" 
+            style={{ ...IS, textTransform: 'uppercase' }} 
+            value={vehiculo.placa} 
+            onChange={(e) => {
+              setVehiculo(v => ({ ...v, placa: e.target.value }));
+              setErrorPlaca(null);
+            }} 
+            placeholder="ABC-123" 
+            onFocus={onFocus} 
+            onBlur={async (e) => {
+              onBlur(e);
+              await handleValidarPlaca(e.target.value);
+            }} 
+          />
+          {validandoPlaca && (
+            <span style={{ fontSize: '11px', color: '#64748b', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '14px', animation: 'spin 1s linear infinite' }}>progress_activity</span>
+              Verificando placa...
+            </span>
+          )}
+          {errorPlaca && (
+            <span style={{ fontSize: '11.5px', color: '#ef4444', marginTop: '4px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>error</span>
+              {errorPlaca}
+            </span>
+          )}
         </FLD>
         <FLD>
           <label style={LB}>Número Móvil <span style={REQ}>*</span></label>
-          <input type="text" style={IS} value={vehiculo.numeromovil} onChange={(e) => setVehiculo(v => ({ ...v, numeromovil: e.target.value }))} placeholder="1045" onFocus={onFocus} onBlur={onBlur} />
+          <input 
+            type="text" 
+            style={IS} 
+            value={vehiculo.numeromovil} 
+            onChange={(e) => {
+              setVehiculo(v => ({ ...v, numeromovil: e.target.value }));
+              setErrorNumeroMovil(null);
+            }} 
+            placeholder="1045" 
+            onFocus={onFocus} 
+            onBlur={async (e) => {
+              onBlur(e);
+              await handleValidarNumeroMovil(e.target.value);
+            }} 
+          />
+          {validandoNumeroMovil && (
+            <span style={{ fontSize: '11px', color: '#64748b', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '14px', animation: 'spin 1s linear infinite' }}>progress_activity</span>
+              Verificando móvil...
+            </span>
+          )}
+          {errorNumeroMovil && (
+            <span style={{ fontSize: '11.5px', color: '#ef4444', marginTop: '4px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>error</span>
+              {errorNumeroMovil}
+            </span>
+          )}
         </FLD>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>

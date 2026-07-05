@@ -1,30 +1,30 @@
 import { httpClient } from '../api/httpClient';
 
 export const empleadosEncomiendasApi = {
-  obtenerTodos: (params = {}) => 
+  obtenerTodos: (params = {}) =>
     httpClient.get('/empleados-encomiendas', { params }),
-  
-  obtenerActivos: (params = {}) => 
+
+  obtenerActivos: (params = {}) =>
     httpClient.get('/empleados-encomiendas/activos', { params }),
-  
-  obtenerInactivos: (params = {}) => 
+
+  obtenerInactivos: (params = {}) =>
     httpClient.get('/empleados-encomiendas/inactivos', { params }),
-  
-  obtenerPorId: (id: string) => 
+
+  obtenerPorId: (id: string) =>
     httpClient.get(`/empleados-encomiendas/${id}`),
-  
-  buscar: (busqueda: string, params = {}) => 
+
+  buscar: (busqueda: string, params = {}) =>
     httpClient.get(`/empleados-encomiendas/buscar`, { params: { busqueda, ...params } }),
-  
-  crear: (data: any) => 
+
+  crear: (data: any) =>
     httpClient.post('/empleados-encomiendas', data),
-  
-  actualizar: (id: string, data: any) => 
+
+  actualizar: (id: string, data: any) =>
     httpClient.put(`/empleados-encomiendas/${id}`, data),
-  
-  activar: (id: string) => 
+
+  activar: (id: string) =>
     httpClient.patch(`/empleados-encomiendas/activar/${id}`),
-  
-  eliminar: (id: string) => 
+
+  desactivar: (id: string) =>
     httpClient.patch(`/empleados-encomiendas/desactivar/${id}`)
 };

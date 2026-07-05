@@ -41,7 +41,7 @@ const inputStyle: React.CSSProperties = {
 };
 
 export const TaquillerosPage = () => {
-  const { taquilleros, isLoading, create, update, activar } = useTaquilleros();
+  const { taquilleros, isLoading, create, update, activar, remove } = useTaquilleros();
   const { oficinas } = useOficinas();
   const oficinasList = Array.isArray(oficinas) ? oficinas : [];
   const taquillerosList = useMemo(() => Array.isArray(taquilleros) ? taquilleros : [], [taquilleros]);
@@ -162,6 +162,16 @@ export const TaquillerosPage = () => {
 
   const handleActivar = (idusuario: number) => {
     activar.mutate(idusuario);
+  };
+
+  const handleDesactivar = (idusuario: number) => {
+    if (!window.confirm('¿Está seguro de desactivar a este taquillero?')) return;
+    remove.mutate(String(idusuario), {
+      onError: (err: any) => {
+        const msg = err?.response?.data?.message || err?.message || 'Error al desactivar el taquillero.';
+        window.alert(msg);
+      }
+    });
   };
 
   const focusBorder = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => (e.currentTarget.style.borderColor = '#93b4e0');
@@ -286,7 +296,9 @@ export const TaquillerosPage = () => {
                     <td style={{ padding: '12px 16px' }}>
                       <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                         <button title="Editar" onClick={() => startEdit(t)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center' }} onMouseEnter={e => (e.currentTarget.style.color = BLUE)} onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}><span className="material-symbols-outlined" style={{ fontSize: '18px' }}>edit</span></button>
-                        {! (t.estado || (t as any).activo) && (
+                        {!!(t.estado || (t as any).activo) ? (
+                          <button title="Desactivar" onClick={() => handleDesactivar(t.idusuario)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center' }} onMouseEnter={e => (e.currentTarget.style.color = '#dc2626')} onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}><span className="material-symbols-outlined" style={{ fontSize: '18px' }}>block</span></button>
+                        ) : (
                           <button title="Activar" onClick={() => handleActivar(t.idusuario)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center' }} onMouseEnter={e => (e.currentTarget.style.color = '#16a34a')} onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}><span className="material-symbols-outlined" style={{ fontSize: '18px' }}>check_circle</span></button>
                         )}
                       </div>

@@ -3,6 +3,7 @@ import { ApiEncomiendaRepository } from '../../infrastructure/repositories/ApiEn
 import { getEncomiendas } from '../../application/use-cases/encomiendas/getEncomiendas';
 import { createEncomienda } from '../../application/use-cases/encomiendas/createEncomienda';
 import type { Encomienda } from '../../domain/entities/Encomienda';
+import type { CreateEncomiendaDTO } from '../../application/dto/EncomiendaDTO';
 
 const repository = new ApiEncomiendaRepository();
 
@@ -15,7 +16,7 @@ export const useEncomiendas = () => {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: Omit<Encomienda, 'id' | 'createdAt'>) =>
+    mutationFn: (data: CreateEncomiendaDTO) =>
       createEncomienda(repository, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['encomiendas'] });

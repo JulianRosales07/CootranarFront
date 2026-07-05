@@ -95,13 +95,14 @@ export const CiudadesPage = () => {
     if (!nombre.trim()) { setFormMsg({ type: 'err', text: 'El nombre es requerido.' }); return; }
     const payload = { nombre, codigo, departamentoId, activo, codigoDane };
     const onOk = (result?: any) => {
-      // Si estamos editando y hay imagen seleccionada, subirla
-      if (editingId && imagenFile) {
+      // Si hay imagen seleccionada, subirla usando el id de la ciudad creada/editada
+      const idCiudad = editingId || result?.ciudad?.idciudad || result?.id || result?.idciudad;
+      if (imagenFile && idCiudad) {
         subirImagen(
-          { id: editingId, archivo: imagenFile },
+          { id: idCiudad, archivo: imagenFile },
           {
             onSuccess: () => {
-              setFormMsg({ type: 'ok', text: 'Ciudad actualizada con imagen.' });
+              setFormMsg({ type: 'ok', text: editingId ? 'Ciudad actualizada con imagen.' : 'Ciudad guardada con imagen.' });
               resetForm();
               setTimeout(() => setFormMsg(null), 3000);
             },
@@ -126,7 +127,16 @@ export const CiudadesPage = () => {
     editingId ? updateCiudad({ id: editingId, data: payload }, { onSuccess: onOk, onError: onErr } as any) : createCiudad(payload, { onSuccess: onOk, onError: onErr } as any);
   };
 
-  const handleDelete = (id: string) => { if (window.confirm('¿Eliminar esta ciudad?')) deleteCiudad(id); };
+  const handleDelete = (id: string) => {
+    if (window.confirm('¿Eliminar esta ciudad?')) {
+      deleteCiudad(id, {
+        onError: (error: any) => {
+          const msg = error?.response?.data?.message || error?.message || 'Error al eliminar la ciudad.';
+          alert(msg);
+        }
+      } as any);
+    }
+  };
 
   const focusBorder = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => (e.currentTarget.style.borderColor = '#93b4e0');
   const blurBorder = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => (e.currentTarget.style.borderColor = '#e2e8f0');
@@ -158,38 +168,36 @@ export const CiudadesPage = () => {
             </Field>
           </div>
           {editingId && (
-            <div style={{ marginTop: '14px', display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
-              <div style={{ maxWidth: '200px' }}>
-                <Field label="Estado">
-                  <select value={activo ? 'true' : 'false'} onChange={e => setActivo(e.target.value === 'true')} style={{ ...inputStyle, appearance: 'none' }} onFocus={focusBorder} onBlur={blurBorder}>
-                    <option value="true">Activo</option>
-                    <option value="false">Inactivo</option>
-                  </select>
-                </Field>
-              </div>
-              <div style={{ flex: 1 }}>
-                <Field label="Imagen de Ciudad">
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    onChange={e => {
-                      const file = e.target.files?.[0] || null;
-                      setImagenFile(file);
-                      setImagenPreview(file ? URL.createObjectURL(file) : null);
-                    }}
-                    style={{ ...inputStyle, padding: '7px 12px' }}
-                  />
-                </Field>
-                {imagenPreview && (
-                  <img
-                    src={imagenPreview}
-                    alt="Vista previa"
-                    style={{ marginTop: '8px', height: '48px', width: '72px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #e2e8f0' }}
-                  />
-                )}
-              </div>
+            <div style={{ marginTop: '14px', maxWidth: '200px' }}>
+              <Field label="Estado">
+                <select value={activo ? 'true' : 'false'} onChange={e => setActivo(e.target.value === 'true')} style={{ ...inputStyle, appearance: 'none' }} onFocus={focusBorder} onBlur={blurBorder}>
+                  <option value="true">Activo</option>
+                  <option value="false">Inactivo</option>
+                </select>
+              </Field>
             </div>
           )}
+          <div style={{ marginTop: '14px' }}>
+            <Field label="Imagen de Ciudad">
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={e => {
+                  const file = e.target.files?.[0] || null;
+                  setImagenFile(file);
+                  setImagenPreview(file ? URL.createObjectURL(file) : null);
+                }}
+                style={{ ...inputStyle, padding: '7px 12px' }}
+              />
+            </Field>
+            {imagenPreview && (
+              <img
+                src={imagenPreview}
+                alt="Vista previa"
+                style={{ marginTop: '8px', height: '48px', width: '72px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #e2e8f0' }}
+              />
+            )}
+          </div>
           <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
             {editingId && (
               <button type="button" onClick={resetForm} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'white', color: '#64748b', border: '1px solid #cbd5e1', borderRadius: '7px', padding: '10px 16px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>

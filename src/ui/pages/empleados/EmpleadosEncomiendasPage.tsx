@@ -57,7 +57,7 @@ const inputStyle: React.CSSProperties = {
 };
 
 export const EmpleadosEncomiendasPage = () => {
-  const { empleados, isLoading, create, update } = useEmpleadosEncomiendas();
+  const { empleados, isLoading, create, update, activar, desactivar } = useEmpleadosEncomiendas();
 
   const [nombre, setNombre] = useState('');
   const [apellido, setApellido] = useState('');
@@ -90,19 +90,19 @@ export const EmpleadosEncomiendasPage = () => {
   const focusBorder = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => (e.currentTarget.style.borderColor = '#93b4e0');
   const blurBorder = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => (e.currentTarget.style.borderColor = '#e2e8f0');
 
-  const resetForm = () => { 
-    setNombre(''); setApellido(''); setTipodocumento('CC'); setDocumento(''); 
-    setTelefono(''); setEmail(''); setPassword(''); setAgenciaId(''); setEditingId(null); 
+  const resetForm = () => {
+    setNombre(''); setApellido(''); setTipodocumento('CC'); setDocumento('');
+    setTelefono(''); setEmail(''); setPassword(''); setAgenciaId(''); setEditingId(null);
   };
 
   const startEdit = (emp: EmpleadoEncomienda) => {
-    setEditingId(emp.id); 
-    setNombre(emp.nombre || ''); 
+    setEditingId(emp.id);
+    setNombre(emp.nombre || '');
     setApellido(emp.apellido || '');
     setTipodocumento(emp.tipodocumento || 'CC');
     setDocumento(emp.documento || '');
-    setTelefono(emp.telefono || ''); 
-    setEmail(emp.email || emp.correo || ''); 
+    setTelefono(emp.telefono || '');
+    setEmail(emp.email || emp.correo || '');
     setPassword(''); // No cargamos contraseña al editar por seguridad
     setAgenciaId(emp.idoficinaencomienda ? String(emp.idoficinaencomienda) : '');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -110,38 +110,38 @@ export const EmpleadosEncomiendasPage = () => {
 
   const handleGuardar = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nombre || !apellido || !documento || !agenciaId || (!editingId && !password)) { 
-      setFormMsg({ type: 'err', text: 'Nombre, apellido, documento, oficina y contraseña (para nuevos) son requeridos.' }); 
-      return; 
+    if (!nombre || !apellido || !documento || !agenciaId || (!editingId && !password)) {
+      setFormMsg({ type: 'err', text: 'Nombre, apellido, documento, oficina y contraseña (para nuevos) son requeridos.' });
+      return;
     }
 
     if (password && (password.length < 6 || password.length > 12)) {
       setFormMsg({ type: 'err', text: 'La contraseña debe tener entre 6 y 12 caracteres.' });
       return;
     }
-    
-    const payload: any = { 
-      nombre, 
+
+    const payload: any = {
+      nombre,
       apellido,
       tipodocumento,
-      documento, 
-      telefono, 
-      correo: email, 
-      idoficinaencomienda: parseInt(agenciaId, 10), 
-      activo: true 
+      documento,
+      telefono,
+      correo: email,
+      idoficinaencomienda: parseInt(agenciaId, 10),
+      activo: true
     };
 
     if (password) payload.password = password;
-    
+
     const cb = {
-      onSuccess: () => { 
-        setFormMsg({ type: 'ok', text: editingId ? 'Empleado actualizado.' : 'Empleado registrado.' }); 
-        resetForm(); 
-        setTimeout(() => setFormMsg(null), 3000); 
+      onSuccess: () => {
+        setFormMsg({ type: 'ok', text: editingId ? 'Empleado actualizado.' : 'Empleado registrado.' });
+        resetForm();
+        setTimeout(() => setFormMsg(null), 3000);
       },
-      onError: () => { 
-        setFormMsg({ type: 'err', text: 'Error al guardar.' }); 
-        setTimeout(() => setFormMsg(null), 3000); 
+      onError: () => {
+        setFormMsg({ type: 'err', text: 'Error al guardar.' });
+        setTimeout(() => setFormMsg(null), 3000);
       },
     };
 
@@ -151,6 +151,26 @@ export const EmpleadosEncomiendasPage = () => {
       create.mutate(payload, cb);
     }
   };
+
+  const handleActivar = (idusuario: number) => {
+    activar.mutate(idusuario);
+  }
+
+  const handleDesactivar = (idusuario: number) => {
+    if (!window.confirm('¿Está seguro de desactivar este empleado?')) return;
+
+    desactivar.mutate(Number(idusuario), {
+      onError: (err: any) => {
+        const msg =
+          err?.response?.data?.message ||
+          err?.message ||
+          'Error al desactivar el empleado'
+        window.alert(msg);
+      }
+    });
+
+
+  }
 
   return (
     <Layout>
@@ -228,7 +248,7 @@ export const EmpleadosEncomiendasPage = () => {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ background: '#f8fafc' }}>
-                  {['Nombre', 'Documento', 'Teléfono', 'Email', 'Agencia', 'Estado', 'Acciones'].map(l => (
+                  {['Nombre', 'Apellido', 'Documento', 'Teléfono', 'Email', 'Agencia', 'Estado', 'Acciones'].map(l => (
                     <th key={l} style={{ padding: '11px 16px', textAlign: 'left', fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', borderBottom: '1px solid #e8edf2' }}>{l}</th>
                   ))}
                 </tr>
@@ -239,6 +259,7 @@ export const EmpleadosEncomiendasPage = () => {
                 ) : paginated.map(t => (
                   <tr key={t.id} style={{ borderBottom: '1px solid #f1f5f9' }} onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')} onMouseLeave={e => (e.currentTarget.style.background = 'white')}>
                     <td style={{ padding: '12px 16px', fontSize: '13.5px', fontWeight: 600, color: '#1e293b' }}>{t.nombre}</td>
+                    <td style={{ padding: '12px 16px', fontSize: '13.5px', fontWeight: 600, color: '#1e293b' }}>{t.apellido}</td>
                     <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{t.documento}</td>
                     <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{t.telefono}</td>
                     <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{t.email}</td>
@@ -248,13 +269,37 @@ export const EmpleadosEncomiendasPage = () => {
                     <td style={{ padding: '12px 16px' }}><EstadoBadge activo={t.activo} /></td>
                     <td style={{ padding: '12px 16px' }}>
                       <div style={{ display: 'flex', gap: '10px' }}>
-                        <button onClick={() => startEdit(t)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8', display: 'flex' }} onMouseEnter={e => (e.currentTarget.style.color = BLUE)} onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}><span className="material-symbols-outlined" style={{ fontSize: '18px' }}>edit</span></button>
+                        <button onClick={() => startEdit(t)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8', display: 'flex' }} onMouseEnter={e => (e.currentTarget.style.color = BLUE)} onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}>
+
+                          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>edit</span>
+                        </button>
+
+                        {t.activo ? (
+                          <button
+                            onClick={() => handleDesactivar(Number(t.id))}
+                            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8', display: 'flex' }} onMouseEnter={e => (e.currentTarget.style.color = '#f00')} onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>block</span>
+
+                          </button>
+
+                        ) : (
+                          <button
+                            onClick={() => handleActivar(Number(t.id))}
+                            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8', display: 'flex' }} onMouseEnter={e => (e.currentTarget.style.color = '#0f0')} onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}
+                          >
+                            <span className='material-symbols-outlined' style={{ fontSize: '18px' }}>check_circle</span>
+                          </button>
+                        )}
+
                       </div>
+
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '13px 20px', borderTop: '1px solid #f1f5f9' }}>
               <span style={{ fontSize: '12.5px', color: '#94a3b8' }}>
                 Mostrando <strong style={{ color: '#475569' }}>{list.length === 0 ? 0 : (page - 1) * ITEMS_PER_PAGE + 1}</strong> a{' '}
@@ -273,6 +318,6 @@ export const EmpleadosEncomiendasPage = () => {
           </>
         )}
       </div>
-    </Layout>
+    </Layout >
   );
 };

@@ -1,9 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Layout } from '../../components/layout/Layout';
 import { useRutas } from '../../hooks/useRutas';
 import { useTarifasRuta } from '../../hooks/useTarifasRuta';
 import { useTiposBus } from '../../hooks/useTiposBus';
 import { useAgencias } from '../../hooks/useAgencias';
+import { rutasApi } from '../../../infrastructure/services/rutasApi';
 
 const BLUE = '#0D3B8E';
 const ITEMS_PER_PAGE = 5;
@@ -59,6 +60,9 @@ export const TarifasRutaPage = () => {
   const { tarifas, isLoading, create, update, remove } = useTarifasRuta(selectedRutaId || undefined);
 
   const [tipoBusId, setTipoBusId] = useState('');
+  const [piso, setPiso] = useState('1');
+  const [puntoOrigenId, setPuntoOrigenId] = useState('');
+  const [puntoDestinoId, setPuntoDestinoId] = useState('');
   const [valorNormal, setValorNormal] = useState('');
   const [valorTraficoAlto, setValorTraficoAlto] = useState('');
   const [adicionalPoltrona, setAdicionalPoltrona] = useState('');
@@ -66,6 +70,38 @@ export const TarifasRutaPage = () => {
   const [formMsg, setFormMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
   const [page, setPage] = useState(1);
   const [filtroTipoBus, setFiltroTipoBus] = useState('');
+
+  // Puntos de la ruta seleccionada (para seleccionar origen/destino de tarifa)
+  const [puntosRuta, setPuntosRuta] = useState<any[]>([]);
+  const [loadingPuntos, setLoadingPuntos] = useState(false);
+
+  // Cargar puntos cuando cambia la ruta seleccionada
+  useEffect(() => {
+    if (!selectedRutaId) { setPuntosRuta([]); return; }
+    setLoadingPuntos(true);
+    rutasApi.obtenerPuntos(selectedRutaId)
+      .then(res => {
+        const puntos = res.data?.puntos || res.data?.data?.puntos || [];
+        setPuntosRuta(puntos.sort((a: any, b: any) => a.orden - b.orden));
+      })
+      .catch(() => setPuntosRuta([]))
+      .finally(() => setLoadingPuntos(false));
+  }, [selectedRutaId]);
+
+  // Puntos que pueden ser origen (solo los que tienen agencia y no son el último)
+  const puntosOrigen = useMemo(() => {
+    if (puntosRuta.length < 2) return [];
+    const maxOrden = Math.max(...puntosRuta.map(p => p.orden));
+    return puntosRuta.filter(p => p.idagencia && p.orden < maxOrden);
+  }, [puntosRuta]);
+
+  // Puntos que pueden ser destino (todos los que tienen orden mayor al origen seleccionado)
+  const puntosDestino = useMemo(() => {
+    if (!puntoOrigenId) return [];
+    const origenSeleccionado = puntosRuta.find(p => String(p.idpuntoruta) === puntoOrigenId);
+    if (!origenSeleccionado) return [];
+    return puntosRuta.filter(p => p.orden > origenSeleccionado.orden);
+  }, [puntosRuta, puntoOrigenId]);
 
   // Deduplicar rutas por id para el selector (el backend devuelve N filas por ruta, una por tarifa)
   const rutasUnicas = useMemo(() => {
@@ -103,6 +139,9 @@ export const TarifasRutaPage = () => {
 
   const resetForm = () => {
     setTipoBusId('');
+    setPiso('1');
+    setPuntoOrigenId('');
+    setPuntoDestinoId('');
     setValorNormal('');
     setValorTraficoAlto('');
     setAdicionalPoltrona('');
@@ -122,13 +161,24 @@ export const TarifasRutaPage = () => {
       return;
     }
 
+    if (!editingId && (!puntoOrigenId || !puntoDestinoId)) {
+      setFormMsg({ type: 'err', text: 'Debes seleccionar punto origen y punto destino.' });
+      return;
+    }
+
     const payload: any = {
       idruta: parseInt(selectedRutaId, 10),
       idtipobus: parseInt(tipoBusId, 10),
-      piso: 1,
+      piso: parseInt(piso, 10) || 1,
       valornormal: Number(valorNormal),
       valortraficoalto: Number(valorTraficoAlto),
     };
+
+    // Solo incluir puntos al crear (no al editar, ya que no se puede cambiar el tramo)
+    if (!editingId) {
+      payload.idpuntoorigen = parseInt(puntoOrigenId, 10);
+      payload.idpuntodestino = parseInt(puntoDestinoId, 10);
+    }
 
     if (adicionalPoltrona !== '') {
       payload.adicionalpoltrona = Number(adicionalPoltrona);
@@ -140,9 +190,10 @@ export const TarifasRutaPage = () => {
         resetForm(); 
         setTimeout(() => setFormMsg(null), 3000); 
       },
-      onError: () => { 
-        setFormMsg({ type: 'err', text: 'Error al guardar tarifa.' }); 
-        setTimeout(() => setFormMsg(null), 3000); 
+      onError: (err: any) => { 
+        const msg = err?.response?.data?.message || 'Error al guardar tarifa.';
+        setFormMsg({ type: 'err', text: msg }); 
+        setTimeout(() => setFormMsg(null), 5000); 
       },
     };
 
@@ -156,6 +207,9 @@ export const TarifasRutaPage = () => {
   const handleEditar = (t: any) => {
     setEditingId(t.id);
     setTipoBusId(String(t.idTipoBus));
+    setPiso(String(t.piso ?? 1));
+    setPuntoOrigenId('');
+    setPuntoDestinoId('');
     setValorNormal(String(t.valorNormal ?? 0));
     setValorTraficoAlto(String(t.valorTraficoAlto ?? 0));
     setAdicionalPoltrona(t.adicionalPoltrona ? String(t.adicionalPoltrona) : '');
@@ -231,6 +285,67 @@ export const TarifasRutaPage = () => {
                   {tiposBusList.map(tb => <option key={tb.id} value={tb.id}>{tb.nombre}</option>)}
                 </select>
               </Field>
+              <Field label="Piso">
+                <select
+                  value={piso}
+                  onChange={e => setPiso(e.target.value)}
+                  style={{ ...inputStyle, appearance: 'none' }}
+                  onFocus={focusBorder}
+                  onBlur={blurBorder}
+                >
+                  <option value="1">Piso 1</option>
+                  <option value="2">Piso 2</option>
+                </select>
+              </Field>
+              <div />
+            </div>
+
+            {/* Selección de tramo (punto origen → punto destino) — solo al crear */}
+            {!editingId && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginTop: '14px' }}>
+                <Field label="Punto Origen (con agencia)" required>
+                  <select
+                    value={puntoOrigenId}
+                    onChange={e => { setPuntoOrigenId(e.target.value); setPuntoDestinoId(''); }}
+                    style={{ ...inputStyle, appearance: 'none', background: loadingPuntos ? '#f8fafc' : 'white' }}
+                    onFocus={focusBorder}
+                    onBlur={blurBorder}
+                    disabled={loadingPuntos || puntosOrigen.length === 0}
+                  >
+                    <option value="">{loadingPuntos ? 'Cargando puntos...' : puntosOrigen.length === 0 ? 'Sin puntos con agencia' : 'Seleccionar punto origen...'}</option>
+                    {puntosOrigen.map((p: any) => (
+                      <option key={p.idpuntoruta} value={String(p.idpuntoruta)}>
+                        [{p.orden}] {p.nombreagencia || p.nombre} {p.ciudadagencia ? `(${p.ciudadagencia})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Punto Destino" required>
+                  <select
+                    value={puntoDestinoId}
+                    onChange={e => setPuntoDestinoId(e.target.value)}
+                    style={{ ...inputStyle, appearance: 'none', background: !puntoOrigenId ? '#f8fafc' : 'white' }}
+                    onFocus={focusBorder}
+                    onBlur={blurBorder}
+                    disabled={!puntoOrigenId || puntosDestino.length === 0}
+                  >
+                    <option value="">{!puntoOrigenId ? 'Selecciona origen primero' : 'Seleccionar punto destino...'}</option>
+                    {puntosDestino.map((p: any) => (
+                      <option key={p.idpuntoruta} value={String(p.idpuntoruta)}>
+                        [{p.orden}] {p.nombreagencia || p.nombre} {p.ciudadagencia ? `(${p.ciudadagencia})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+              </div>
+            )}
+            {editingId && (
+              <p style={{ fontSize: '11px', color: '#94a3b8', marginTop: '10px', fontStyle: 'italic' }}>
+                ℹ️ Al editar solo se pueden cambiar los precios. El tramo (origen → destino) no es modificable.
+              </p>
+            )}
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px', marginTop: '14px' }}>
               <Field label="Valor Normal ($)" required>
                 <input 
                   type="number" 
@@ -253,9 +368,7 @@ export const TarifasRutaPage = () => {
                   onBlur={blurBorder} 
                 />
               </Field>
-            </div>
-            <div style={{ marginTop: '14px', maxWidth: '33%' }}>
-              <Field label="Adicional Poltrona ($) — Opcional">
+              <Field label="Adicional Poltrona ($)">
                 <input 
                   type="number" 
                   value={adicionalPoltrona} 
@@ -265,10 +378,10 @@ export const TarifasRutaPage = () => {
                   onFocus={focusBorder} 
                   onBlur={blurBorder} 
                 />
+                <p style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>
+                  Costo adicional para asientos tipo poltrona.
+                </p>
               </Field>
-              <p style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>
-                Costo adicional que se suma al valor base para asientos tipo poltrona.
-              </p>
             </div>
             <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
               {editingId && (
@@ -303,7 +416,7 @@ export const TarifasRutaPage = () => {
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ background: '#f8fafc' }}>
-                    {['Ruta', 'Tipo de Bus', 'Valor Normal', 'Valor Tráfico Alto', 'Adicional Poltrona', 'Acciones'].map(l => (
+                    {['Tramo', 'Tipo de Bus', 'Piso', 'Valor Normal', 'Valor Tráfico Alto', 'Adic. Poltrona', 'Acciones'].map(l => (
                       <th 
                         key={l} 
                         style={{ 
@@ -325,7 +438,7 @@ export const TarifasRutaPage = () => {
                 <tbody>
                   {paginated.length === 0 ? (
                     <tr>
-                      <td colSpan={6} style={{ padding: '48px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>
+                      <td colSpan={7} style={{ padding: '48px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>
                         No hay tarifas configuradas para esta ruta.
                       </td>
                     </tr>
@@ -336,11 +449,16 @@ export const TarifasRutaPage = () => {
                       onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')} 
                       onMouseLeave={e => (e.currentTarget.style.background = 'white')}
                     >
-                      <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: '#1e293b' }}>
-                        {(t as any).rutaNombre || rutasList.find(r => r.id === String((t as any).idRuta))?.nombre || '—'}
+                      <td style={{ padding: '12px 16px', fontSize: '12.5px', color: '#1e293b' }}>
+                        <span style={{ fontWeight: 600 }}>{(t as any).nombrePuntoOrigen || '?'}</span>
+                        <span style={{ color: '#94a3b8', margin: '0 6px' }}>→</span>
+                        <span style={{ fontWeight: 600 }}>{(t as any).nombrePuntoDestino || '?'}</span>
                       </td>
-                      <td style={{ padding: '12px 16px', fontSize: '13.5px', fontWeight: 600, color: '#1e293b' }}>
+                      <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: '#1e293b' }}>
                         {t.tipoBusNombre || tiposBusList.find(tb => tb.id === String(t.idTipoBus))?.nombre || t.idTipoBus}
+                      </td>
+                      <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>
+                        {(t as any).piso ?? 1}
                       </td>
                       <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>
                         ${((t as any).valorNormal ?? 0).toLocaleString()}

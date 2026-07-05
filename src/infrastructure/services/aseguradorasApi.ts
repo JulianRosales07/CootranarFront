@@ -1,30 +1,30 @@
 import { httpClient } from '../api/httpClient';
 
 export const aseguradorasApi = {
-  obtenerTodas: (params = {}) => 
+  obtenerTodas: (params: Record<string, unknown> = {}) => 
     httpClient.get('/aseguradoras', { params }),
   
-  obtenerActivas: (params = {}) => 
+  obtenerActivas: (params: Record<string, unknown> = {}) => 
     httpClient.get('/aseguradoras/activas', { params }),
   
-  obtenerInactivas: (params = {}) => 
+  obtenerInactivas: (params: Record<string, unknown> = {}) => 
     httpClient.get('/aseguradoras/inactivas', { params }),
   
-  obtenerPorId: (id) => 
+  obtenerPorId: (id: number | string) => 
     httpClient.get(`/aseguradoras/${id}`),
   
-  buscar: (busqueda, params = {}) => 
+  buscar: (busqueda: string, params: Record<string, unknown> = {}) => 
     httpClient.get(`/aseguradoras/buscar`, { params: { busqueda, ...params } }),
   
-  crear: (data) => 
+  crear: (data: Record<string, unknown>) => 
     httpClient.post('/aseguradoras', data),
   
-  actualizar: (id, data) => 
+  actualizar: (id: number | string, data: Record<string, unknown>) => 
     httpClient.put(`/aseguradoras/${id}`, data),
   
-  activar: (id) => 
+  activar: (id: number | string) => 
     httpClient.patch(`/aseguradoras/activar/${id}`),
   
-  eliminar: (id) => 
+  eliminar: (id: number | string) => 
     httpClient.patch(`/aseguradoras/desactivar/${id}`)
 };

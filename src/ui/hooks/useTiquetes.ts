@@ -4,6 +4,7 @@ import { getTiquetes } from '../../application/use-cases/tiquetes/getTiquetes';
 import { createTiquete } from '../../application/use-cases/tiquetes/createTiquete';
 import { updateTiquete } from '../../application/use-cases/tiquetes/updateTiquete';
 import type { Tiquete } from '../../domain/entities/Tiquete';
+import type { CreateTiqueteDTO } from '../../application/dto/TiqueteDTO';
 
 const repository = new ApiTiqueteRepository();
 
@@ -16,7 +17,7 @@ export const useTiquetes = () => {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: Omit<Tiquete, 'id' | 'createdAt'>) => createTiquete(repository, data),
+    mutationFn: (data: CreateTiqueteDTO) => createTiquete(repository, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tiquetes'] });
     },

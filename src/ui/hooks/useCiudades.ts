@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ciudadesApi } from '../../infrastructure/services/ciudadesApi';
-import type { Ciudad } from '../../domain/entities/Ciudad';
 
 export const useCiudades = () => {
   const queryClient = useQueryClient();
@@ -8,7 +7,7 @@ export const useCiudades = () => {
   const { data: ciudades, isLoading, error } = useQuery({
     queryKey: ['ciudades'],
     queryFn: async () => {
-      const response = await ciudadesApi.obtenerTodas();
+      const response = await ciudadesApi.obtenerTodas({ limit: 500, page: 1 });
       const data = response.data.data;
       const ciudadesArray = data.ciudades || data || [];
       
@@ -51,6 +50,7 @@ export const useCiudades = () => {
       if (data.codigo !== undefined) backendData.codigopostal = data.codigo || null;
       if (data.codigoDane !== undefined) backendData.codigodane = data.codigoDane || null;
       if (data.departamentoId) backendData.iddepartamento = parseInt(data.departamentoId, 10);
+      if (data.activo !== undefined) backendData.activo = data.activo;
       
       const response = await ciudadesApi.actualizar(id, backendData);
       return response.data.data;

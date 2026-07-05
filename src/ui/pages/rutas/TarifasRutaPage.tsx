@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Layout } from '../../components/layout/Layout';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -82,7 +82,7 @@ export const TarifasRutaPage = () => {
     },
   });
 
-  const { data: tarifas = [], isLoading: loadingTarifas, refetch: refetchTarifas } = useQuery({
+  const { data: tarifas = [], isLoading: loadingTarifas, refetch: _refetchTarifas } = useQuery({
     queryKey: ['tarifas-ruta', idruta, filtroTipoBus],
     queryFn: async () => {
       const params = filtroTipoBus ? { idtipobus: filtroTipoBus } : {};
@@ -265,6 +265,13 @@ export const TarifasRutaPage = () => {
             >
               <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add</span>
               Agregar tarifa
+            </button>
+            <button
+              onClick={() => navigate(`/rutas/${idruta}/tarifas-masivas`)}
+              style={{ background: '#fef3c7', color: '#92400e', fontSize: '13px', fontWeight: 600, padding: '8px 16px', borderRadius: '8px', border: '1px solid #fde68a', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'inherit' }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>grid_view</span>
+              Configuración masiva
             </button>
           </div>
         </div>

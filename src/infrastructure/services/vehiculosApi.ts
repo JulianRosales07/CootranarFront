@@ -32,6 +32,12 @@ export const vehiculosApi = {
   desactivar: (idvehiculo: string) =>
     httpClient.patch(`/vehiculos/${idvehiculo}/desactivar`, {}),
 
+  verificarExistePlaca: (placa: string, idExcluir?: string) =>
+    httpClient.get(`/vehiculos/existe-placa/${placa}`, { params: idExcluir ? { idExcluir } : {} }),
+
+  verificarExisteNumeroMovil: (numeromovil: string, idExcluir?: string) =>
+    httpClient.get(`/vehiculos/existe-movil/${numeromovil}`, { params: idExcluir ? { idExcluir } : {} }),
+
   // ==================== DOCUMENTOS ====================
   
   obtenerDocumentos: (idvehiculo: string) =>

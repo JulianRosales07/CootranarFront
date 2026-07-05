@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { tarifasRutaApi } from '../../infrastructure/services/tarifasRutaApi';
-import type { TarifaRuta } from '../../domain/entities/TarifaRuta';
 
 export const useTarifasRuta = (idRuta?: string) => {
   const queryClient = useQueryClient();
@@ -18,6 +17,10 @@ export const useTarifasRuta = (idRuta?: string) => {
         idRuta: String(tarifa.idruta ?? tarifa.idRuta ?? ''),
         idTipoBus: String(tarifa.idtipobus ?? tarifa.idTipoBus ?? ''),
         piso: Number(tarifa.piso ?? 1),
+        idPuntoOrigen: tarifa.idpuntoorigen ?? null,
+        idPuntoDestino: tarifa.idpuntodestino ?? null,
+        nombrePuntoOrigen: tarifa.nombreorigenpunto ?? tarifa.nombrepuntoorigen ?? tarifa.nombreorigen ?? null,
+        nombrePuntoDestino: tarifa.nombredestinopunto ?? tarifa.nombrepuntodestino ?? tarifa.nombredestino ?? null,
         valorNormal: Number(tarifa.valornormal ?? tarifa.valorNormal ?? 0),
         valorTraficoAlto: Number(tarifa.valortraficoalto ?? tarifa.valorTraficoAlto ?? 0),
         adicionalPoltrona: tarifa.adicionalpoltrona !== undefined ? Number(tarifa.adicionalpoltrona) : 0,

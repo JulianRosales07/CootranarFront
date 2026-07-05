@@ -25,7 +25,7 @@ export const TiposServicioPage = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formMsg, setFormMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
   const [page, setPage] = useState(1);
-  const [filterEstado, setFilterEstado] = useState<string>('TODOS');
+  const [filterEstado, _setFilterEstado] = useState<string>('TODOS');
 
   const resetForm = () => {
     setNombre('');

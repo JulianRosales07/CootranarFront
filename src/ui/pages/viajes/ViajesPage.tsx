@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { Layout } from '../../components/layout/Layout';
 import { useViajes } from '../../hooks/useViajes';
 import { viajesApi } from '../../../infrastructure/services/viajesApi';
@@ -91,7 +91,7 @@ export const ViajesPage = () => {
   const [cargandoVehiculo, setCargandoVehiculo] = useState(false);
   const [conductoresVehiculo, setConductoresVehiculo] = useState<any[]>([]);
 
-  const { viajes, paginacion, isLoading, refetch, crear, activar, desactivar } = useViajes(filtro, paginaActual, busqueda);
+  const { viajes, paginacion, isLoading, refetch: _refetch, crear, activar, desactivar } = useViajes(filtro, paginaActual, busqueda);
 
   const handleSeleccionarRuta = (ruta: any) => {
     setFormData(prev => ({

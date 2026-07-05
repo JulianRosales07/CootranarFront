@@ -1,31 +1,31 @@
 import { httpClient } from '../api/httpClient';
 
 export const ciudadesApi = {
-  obtenerTodas: (params = {}) => 
+  obtenerTodas: (params: Record<string, unknown> = {}) => 
     httpClient.get('/ciudades', { params }),
   
-  obtenerActivas: (params = {}) => 
+  obtenerActivas: (params: Record<string, unknown> = {}) => 
     httpClient.get('/ciudades/activas', { params }),
   
-  obtenerInactivas: (params = {}) => 
+  obtenerInactivas: (params: Record<string, unknown> = {}) => 
     httpClient.get('/ciudades/inactivas', { params }),
   
-  obtenerPorId: (id) => 
+  obtenerPorId: (id: number | string) => 
     httpClient.get(`/ciudades/${id}`),
   
-  buscar: (busqueda, params = {}) => 
+  buscar: (busqueda: string, params: Record<string, unknown> = {}) => 
     httpClient.get(`/ciudades/buscar`, { params: { busqueda, ...params } }),
   
-  crear: (data) => 
+  crear: (data: Record<string, unknown>) => 
     httpClient.post('/ciudades', data),
   
-  actualizar: (id, data) => 
+  actualizar: (id: number | string, data: Record<string, unknown>) => 
     httpClient.put(`/ciudades/${id}`, data),
   
-  activar: (id) => 
+  activar: (id: number | string) => 
     httpClient.patch(`/ciudades/activar/${id}`),
   
-  desactivar: (id) => 
+  desactivar: (id: number | string) => 
     httpClient.patch(`/ciudades/desactivar/${id}`),
 
   subirImagen: (id: string, archivo: File) => {

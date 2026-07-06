@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
 
 // ── Paleta Material You (extraída del HTML de referencia) ────────────────────
 const C = {
@@ -16,9 +17,18 @@ const C = {
   onSurfaceVariant: '#42474f',
 };
 
+const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3000/api';
+
+interface Ciudad {
+  idciudad: number;
+  nombre: string;
+  tipo?: 'ciudad' | 'punto';
+}
+
 interface BuscadorViajesProps {
   pasoActual: string;
   onBuscar: (params: { ciudadorigen?: string; ciudaddestino?: string; fecha?: string }) => void;
+  onLimpiar?: () => void;
   cargando?: boolean;
 }
 
@@ -29,14 +39,160 @@ const PASOS = [
   { id: 'resumen',           label: 'PAGO',      icono: 'payments'    },
 ];
 
+/* ── Autocomplete Combobox Component ── */
+interface AutocompleteProps {
+  value: string;
+  onChange: (val: string) => void;
+  ciudades: Ciudad[];
+  placeholder: string;
+  icon: string;
+  inputBase: React.CSSProperties;
+  cargandoCiudades: boolean;
+}
+
+const AutocompleteInput: React.FC<AutocompleteProps> = ({
+  value, onChange, ciudades, placeholder, icon, inputBase, cargandoCiudades
+}) => {
+  const [showDropdown, setShowDropdown] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const filteredCities = ciudades.filter(c =>
+    c.nombre.toLowerCase().includes(value.toLowerCase())
+  );
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      setShowDropdown(false);
+    }
+  };
+
+  return (
+    <div ref={containerRef} style={{ position: 'relative' }}>
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+        <span className="material-symbols-outlined" style={{ position: 'absolute', left: '14px', color: C.outline, fontSize: '20px', pointerEvents: 'none', zIndex: 1 }}>
+          {icon}
+        </span>
+        {cargandoCiudades && (
+          <span className="material-symbols-outlined" style={{ position: 'absolute', right: '14px', color: C.outline, fontSize: '16px', pointerEvents: 'none', zIndex: 1, animation: 'spin 1s linear infinite' }}>
+            progress_activity
+          </span>
+        )}
+        <input
+          type="text"
+          value={value}
+          onChange={e => { onChange(e.target.value); setShowDropdown(true); }}
+          onFocus={() => setShowDropdown(true)}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          style={inputBase}
+          autoComplete="off"
+        />
+      </div>
+
+      {showDropdown && value.length > 0 && filteredCities.length > 0 && (
+        <div style={{
+          position: 'absolute',
+          top: '100%',
+          left: 0,
+          right: 0,
+          marginTop: '4px',
+          background: '#ffffff',
+          border: `1px solid ${C.outlineVariant}`,
+          borderRadius: '8px',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+          maxHeight: '200px',
+          overflowY: 'auto',
+          zIndex: 1000,
+        }}>
+          {filteredCities.slice(0, 20).map(ciudad => (
+            <div
+              key={ciudad.idciudad}
+              onClick={() => { onChange(ciudad.nombre); setShowDropdown(false); }}
+              style={{
+                padding: '10px 16px',
+                fontSize: '14px',
+                color: C.onSurface,
+                cursor: 'pointer',
+                fontFamily: "'Hanken Grotesk', sans-serif",
+                transition: 'background 0.1s',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = C.surfaceContainerLow)}
+              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+            >
+              <span>{ciudad.nombre}</span>
+              {ciudad.tipo && (
+                <span style={{
+                  fontSize: '10px',
+                  fontWeight: '700',
+                  padding: '2px 6px',
+                  borderRadius: '4px',
+                  background: ciudad.tipo === 'ciudad' ? '#dcfce7' : '#f1f5f9',
+                  color: ciudad.tipo === 'ciudad' ? '#15803d' : '#475569',
+                }}>
+                  {ciudad.tipo === 'ciudad' ? '★ Agencia' : 'Parada'}
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const BuscadorViajes: React.FC<BuscadorViajesProps> = ({
   pasoActual,
   onBuscar,
+  onLimpiar,
   cargando = false,
 }) => {
   const [ciudadOrigen,  setCiudadOrigen]  = useState('');
   const [ciudadDestino, setCiudadDestino] = useState('');
   const [fecha, setFecha] = useState('');
+  const [ciudades, setCiudades] = useState<Ciudad[]>([]);
+  const [opcionesDestino, setOpcionesDestino] = useState<Ciudad[]>([]);
+  const [cargandoCiudades, setCargandoCiudades] = useState(true);
+
+  // Cargar ciudades para origen + opciones destino (ciudades + puntos intermedios)
+  useEffect(() => {
+    const cargarDatos = async () => {
+      try {
+        const [resCiudades, resDestinos] = await Promise.all([
+          axios.get(`${API_URL}/ciudades/activas`, { withCredentials: true, params: { limit: 1000 } }),
+          axios.get(`${API_URL}/plataforma-ecommerce/ciudades-destino`, { withCredentials: true }),
+        ]);
+        // Ciudades para origen (solo agencias)
+        const dataCiudades = resCiudades.data?.data?.ciudades || resCiudades.data?.ciudades || [];
+        setCiudades(Array.isArray(dataCiudades) ? dataCiudades : []);
+        // Opciones destino (ciudades + puntos intermedios) - normalizar estructura
+        const dataDestinos = resDestinos.data?.data || resDestinos.data || [];
+        const destinosNormalizados = (Array.isArray(dataDestinos) ? dataDestinos : []).map((d: any) => ({
+          idciudad: d.id || d.idciudad,
+          nombre: d.nombre,
+          tipo: d.tipo, // 'ciudad' | 'punto'
+        }));
+        setOpcionesDestino(destinosNormalizados);
+      } catch (err) {
+        console.error('Error cargando datos de autocomplete:', err);
+      } finally {
+        setCargandoCiudades(false);
+      }
+    };
+    cargarDatos();
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,6 +207,7 @@ export const BuscadorViajes: React.FC<BuscadorViajesProps> = ({
     setCiudadOrigen('');
     setCiudadDestino('');
     setFecha('');
+    onLimpiar?.();
   };
 
   const handleSwap = () => {
@@ -88,7 +245,7 @@ export const BuscadorViajes: React.FC<BuscadorViajesProps> = ({
         boxShadow: '0px 4px 20px rgba(15,76,129,0.05)',
         padding: '32px',
         position: 'relative',
-        overflow: 'hidden',
+        overflow: 'visible',
         fontFamily: "'Hanken Grotesk', sans-serif",
       }}
     >
@@ -150,24 +307,19 @@ export const BuscadorViajes: React.FC<BuscadorViajesProps> = ({
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: '16px', alignItems: 'end' }}>
 
           {/* Ciudad Origen */}
-          <div style={{ gridColumn: 'span 4' }}>
+          <div style={{ gridColumn: 'span 4', position: 'relative', zIndex: 20 }}>
             <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: C.onSurfaceVariant, marginBottom: '8px', letterSpacing: '0.04em' }}>
               CIUDAD ORIGEN
             </label>
-            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-              <span className="material-symbols-outlined" style={{ position: 'absolute', left: '14px', color: C.outline, fontSize: '20px', pointerEvents: 'none', zIndex: 1 }}>
-                my_location
-              </span>
-              <input
-                type="text"
-                value={ciudadOrigen}
-                onChange={e => setCiudadOrigen(e.target.value)}
-                placeholder="Ej: Pasto"
-                style={inputBase}
-                onFocus={e => { e.currentTarget.style.borderColor = C.secondary; e.currentTarget.style.boxShadow = `0 0 0 3px ${C.secondaryFixed}`; }}
-                onBlur={e => { e.currentTarget.style.borderColor = C.outlineVariant; e.currentTarget.style.boxShadow = 'none'; }}
-              />
-            </div>
+            <AutocompleteInput
+              value={ciudadOrigen}
+              onChange={setCiudadOrigen}
+              ciudades={ciudades}
+              placeholder="Ej: Pasto"
+              icon="my_location"
+              inputBase={inputBase}
+              cargandoCiudades={cargandoCiudades}
+            />
           </div>
 
           {/* Swap */}
@@ -191,24 +343,19 @@ export const BuscadorViajes: React.FC<BuscadorViajesProps> = ({
           </div>
 
           {/* Ciudad Destino */}
-          <div style={{ gridColumn: 'span 3' }}>
+          <div style={{ gridColumn: 'span 3', position: 'relative', zIndex: 20 }}>
             <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: C.onSurfaceVariant, marginBottom: '8px', letterSpacing: '0.04em' }}>
               CIUDAD DESTINO
             </label>
-            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-              <span className="material-symbols-outlined" style={{ position: 'absolute', left: '14px', color: C.outline, fontSize: '20px', pointerEvents: 'none', zIndex: 1 }}>
-                location_on
-              </span>
-              <input
-                type="text"
-                value={ciudadDestino}
-                onChange={e => setCiudadDestino(e.target.value)}
-                placeholder="Ej: Cali"
-                style={inputBase}
-                onFocus={e => { e.currentTarget.style.borderColor = C.secondary; e.currentTarget.style.boxShadow = `0 0 0 3px ${C.secondaryFixed}`; }}
-                onBlur={e => { e.currentTarget.style.borderColor = C.outlineVariant; e.currentTarget.style.boxShadow = 'none'; }}
-              />
-            </div>
+            <AutocompleteInput
+              value={ciudadDestino}
+              onChange={setCiudadDestino}
+              ciudades={opcionesDestino}
+              placeholder="Ej: Cali, Popayán..."
+              icon="location_on"
+              inputBase={inputBase}
+              cargandoCiudades={cargandoCiudades}
+            />
           </div>
 
           {/* Fecha */}

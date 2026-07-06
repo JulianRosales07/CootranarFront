@@ -1,15 +1,11 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Layout } from '../../components/layout/Layout';
 import { useVehiculos } from '../../hooks/useVehiculos';
-import { useTiposBus } from '../../hooks/useTiposBus';
 import { vehiculosApi as vehiculosService } from '../../../infrastructure/services/vehiculosApi';
 import ModalDetalleVehiculo from '../../components/vehiculos/ModalDetalleVehiculo';
 import FormularioVehiculoMultiPaso from '../../components/vehiculos/FormularioVehiculoMultiPaso';
-import type { EstadoVehiculo } from '../../../domain/entities/Vehiculo';
 
 const BLUE = '#0D3B8E';
-
-import DisenadorAsientos from '../../components/vehiculos/DisenadorAsientos';
 
 /* ─── Pagination helpers ──────────────────────────────────── */
 function PagBtn({ label, active, onClick }: { label: string; active?: boolean; onClick: () => void }) {
@@ -39,20 +35,6 @@ function NavArrow({ icon, disabled, onClick }: { icon: string; disabled: boolean
 }
 
 /* ─── Field helper ────────────────────────────────────────── */
-function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
-  return (
-    <div>
-      <label style={{
-        display: 'block', fontSize: '11px', fontWeight: 700,
-        color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em',
-        marginBottom: '6px',
-      }}>
-        {label} {required && <span style={{ color: '#dc2626' }}>*</span>}
-      </label>
-      {children}
-    </div>
-  );
-}
 
 const inputStyle: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box',
@@ -64,26 +46,12 @@ const inputStyle: React.CSSProperties = {
 
 /* ═══════════════════════════════════════════════════════════ */
 export const VehiculosPage = () => {
-  const { create, update, remove } = useVehiculos();
-  const { tiposBus } = useTiposBus();
-  const tiposBusList = Array.isArray(tiposBus) ? tiposBus : [];
+  const { remove, activar } = useVehiculos();
 
   /* ── navigation state ────────────────────────────────────── */
   const [vistaActual, setVistaActual] = useState<'formulario' | 'lista'>('lista');
   const [mostrarFormularioMultiPaso, setMostrarFormularioMultiPaso] = useState(false);
   const [vehiculoIdEdicion, setVehiculoIdEdicion] = useState<string | null>(null);
-
-  /* ── form state ──────────────────────────────────────────── */
-  const [placa, setPlaca] = useState('');
-  const [marca, setMarca] = useState('');
-  const [numeromovil, setNumeromovil] = useState('');
-  const [año, setAño] = useState('');
-  const [tipoBusId, setTipoBusId] = useState('');
-  const [capacidad, setCapacidad] = useState('');
-  const [estado, setEstado] = useState<EstadoVehiculo>('DISPONIBLE');
-  const [activo, setActivo] = useState(true);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [formMsg, setFormMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
   /* ── API state for lista view ────────────────────────────── */
   const [vehiculosApi, setVehiculosApi] = useState<any[]>([]);
@@ -93,34 +61,6 @@ export const VehiculosPage = () => {
   const [busquedaApi, setBusquedaApi] = useState('');
   const [cargandoApi, setCargandoApi] = useState(false);
   const [vehiculoDetalle, setVehiculoDetalle] = useState<any>(null);
-
-  /* ── seat config state ───────────────────────────────────── */
-  const [distribucionFinal, setDistribucionFinal] = useState<any>(null);
-  const [initialDistribucion, setInitialDistribucion] = useState<any[] | undefined>(undefined);
-
-  const handleDesignerChange = useCallback((dist: any) => {
-    setDistribucionFinal(dist);
-  }, []);
-
-  // Sincronizar capacidad si el diseñador cambia (solo si es necesario para evitar bucles)
-  const prevDistribucionRef = useRef<string>('');
-  
-  useEffect(() => {
-    if (!distribucionFinal?.distribucion) return;
-    
-    const distStr = JSON.stringify(distribucionFinal.distribucion);
-    if (distStr === prevDistribucionRef.current) return;
-    
-    prevDistribucionRef.current = distStr;
-    
-    const realCap = distribucionFinal.distribucion.filter((a: any) => !a.vacio && !a.esPasillo && !a.esBano).length;
-    if (realCap > 0) {
-      const currentCap = Number(capacidad) || 0;
-      if (realCap !== currentCap) {
-        setCapacidad(String(realCap));
-      }
-    }
-  }, [distribucionFinal?.distribucion, capacidad]);
 
   /* ── API functions for lista view ────────────────────────── */
   const cargarVehiculosApi = useCallback(async () => {
@@ -163,9 +103,9 @@ export const VehiculosPage = () => {
     }
   }, [vistaActual, cargarVehiculosApi]);
 
-  const handleEliminarVehiculo = (v: { idvehiculo: string | number; placa?: string }) => {
+  const handleDesactivarVehiculo = (v: { idvehiculo: string | number; placa?: string }) => {
     const placa = v.placa ?? 'este vehículo';
-    if (!window.confirm(`¿Eliminar el vehículo ${placa}? Esta acción no se puede deshacer.`)) return;
+    if (!window.confirm(`¿Está seguro de desactivar el vehículo ${placa}? Esta acción se puede revertir activando el vehículo nuevamente.`)) return;
     remove.mutate(String(v.idvehiculo), {
       onSuccess: () => {
         cargarVehiculosApi();
@@ -173,48 +113,26 @@ export const VehiculosPage = () => {
       },
       onError: (err: any) => {
         const msg =
-          err?.response?.data?.message ?? err?.message ?? 'No se pudo eliminar el vehículo.';
+          err?.response?.data?.message ?? err?.message ?? 'No se pudo desactivar el vehículo.';
         window.alert(msg);
       },
     });
   };
 
-  /* ── helpers ─────────────────────────────────────────────── */
-  const resetForm = () => {
-    setPlaca(''); setMarca(''); setNumeromovil(''); setAño('');
-    setTipoBusId(''); setCapacidad(''); setEstado('DISPONIBLE');
-    setActivo(true); setEditingId(null);
+  const handleActivarVehiculo = (v: { idvehiculo: string | number; placa?: string }) => {
+    const placa = v.placa ?? 'este vehículo';
+    if (!window.confirm(`¿Está seguro de activar el vehículo ${placa}?`)) return;
+    activar.mutate(String(v.idvehiculo), {
+      onSuccess: () => {
+        cargarVehiculosApi();
+      },
+      onError: (err: any) => {
+        const msg =
+          err?.response?.data?.message ?? err?.message ?? 'No se pudo activar el vehículo.';
+        window.alert(msg);
+      },
+    });
   };
-
-  const handleGuardar = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!placa.trim() || !numeromovil.trim()) {
-      setFormMsg({ type: 'err', text: 'Placa y número móvil son requeridos.' });
-      return;
-    }
-    const payload = {
-      placa, numeromovil, marca,
-      año: Number(año) || new Date().getFullYear(),
-      tipoBusId, capacidad: Number(capacidad) || 0,
-      estado, activo,
-      distribucionasientos: distribucionFinal,
-    };
-
-    if (editingId) {
-      update.mutate({ id: editingId, data: payload }, {
-        onSuccess: () => { setFormMsg({ type: 'ok', text: 'Vehículo actualizado.' }); resetForm(); setTimeout(() => setFormMsg(null), 3000); },
-        onError: () => { setFormMsg({ type: 'err', text: 'Error al actualizar.' }); setTimeout(() => setFormMsg(null), 3000); },
-      });
-    } else {
-      create.mutate(payload, {
-        onSuccess: () => { setFormMsg({ type: 'ok', text: 'Vehículo guardado.' }); resetForm(); setTimeout(() => setFormMsg(null), 3000); },
-        onError: () => { setFormMsg({ type: 'err', text: 'Error al guardar.' }); setTimeout(() => setFormMsg(null), 3000); },
-      });
-    }
-  };
-
-  const focusBorder = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => (e.currentTarget.style.borderColor = '#93b4e0');
-  const blurBorder = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => (e.currentTarget.style.borderColor = '#e2e8f0');
 
   return (
     <Layout>
@@ -452,25 +370,47 @@ export const VehiculosPage = () => {
                             onMouseLeave={(e: any) => (e.currentTarget.style.color = '#94a3b8')}>
                             <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>edit</span>
                           </button>
-                          <button
-                            title="Eliminar"
-                            type="button"
-                            disabled={remove.isPending}
-                            onClick={() => handleEliminarVehiculo(v)}
-                            style={{
-                              background: 'none', border: 'none', padding: 0,
-                              cursor: remove.isPending ? 'default' : 'pointer', color: '#94a3b8',
-                              display: 'flex', alignItems: 'center', transition: 'color 0.15s',
-                              opacity: remove.isPending ? 0.5 : 1,
-                            }}
-                            onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
-                              if (!remove.isPending) e.currentTarget.style.color = '#dc2626';
-                            }}
-                            onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
-                              e.currentTarget.style.color = '#94a3b8';
-                            }}>
-                            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>delete_outline</span>
-                          </button>
+                           {v.activo ? (
+                            <button
+                              title="Desactivar"
+                              type="button"
+                              disabled={remove.isPending}
+                              onClick={() => handleDesactivarVehiculo(v)}
+                              style={{
+                                background: 'none', border: 'none', padding: 0,
+                                cursor: remove.isPending ? 'default' : 'pointer', color: '#94a3b8',
+                                display: 'flex', alignItems: 'center', transition: 'color 0.15s',
+                                opacity: remove.isPending ? 0.5 : 1,
+                              }}
+                              onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
+                                if (!remove.isPending) e.currentTarget.style.color = '#dc2626';
+                              }}
+                              onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
+                                e.currentTarget.style.color = '#94a3b8';
+                              }}>
+                              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>block</span>
+                            </button>
+                          ) : (
+                            <button
+                              title="Activar"
+                              type="button"
+                              disabled={activar.isPending}
+                              onClick={() => handleActivarVehiculo(v)}
+                              style={{
+                                background: 'none', border: 'none', padding: 0,
+                                cursor: activar.isPending ? 'default' : 'pointer', color: '#94a3b8',
+                                display: 'flex', alignItems: 'center', transition: 'color 0.15s',
+                                opacity: activar.isPending ? 0.5 : 1,
+                              }}
+                              onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
+                                if (!activar.isPending) e.currentTarget.style.color = '#16a34a';
+                              }}
+                              onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
+                                e.currentTarget.style.color = '#94a3b8';
+                              }}>
+                              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>check_circle</span>
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

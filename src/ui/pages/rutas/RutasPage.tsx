@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Layout } from '../../components/layout/Layout';
-import { useRutas } from '../../hooks/useRutas';
+import { useRutas, type FiltroRutas } from '../../hooks/useRutas';
 import { useAgencias } from '../../hooks/useAgencias';
 import { EstadoPrecioToggle } from '../../components/common/EstadoPrecioToggle';
 import { useConfiguracionSistema } from '../../hooks/useConfiguracionSistema';
@@ -77,10 +77,22 @@ const puntoVacio = (): PuntoIntermedio => ({
 
 /* ═══════════════════════════════════════════════════════════ */
 export const RutasPage = () => {
-  const { rutas, isLoading, create, update, remove, toggleEstado } = useRutas();
+  const [filtro, setFiltro] = useState<FiltroRutas>('todos');
+  const [busqueda, setBusqueda] = useState('');
+  const [busquedaDebounced, setBusquedaDebounced] = useState('');
+  const [page, setPage] = useState(1);
+
+  // Debounce de búsqueda para no llamar al API en cada tecla
+  useEffect(() => {
+    const timer = setTimeout(() => setBusquedaDebounced(busqueda), 400);
+    return () => clearTimeout(timer);
+  }, [busqueda]);
+
+  const { rutas, isLoading, create, update, remove, toggleEstado } = useRutas({ filtro, busqueda: busquedaDebounced, page: 1, limit: 200 });
   const { agencias } = useAgencias();
   const { esTraficoAlto } = useConfiguracionSistema();
   const agenciasList = Array.isArray(agencias) ? agencias : [];
+  const agenciasActivas = agenciasList.filter((a: any) => a.activo !== false);
 
   // Debug: verificar que las agencias se están cargando
   useEffect(() => {
@@ -108,7 +120,7 @@ export const RutasPage = () => {
   /* ── table grouping & pagination ───────────────────────────── */
   const list = useMemo(() => Array.isArray(rutas) ? rutas : [], [rutas]);
   
-  // 1. Agrupar TODAS las rutas primero
+  // Agrupar las rutas por id (para mostrar multi-tarifa por ruta)
   const allGroupedRoutes = useMemo(() => {
     const groups: { [key: string]: any[] } = {};
     list.forEach(ruta => {
@@ -118,8 +130,7 @@ export const RutasPage = () => {
     return Object.values(groups);
   }, [list]);
 
-  // 2. Paginar sobre los grupos (rutas únicas), no sobre los registros planos
-  const [page, setPage] = useState(1);
+  // Paginación local sobre grupos (el backend pagina por filas ruta×tipoBus, no por rutas únicas)
   const totalPages = Math.max(1, Math.ceil(allGroupedRoutes.length / ITEMS_PER_PAGE));
   const paginatedGroups = useMemo(() => {
     return allGroupedRoutes.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
@@ -166,7 +177,7 @@ export const RutasPage = () => {
           nombre: p.idagencia ? '' : p.nombre,
           esAgencia: !!p.idagencia,
           idagencia: p.idagencia ? p.idagencia.toString() : null,
-          tiempodesdeanteriorth: p.tiempodesdeanteriorth ?? 0,
+          tiempodesdeanteriorth: p.tiempodesdeanteriorth ?? p.tiempodesdeanteriorh ?? 0,
           tiempodesdeanteriorm: p.tiempodesdeanteriorm ?? 0,
         }));
       setPuntos(intermedios);
@@ -255,30 +266,30 @@ export const RutasPage = () => {
             <Field label="Agencia Origen" required>
               <select value={origenId} onChange={e => {
                 const val = e.target.value;
-                const ag = agenciasList.find((a: any) => a.idagencia === parseInt(val));
+                const ag = agenciasActivas.find((a: any) => a.idagencia === parseInt(val));
                 setOrigenId(val);
                 if (!nombre && ag && destinoId) {
-                  const destAg = agenciasList.find((a: any) => a.idagencia === parseInt(destinoId));
+                  const destAg = agenciasActivas.find((a: any) => a.idagencia === parseInt(destinoId));
                   if (destAg) setNombre(`${ag.nombre} - ${destAg.nombre}`);
                 }
               }} style={{ ...inputStyle, appearance: 'none' }} onFocus={focusBorder} onBlur={blurBorder} required>
                 <option value="">Seleccionar Agencia...</option>
-                {agenciasList.map((a: any) => <option key={a.idagencia} value={a.idagencia}>{a.nombre}</option>)}
+                {agenciasActivas.map((a: any) => <option key={a.idagencia} value={a.idagencia}>{a.nombre}</option>)}
               </select>
             </Field>
 
             <Field label="Agencia Destino" required>
               <select value={destinoId} onChange={e => {
                 const val = e.target.value;
-                const ag = agenciasList.find((a: any) => a.idagencia === parseInt(val));
+                const ag = agenciasActivas.find((a: any) => a.idagencia === parseInt(val));
                 setDestinoId(val);
                 if (!nombre && ag && origenId) {
-                  const oriAg = agenciasList.find((a: any) => a.idagencia === parseInt(origenId));
+                  const oriAg = agenciasActivas.find((a: any) => a.idagencia === parseInt(origenId));
                   if (oriAg) setNombre(`${oriAg.nombre} - ${ag.nombre}`);
                 }
               }} style={{ ...inputStyle, appearance: 'none' }} onFocus={focusBorder} onBlur={blurBorder} required>
                 <option value="">Seleccionar Agencia...</option>
-                {agenciasList.map((a: any) => <option key={a.idagencia} value={a.idagencia}>{a.nombre}</option>)}
+                {agenciasActivas.map((a: any) => <option key={a.idagencia} value={a.idagencia}>{a.nombre}</option>)}
               </select>
             </Field>
 
@@ -357,6 +368,46 @@ export const RutasPage = () => {
             <span className="material-symbols-outlined" style={{ fontSize: '18px', color: BLUE }}>list</span>
             <span style={{ fontWeight: 700, fontSize: '15px', color: '#0f172a' }}>Listado de Rutas</span>
           </div>
+          {/* Barra de búsqueda */}
+          <div style={{ position: 'relative' }}>
+            <span className="material-symbols-outlined" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '18px', color: '#94a3b8', pointerEvents: 'none' }}>search</span>
+            <input
+              value={busqueda}
+              onChange={e => { setBusqueda(e.target.value); setPage(1); }}
+              placeholder="Buscar ruta..."
+              style={{ ...inputStyle, width: '240px', paddingLeft: '34px', fontSize: '12.5px' }}
+              onFocus={focusBorder}
+              onBlur={blurBorder}
+            />
+          </div>
+        </div>
+        {/* Tabs de filtro */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 24px', borderBottom: '1px solid #f1f5f9' }}>
+          {([
+            { key: 'todos', label: 'Todos' },
+            { key: 'activos', label: 'Activos' },
+            { key: 'inactivos', label: 'Inactivos' },
+          ] as const).map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => { setFiltro(key); setPage(1); }}
+              style={{
+                padding: '5px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 600,
+                border: `1px solid ${filtro === key ? BLUE : '#e2e8f0'}`,
+                background: filtro === key ? BLUE : 'white',
+                color: filtro === key ? 'white' : '#64748b',
+                cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s',
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <div style={{ padding: '0 24px 12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#64748b' }}>info</span>
+          <span style={{ fontSize: '12px', color: '#64748b' }}>
+            Los precios mostrados corresponden a la <strong style={{color:'#0a2f72',fontWeight:700}}>Ruta completa</strong> (origen → destino final). Para ver tarifas por tramo parcial, haz clic en el botón <span style={{ color: '#0a2f72', fontWeight: 700 }}>Tarifas</span> de cada ruta.
+          </span>
         </div>
 
         {isLoading ? (
@@ -378,7 +429,7 @@ export const RutasPage = () => {
                       { label: 'Tipo Bus', w: '100px' },
                       { label: 'Duración', w: '80px' },
                       { label: 'Distancia', w: '80px' },
-                      { label: 'Precio Actual', w: '100px' },
+                      { label: 'Precio Actual Ruta Completa', w: '112px' },
                       { label: 'Estado', w: '70px' },
                       { label: 'Acciones', w: '140px' },
                     ].map(({ label, w }) => (
@@ -389,7 +440,7 @@ export const RutasPage = () => {
                 <tbody>
                   {paginatedGroups.length === 0 ? (
                     <tr><td colSpan={10} style={{ padding: '48px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>No se encontraron rutas.</td></tr>
-                  ) : paginatedGroups.map((rutasGrupo, groupIdx) => {
+                  ) : paginatedGroups.map((rutasGrupo, _groupIdx) => {
                     return rutasGrupo.map((r, idx) => {
                       const isFirst = idx === 0;
                       const size = rutasGrupo.length;
@@ -398,8 +449,8 @@ export const RutasPage = () => {
                           <tr style={{ borderBottom: idx === size - 1 ? '2px solid #e2e8f0' : '1px solid #f1f5f9', background: idx % 2 === 0 ? 'white' : '#fafbfc' }}>
                             {isFirst && <td rowSpan={size} style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: '#64748b', borderRight: '1px solid #e8edf2', textAlign: 'center' }}>#{r.id}</td>}
                             {isFirst && <td rowSpan={size} style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: '#0f172a', borderRight: '1px solid #e8edf2' }}>{r.nombre}</td>}
-                            {isFirst && <td rowSpan={size} style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', borderRight: '1px solid #e8edf2' }}>{agName(r.origen)}</td>}
-                            {isFirst && <td rowSpan={size} style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', borderRight: '1px solid #e8edf2' }}>{agName(r.destino)}</td>}
+                            {isFirst && <td rowSpan={size} style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', borderRight: '1px solid #e8edf2' }}>{(r as any).nombreagenciaorigen || agName(r.origen)}</td>}
+                            {isFirst && <td rowSpan={size} style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', borderRight: '1px solid #e8edf2' }}>{(r as any).nombreagenciadestino || agName(r.destino)}</td>}
                             <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', fontWeight: 600 }}>{(r as any).tipoBus || <span style={{ color: '#cbd5e1', fontStyle: 'italic' }}>Sin tarifa</span>}</td>
                             {isFirst && <td rowSpan={size} style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', textAlign: 'center', borderRight: '1px solid #e8edf2' }}>{r.duracionh}h {r.duracionm}m</td>}
                             {isFirst && <td rowSpan={size} style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', textAlign: 'center', borderRight: '1px solid #e8edf2' }}>{r.distanciakm ?? r.precioBase} km</td>}
@@ -409,22 +460,26 @@ export const RutasPage = () => {
                             {isFirst && <td rowSpan={size} style={{ padding: '12px 16px', textAlign: 'center', borderRight: '1px solid #e8edf2' }}><EstadoBadge activa={r.activa} /></td>}
                             {isFirst && (
                               <td rowSpan={size} style={{ padding: '12px 16px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                                  <button title="Gestionar tarifas" onClick={() => window.location.href = `/rutas/${r.id}/tarifas`} style={{ padding: '4px 8px', borderRadius: '4px', background: '#fef3c7', color: '#d97706', border: '1px solid #fde68a', fontSize: '11px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                                    <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>payments</span> Tarifas
-                                  </button>
-                                  <button title="Ver puntos" onClick={() => togglePuntosExpandidos(r.id)} style={{ padding: '4px 8px', borderRadius: '4px', background: '#f3e8ff', color: '#7e22ce', border: '1px solid #e9d5ff', fontSize: '11px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                                    <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>route</span> Puntos
-                                  </button>
-                                  <button title="Editar" onClick={() => startEdit(r)} style={{ padding: '4px', borderRadius: '4px', background: '#eff6ff', color: '#3b82f6', border: '1px solid #bfdbfe', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-                                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>edit</span>
-                                  </button>
-                                  <button title={r.activa ? "Desactivar" : "Activar"} onClick={() => toggleEstado.mutate({ id: r.id, activa: r.activa })} style={{ padding: '4px', borderRadius: '4px', background: r.activa ? '#fef2f2' : '#f0fdf4', color: r.activa ? '#ef4444' : '#22c55e', border: `1px solid ${r.activa ? '#fecaca' : '#bbf7d0'}`, cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-                                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>{r.activa ? 'block' : 'check_circle'}</span>
-                                  </button>
-                                  <button title="Eliminar" onClick={() => { if (window.confirm('¿Eliminar ruta?')) remove.mutate(r.id); }} style={{ padding: '4px', borderRadius: '4px', background: '#fef2f2', color: '#ef4444', border: '1px solid #fecaca', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-                                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>delete</span>
-                                  </button>
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                                  <div style={{ display: 'flex', gap: '4px' }}>
+                                    <button title="Gestionar tarifas" onClick={() => window.location.href = `/rutas/${r.id}/tarifas`} style={{ padding: '5px 10px', borderRadius: '6px', background: '#eff6ff', color: '#0D3B8E', border: '1px solid #bfdbfe', fontSize: '11px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontFamily: 'inherit' }}>
+                                      <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>payments</span> Tarifas
+                                    </button>
+                                    <button title="Ver puntos" onClick={() => togglePuntosExpandidos(r.id)} style={{ padding: '5px 10px', borderRadius: '6px', background: '#f8fafc', color: '#475569', border: '1px solid #e2e8f0', fontSize: '11px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontFamily: 'inherit' }} onMouseEnter={e => (e.currentTarget.style.color = '#0D3B8E')} onMouseLeave={e => (e.currentTarget.style.color = '#475569')}>
+                                      <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>route</span> Puntos
+                                    </button>
+                                  </div>
+                                  <div style={{ display: 'flex', gap: '4px' }}>
+                                    <button title="Editar" onClick={() => startEdit(r)} style={{ width: '30px', height: '30px', borderRadius: '6px', background: '#f8fafc', color: '#475569', border: '1px solid #e2e8f0', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={e => (e.currentTarget.style.color = '#0D3B8E')} onMouseLeave={e => (e.currentTarget.style.color = '#475569')}>
+                                      <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>edit</span>
+                                    </button>
+                                    <button title={r.activa ? "Desactivar" : "Activar"} onClick={() => toggleEstado.mutate({ id: r.id, activa: r.activa }, { onError: (err: any) => alert(err?.response?.data?.message || 'Error al cambiar estado') })} style={{ width: '30px', height: '30px', borderRadius: '6px', background: r.activa ? '#f8fafc' : '#f0fdf4', color: r.activa ? '#64748b' : '#16a34a', border: `1px solid ${r.activa ? '#e2e8f0' : '#bbf7d0'}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}  onMouseEnter={e => (e.currentTarget.style.color = '#f00')} onMouseLeave={e => (e.currentTarget.style.color = '#475569')}>
+                                      <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>{r.activa ? 'block' : 'check_circle'}</span>
+                                    </button>
+                                    <button title="Eliminar" onClick={() => { if (window.confirm('¿Eliminar ruta? Esta acción solo es posible si la ruta no tiene viajes registrados.')) remove.mutate(r.id, { onError: (err: any) => alert(err?.response?.data?.message || 'Error al eliminar ruta') }); }} style={{ width: '30px', height: '30px', borderRadius: '6px', background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                      <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>delete</span>
+                                    </button>
+                                  </div>
                                 </div>
                               </td>
                             )}

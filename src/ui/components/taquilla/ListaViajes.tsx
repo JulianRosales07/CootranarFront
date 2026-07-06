@@ -33,6 +33,11 @@ interface Viaje {
   totalasientos: number;
   tipoResultado?: 'DIRECTO' | 'DE_PASO';
   badge?: { tipo: string; texto: string; color: string };
+  asientoslibrestramo?: number;
+  tramoCiudadOrigen?: string;
+  tramoCiudadDestino?: string;
+  idpuntoorigen_buscado?: number;
+  idpuntodestino_buscado?: number;
 }
 
 interface ListaViajesProps {
@@ -96,7 +101,11 @@ export const ListaViajes: React.FC<ListaViajesProps> = ({ viajes, onSeleccionar,
       {/* List */}
       <div style={{ maxHeight: '520px', overflowY: 'auto' }}>
         {viajes.map((viaje, idx) => {
-          const pct = ((viaje.totalasientos - viaje.asientoslibres) / viaje.totalasientos) * 100;
+          const esDePaso = viaje.tipoResultado === 'DE_PASO';
+          const asientosDisponibles = esDePaso && viaje.asientoslibrestramo != null
+            ? viaje.asientoslibrestramo
+            : viaje.asientoslibres;
+          const pct = ((viaje.totalasientos - asientosDisponibles) / viaje.totalasientos) * 100;
           const avail = pct > 80 ? '#ef4444' : pct > 50 ? '#f59e0b' : '#22c55e';
           const isLujo = viaje.nombretipobus.toLowerCase().includes('lujo') || viaje.nombretipobus.toLowerCase().includes('poltrona');
 
@@ -123,7 +132,28 @@ export const ListaViajes: React.FC<ListaViajesProps> = ({ viajes, onSeleccionar,
                   <span style={{ padding: '3px 10px', background: C.secondaryFixed, color: C.primary, borderRadius: '6px', fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     {viaje.nombreruta || 'Directa'}
                   </span>
-                  {viaje.badge && (
+
+                  {/* Badge DIRECTO / DE_PASO */}
+                  {viaje.tipoResultado === 'DIRECTO' && (
+                    <span style={{
+                      padding: '3px 10px', borderRadius: '6px', fontSize: '10px', fontWeight: '800',
+                      textTransform: 'uppercase', letterSpacing: '0.05em',
+                      background: '#dcfce7', color: '#15803d',
+                    }}>
+                      Completo
+                    </span>
+                  )}
+                  {viaje.tipoResultado === 'DE_PASO' && (
+                    <span style={{
+                      padding: '3px 10px', borderRadius: '6px', fontSize: '10px', fontWeight: '800',
+                      textTransform: 'uppercase', letterSpacing: '0.05em',
+                      background: '#f1f5f9', color: '#475569',
+                    }}>
+                      De Paso
+                    </span>
+                  )}
+
+                  {viaje.badge && viaje.tipoResultado !== 'DIRECTO' && viaje.tipoResultado !== 'DE_PASO' && (
                     <span style={{
                       padding: '3px 10px', borderRadius: '6px', fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em',
                       background: viaje.badge.color === 'verde' ? '#dcfce7' : '#f1f5f9',
@@ -143,6 +173,16 @@ export const ListaViajes: React.FC<ListaViajesProps> = ({ viajes, onSeleccionar,
                   </div>
                   <span style={{ fontSize: '20px', fontWeight: '800', color: C.onSurface }}>{viaje.ciudaddestino}</span>
                 </div>
+
+                {/* Tramo info for DE_PASO */}
+                {esDePaso && viaje.tramoCiudadOrigen && viaje.tramoCiudadDestino && (
+                  <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '14px', color: C.outline }}>subdirectory_arrow_right</span>
+                    <span style={{ fontSize: '12px', color: C.onSurfaceVariant, fontWeight: '600' }}>
+                      Tramo: {viaje.tramoCiudadOrigen} → {viaje.tramoCiudadDestino}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Horario */}
@@ -168,8 +208,10 @@ export const ListaViajes: React.FC<ListaViajesProps> = ({ viajes, onSeleccionar,
                 <p style={{ fontSize: '11px', color: C.onSurfaceVariant, marginBottom: '6px' }}>{viaje.nombretipobus}</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <span className="material-symbols-outlined" style={{ fontSize: '14px', color: avail }}>event_seat</span>
-                  <span style={{ fontSize: '14px', fontWeight: '800', color: avail }}>{viaje.asientoslibres}</span>
-                  <span style={{ fontSize: '11px', color: C.outline }}>/ {viaje.totalasientos} libres</span>
+                  <span style={{ fontSize: '14px', fontWeight: '800', color: avail }}>{asientosDisponibles}</span>
+                  <span style={{ fontSize: '11px', color: C.outline }}>
+                    / {viaje.totalasientos} libres{esDePaso ? ' (tramo)' : ''}
+                  </span>
                 </div>
                 <div style={{ width: '100px', height: '4px', background: '#e2e8f0', borderRadius: '999px', marginTop: '4px', overflow: 'hidden' }}>
                   <div style={{ width: `${pct}%`, height: '100%', background: avail, borderRadius: '999px', transition: 'width 0.5s' }} />

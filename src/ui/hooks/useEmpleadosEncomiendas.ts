@@ -10,7 +10,7 @@ export const useEmpleadosEncomiendas = () => {
       const response = await empleadosEncomiendasApi.obtenerTodos();
       const data = response.data.data;
       const empleadosArray = data.empleadosEncomiendas || data || [];
-      
+
       // Mapear campos del backend al frontend
       return empleadosArray.map((emp: any) => ({
         id: emp.idusuario ? String(emp.idusuario) : String(emp.id || ''),
@@ -55,5 +55,13 @@ export const useEmpleadosEncomiendas = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['empleados-encomiendas'] }),
   });
 
-  return { empleados, isLoading, error, create, update, activar };
+  const desactivar = useMutation({
+    mutationFn: async (idusuario: number) => {
+      const response = await empleadosEncomiendasApi.desactivar(String(idusuario));
+      return response.data.data;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['empleados-encomiendas'] }),
+  })
+
+  return { empleados, isLoading, error, create, update, activar, desactivar };
 };

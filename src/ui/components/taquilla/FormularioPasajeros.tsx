@@ -1,6 +1,21 @@
 import React, { useState, useEffect } from 'react';
+import { SelectorDestinoInline } from './SeleccionTramo';
 
 const BLUE = '#1a56db';
+
+interface PuntoRuta {
+  idpuntoruta: number;
+  nombre: string;
+  orden: number;
+}
+
+interface DestinosPasajero {
+  [idAsiento: number]: {
+    puntoDestino: number;
+    precio: number;
+    tarifaCompleta?: any;
+  };
+}
 
 interface Pasajero {
   idusuario?: number;
@@ -27,10 +42,16 @@ interface FormularioPasajerosProps {
   asientos: AsientoConPasajero[];
   viaje?: any;
   onBuscarPasajero: (documento: string) => Promise<Pasajero | null>;
-  onAsignarPasajero: (idAsiento: number, pasajero: Pasajero) => void;
+  onAsignarPasajero: (idAsiento: number, pasajero: Pasajero, destino?: { puntoDestino: number; precio: number; tarifaCompleta?: any }) => void;
   onContinuar: () => void;
   onVolver: () => void;
   cargando?: boolean;
+  puntosRuta?: PuntoRuta[];
+  puntoOrigenDefault?: number;
+  puntoDestinoDefault?: number;
+  onConsultarTarifa?: (idPuntoOrigen: number, idPuntoDestino: number, piso: number) => Promise<any>;
+  onGuardarDestinos?: (destinos: DestinosPasajero) => void;
+  destinosGuardados?: DestinosPasajero | null;
 }
 
 const inp: React.CSSProperties = {
@@ -68,8 +89,38 @@ export const FormularioPasajeros: React.FC<FormularioPasajerosProps> = ({
   onContinuar,
   onVolver,
   cargando = false,
+  puntosRuta = [],
+  puntoOrigenDefault = 0,
+  puntoDestinoDefault,
+  onConsultarTarifa,
+  onGuardarDestinos,
+  destinosGuardados,
 }) => {
   const [asientoActual, setAsientoActual] = useState(0);
+  const [destinosPorPasajero, setDestinosPorPasajero] = useState<DestinosPasajero>(() => {
+    // Req 7.4: Si hay destinos guardados (usuario regresó de navegar atrás), restaurarlos
+    if (destinosGuardados && Object.keys(destinosGuardados).length > 0) {
+      return destinosGuardados;
+    }
+    return {};
+  });
+
+  // Initialize destinosPorPasajero with puntoDestinoDefault for each seat
+  useEffect(() => {
+    if (puntoDestinoDefault == null) return;
+    setDestinosPorPasajero(prev => {
+      const updated = { ...prev };
+      for (const asiento of asientos) {
+        if (!updated[asiento.idasientoviaje]) {
+          updated[asiento.idasientoviaje] = {
+            puntoDestino: puntoDestinoDefault,
+            precio: 0,
+          };
+        }
+      }
+      return updated;
+    });
+  }, [asientos, puntoDestinoDefault]);
   const [buscando, setBuscando] = useState(false);
   const [ultimoDocBuscado, setUltimoDocBuscado] = useState<string>(() => {
     return asientos[0]?.pasajero?.documento || '';
@@ -90,6 +141,11 @@ export const FormularioPasajeros: React.FC<FormularioPasajerosProps> = ({
 
   const asientoSel = asientos[asientoActual];
   const todosAsignados = asientos.every(a => a.pasajero);
+  const todosTienenPrecio = !puntosRuta.length || !onConsultarTarifa || asientos.every(a => {
+    const info = destinosPorPasajero[a.idasientoviaje];
+    return info && info.precio > 0;
+  });
+  const puedeAvanzar = todosAsignados && todosTienenPrecio;
   const completados = asientos.filter(a => a.pasajero).length;
 
   // Debounced autocomplete effect when typing document number
@@ -153,7 +209,8 @@ export const FormularioPasajeros: React.FC<FormularioPasajerosProps> = ({
 
   const handleAsignar = () => {
     if (!formData.nombre || !formData.apellido || !formData.documento) return;
-    onAsignarPasajero(asientoSel.idasientoviaje, formData);
+    const destinoInfo = destinosPorPasajero[asientoSel.idasientoviaje];
+    onAsignarPasajero(asientoSel.idasientoviaje, formData, destinoInfo);
     
     // Clean form and set next seat
     if (asientoActual < asientos.length - 1) {
@@ -185,7 +242,9 @@ export const FormularioPasajeros: React.FC<FormularioPasajerosProps> = ({
     }
   };
 
-  const canConfirm = !!(formData.nombre && formData.apellido && formData.documento);
+  const tieneDestino = !puntosRuta.length || !onConsultarTarifa || 
+    (destinosPorPasajero[asientoSel?.idasientoviaje]?.precio > 0);
+  const canConfirm = !!(formData.nombre && formData.apellido && formData.documento && tieneDestino);
 
   // Progress bar for top stepper
   const progPct = asientos.length > 0 ? (completados / asientos.length) * 100 : 0;
@@ -250,6 +309,25 @@ export const FormularioPasajeros: React.FC<FormularioPasajerosProps> = ({
                 {isActive && (
                   <div style={{ padding: '0 18px 18px', borderTop: '1px solid #f3f4f6' }}>
                     <div style={{ paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+                      {/* Selector de Destino Inline por pasajero */}
+                      {puntosRuta.length > 0 && onConsultarTarifa && (
+                        <div style={{ marginBottom: 14 }}>
+                          <SelectorDestinoInline
+                            puntosRuta={puntosRuta}
+                            puntoOrigenDefault={puntoOrigenDefault}
+                            puntoDestinoDefault={destinosPorPasajero[asiento.idasientoviaje]?.puntoDestino || puntoDestinoDefault}
+                            esPoltrona={asiento.espoltrona}
+                            onConsultarTarifa={onConsultarTarifa!}
+                            onDestinoChange={(puntoDestino, precio, tarifaCompleta) => {
+                              setDestinosPorPasajero(prev => ({
+                                ...prev,
+                                [asiento.idasientoviaje]: { puntoDestino, precio, tarifaCompleta }
+                              }));
+                            }}
+                          />
+                        </div>
+                      )}
 
                       {/* Documento de Identidad */}
                       <div>
@@ -369,7 +447,13 @@ export const FormularioPasajeros: React.FC<FormularioPasajerosProps> = ({
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
             <button
               type="button"
-              onClick={onVolver}
+              onClick={() => {
+                // Req 7.4: Guardar destinos por pasajero antes de volver
+                if (onGuardarDestinos) {
+                  onGuardarDestinos(destinosPorPasajero);
+                }
+                onVolver();
+              }}
               style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 16px', background: 'none', border: 'none', fontSize: 13, fontWeight: 600, color: '#6b7280', cursor: 'pointer' }}
             >
               <span className="material-symbols-outlined" style={{ fontSize: 16 }}>arrow_back</span>
@@ -378,13 +462,13 @@ export const FormularioPasajeros: React.FC<FormularioPasajerosProps> = ({
             <button
               type="button"
               onClick={onContinuar}
-              disabled={!todosAsignados || cargando}
+              disabled={!puedeAvanzar || cargando}
               style={{
                 padding: '11px 24px', borderRadius: 10, border: 'none',
-                background: todosAsignados && !cargando ? BLUE : '#93c5fd',
-                color: '#fff', fontSize: 13, fontWeight: 700, cursor: todosAsignados && !cargando ? 'pointer' : 'not-allowed',
+                background: puedeAvanzar && !cargando ? BLUE : '#93c5fd',
+                color: '#fff', fontSize: 13, fontWeight: 700, cursor: puedeAvanzar && !cargando ? 'pointer' : 'not-allowed',
                 display: 'flex', alignItems: 'center', gap: 8,
-                boxShadow: todosAsignados && !cargando ? '0 4px 14px rgba(26,86,219,0.3)' : 'none',
+                boxShadow: puedeAvanzar && !cargando ? '0 4px 14px rgba(26,86,219,0.3)' : 'none',
                 transition: 'all 0.2s',
               }}
             >
@@ -444,18 +528,40 @@ export const FormularioPasajeros: React.FC<FormularioPasajerosProps> = ({
                 </div>
               </div>
 
-              {/* Price breakdown */}
+              {/* Price breakdown per passenger */}
               <div style={{ marginTop: 14, borderTop: '1px solid #f3f4f6', paddingTop: 12 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <span style={{ fontSize: 12, color: '#6b7280' }}>Pasaje x{asientos.length}</span>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>
-                    ${(asientos.reduce((sum, a) => sum + Number(a.precio || 50000), 0)).toLocaleString('es-CO')}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <p style={{ margin: '0 0 8px', fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase' }}>Desglose por Pasajero</p>
+                {asientos.map(a => {
+                  const destInfo = destinosPorPasajero[a.idasientoviaje];
+                  const tienePrecio = destInfo && destInfo.precio > 0;
+                  const nombreDestino = tienePrecio
+                    ? puntosRuta.find(p => p.idpuntoruta === destInfo.puntoDestino)?.nombre || 'Destino'
+                    : null;
+                  return (
+                    <div key={a.idasientoviaje} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>Asiento {a.numero}</span>
+                        <span style={{ fontSize: 11, color: '#6b7280' }}>{tienePrecio ? nombreDestino : 'Sin destino'}</span>
+                      </div>
+                      {tienePrecio ? (
+                        <span style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>
+                          ${destInfo.precio.toLocaleString('es-CO')}
+                        </span>
+                      ) : (
+                        <span style={{ fontSize: 11, fontWeight: 600, color: '#f59e0b', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 6, padding: '2px 8px' }}>
+                          Pendiente
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, paddingTop: 8, borderTop: '1px solid #f3f4f6' }}>
                   <span style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>Total a Pagar</span>
                   <span style={{ fontSize: 13, fontWeight: 800, color: BLUE }}>
-                    ${(asientos.reduce((sum, a) => sum + Number(a.precio || 50000), 0)).toLocaleString('es-CO')}
+                    ${asientos.reduce((sum, a) => {
+                      const info = destinosPorPasajero[a.idasientoviaje];
+                      return sum + (info && info.precio > 0 ? info.precio : 0);
+                    }, 0).toLocaleString('es-CO')}
                   </span>
                 </div>
               </div>

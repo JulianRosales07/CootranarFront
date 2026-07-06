@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Layout } from '../../components/layout/Layout';
 import { useTiposServicio } from '../../hooks/useTiposServicio';
 
@@ -17,13 +17,61 @@ function NavArrow({ icon, disabled, onClick }: { icon: string; disabled: boolean
 const inputStyle: React.CSSProperties = { width: '100%', boxSizing: 'border-box', padding: '9px 12px', border: '1px solid #e2e8f0', borderRadius: '7px', fontSize: '13px', color: '#334155', outline: 'none', background: 'white', fontFamily: 'inherit' };
 
 export const TiposServicioPage = () => {
-  const { tiposServicio, isLoading } = useTiposServicio();
+  const { tiposServicio, isLoading, create, update, remove } = useTiposServicio();
   const tiposList = useMemo(() => Array.isArray(tiposServicio) ? tiposServicio : [], [tiposServicio]);
 
   const [nombre, setNombre] = useState('');
   const [descripcion, setDescripcion] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [formMsg, setFormMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
   const [page, setPage] = useState(1);
-  const [filterEstado, setFilterEstado] = useState<string>('TODOS');
+  const [filterEstado, _setFilterEstado] = useState<string>('TODOS');
+
+  const resetForm = () => {
+    setNombre('');
+    setDescripcion('');
+    setEditingId(null);
+  };
+
+  const handleGuardar = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!nombre.trim()) {
+      setFormMsg({ type: 'err', text: 'El nombre es requerido.' });
+      return;
+    }
+
+    if (editingId) {
+      update.mutate(
+        { id: editingId, data: { nombre: nombre.trim(), descripcion: descripcion.trim() } },
+        {
+          onSuccess: () => {
+            setFormMsg({ type: 'ok', text: 'Tipo de servicio actualizado correctamente.' });
+            resetForm();
+            setTimeout(() => setFormMsg(null), 3000);
+          },
+          onError: () => {
+            setFormMsg({ type: 'err', text: 'Error al actualizar el tipo de servicio.' });
+            setTimeout(() => setFormMsg(null), 3000);
+          },
+        }
+      );
+    } else {
+      create.mutate(
+        { nombre: nombre.trim(), descripcion: descripcion.trim() },
+        {
+          onSuccess: () => {
+            setFormMsg({ type: 'ok', text: 'Tipo de servicio guardado correctamente.' });
+            resetForm();
+            setTimeout(() => setFormMsg(null), 3000);
+          },
+          onError: () => {
+            setFormMsg({ type: 'err', text: 'Error al guardar el tipo de servicio.' });
+            setTimeout(() => setFormMsg(null), 3000);
+          },
+        }
+      );
+    }
+  };
 
   const list = useMemo(() => {
     if (filterEstado === 'TODOS') return tiposList;
@@ -47,10 +95,12 @@ export const TiposServicioPage = () => {
 
   return (
     <Layout>
-      {/* ── Formulario Añadir Nuevo Tipo de Servicio ── */}
+      {/* ── Formulario Añadir/Editar Tipo de Servicio ── */}
       <div style={{ background: 'white', borderRadius: '10px', border: '1px solid #e8edf2', padding: '20px 24px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', marginBottom: '24px' }}>
-        <span style={{ fontWeight: 700, fontSize: '15px', color: '#0f172a', display: 'block', marginBottom: '18px' }}>Añadir Nuevo Tipo de Servicio</span>
-        <form onSubmit={e => e.preventDefault()} style={{ display: 'flex', alignItems: 'flex-end', gap: '14px' }}>
+        <span style={{ fontWeight: 700, fontSize: '15px', color: '#0f172a', display: 'block', marginBottom: '18px' }}>
+          {editingId ? 'Editar Tipo de Servicio' : 'Añadir Nuevo Tipo de Servicio'}
+        </span>
+        <form onSubmit={handleGuardar} style={{ display: 'flex', alignItems: 'flex-end', gap: '14px' }}>
           <div style={{ flex: 1 }}>
             <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>Nombre</label>
             <div style={{ position: 'relative' }}>
@@ -62,11 +112,26 @@ export const TiposServicioPage = () => {
             <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>Descripción</label>
             <input value={descripcion} onChange={e => setDescripcion(e.target.value)} placeholder="Detalles del servicio..." style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} />
           </div>
-          <button type="submit" style={{ display: 'flex', alignItems: 'center', gap: '6px', background: BLUE, color: 'white', border: 'none', borderRadius: '7px', padding: '9px 18px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}
-            onMouseEnter={e => (e.currentTarget.style.background = '#0a2f72')} onMouseLeave={e => (e.currentTarget.style.background = BLUE)}>
-            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>save</span> Guardar Servicio
-          </button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button type="submit" disabled={create.isPending || update.isPending || !nombre.trim()} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: (create.isPending || update.isPending || !nombre.trim()) ? '#6b7280' : BLUE, color: 'white', border: 'none', borderRadius: '7px', padding: '9px 18px', fontSize: '12.5px', fontWeight: 700, cursor: (create.isPending || update.isPending || !nombre.trim()) ? 'not-allowed' : 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}
+              onMouseEnter={e => { if (!create.isPending && !update.isPending && nombre.trim()) e.currentTarget.style.background = '#0a2f72'; }} onMouseLeave={e => { if (!create.isPending && !update.isPending && nombre.trim()) e.currentTarget.style.background = BLUE; }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>{(create.isPending || update.isPending) ? 'hourglass_empty' : editingId ? 'edit' : 'save'}</span>
+              {(create.isPending || update.isPending) ? 'Guardando...' : editingId ? 'Actualizar' : 'Guardar Servicio'}
+            </button>
+            {editingId && (
+              <button type="button" onClick={resetForm} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'white', color: '#64748b', border: '1px solid #cbd5e1', borderRadius: '7px', padding: '9px 14px', fontSize: '12.5px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = '#334155'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#64748b'; }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>close</span> Cancelar
+              </button>
+            )}
+          </div>
         </form>
+        {formMsg && (
+          <p style={{ marginTop: '10px', fontSize: '13px', fontWeight: 600, color: formMsg.type === 'ok' ? '#16a34a' : '#dc2626' }}>
+            {formMsg.text}
+          </p>
+        )}
       </div>
 
       {/* ── Listado de Tipos de Servicio ── */}
@@ -102,17 +167,30 @@ export const TiposServicioPage = () => {
                 {paginated.length === 0 ? (
                   <tr><td colSpan={5} style={{ padding: '48px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>No se encontraron tipos de servicio.</td></tr>
                 ) : paginated.map((t, idx) => (
-                  <tr key={t.id} style={{ borderBottom: '1px solid #f1f5f9' }} onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')} onMouseLeave={e => (e.currentTarget.style.background = 'white')}>
+                  <tr key={t.idtiposervicio} style={{ borderBottom: '1px solid #f1f5f9' }} onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')} onMouseLeave={e => (e.currentTarget.style.background = 'white')}>
                     <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: '#64748b', fontFamily: 'monospace' }}>#TS{String(idx + 1 + (page - 1) * ITEMS_PER_PAGE).padStart(3, '0')}</td>
                     <td style={{ padding: '12px 16px', fontSize: '13.5px', fontWeight: 600, color: '#1e293b' }}>{t.nombre}</td>
                     <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{t.descripcion || '—'}</td>
                     <td style={{ padding: '12px 16px' }}><EstadoBadge activo={t.activo} /></td>
                     <td style={{ padding: '12px 16px' }}>
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        <button title="Editar" style={{ width: '30px', height: '30px', borderRadius: '6px', border: 'none', background: BLUE, color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <button title="Editar"
+                          onClick={() => {
+                            setEditingId(t.idtiposervicio);
+                            setNombre(t.nombre);
+                            setDescripcion(t.descripcion || '');
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          style={{ width: '30px', height: '30px', borderRadius: '6px', border: 'none', background: BLUE, color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>edit</span>
                         </button>
-                        <button title="Eliminar" style={{ width: '30px', height: '30px', borderRadius: '6px', border: 'none', background: '#dc2626', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <button title="Desactivar"
+                          onClick={() => {
+                            if (window.confirm('¿Seguro que deseas desactivar este tipo de servicio?')) {
+                              remove.mutate(t.idtiposervicio);
+                            }
+                          }}
+                          style={{ width: '30px', height: '30px', borderRadius: '6px', border: 'none', background: '#dc2626', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>delete</span>
                         </button>
                       </div>

@@ -111,7 +111,12 @@ export const OficinasEncomiendasPage = () => {
 
   const handleToggle = (o: OficinaEncomienda) => {
     if (o.activo) {
-      desactivar.mutate(o.id);
+      desactivar.mutate(o.id, {
+        onError: (error: any) => {
+          const msg = error?.response?.data?.message || error?.message || 'Error al desactivar la oficina de encomiendas.';
+          alert(msg);
+        }
+      });
     } else {
       activar.mutate(o.id);
     }
@@ -129,7 +134,7 @@ export const OficinasEncomiendasPage = () => {
             <Field label="Ciudad" required>
               <select value={ciudadId} onChange={e => setCiudadId(e.target.value)} style={{ ...inputStyle, appearance: 'none' }} onFocus={focusBorder} onBlur={blurBorder}>
                 <option value="">Seleccionar Ciudad...</option>
-                {ciudadesList.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+                {ciudadesList.filter((c: any) => c.activo || String(c.id) === ciudadId).map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
               </select>
             </Field>
             <Field label="Dirección" required>

@@ -22,6 +22,7 @@ export const ModalSeleccionarRuta: React.FC<Props> = ({ isOpen, onClose, onSelec
   const [rutas, setRutas] = useState<Ruta[]>([]);
   const [cargando, setCargando] = useState(false);
   const [busqueda, setBusqueda] = useState('');
+  const [recorridos, setRecorridos] = useState<Record<number, string>>({});
 
   useEffect(() => {
     if (isOpen) {
@@ -32,8 +33,12 @@ export const ModalSeleccionarRuta: React.FC<Props> = ({ isOpen, onClose, onSelec
   const cargarRutas = async () => {
     setCargando(true);
     try {
-      const res = await rutasApi.obtenerTodas({ limit: 100 });
-      const rutasData = res.data.data?.rutas || res.data.data || [];
+      const [resRutas, resRecorridos] = await Promise.all([
+        rutasApi.obtenerTodas({ limit: 100 }),
+        rutasApi.obtenerResumenRecorridos ? rutasApi.obtenerResumenRecorridos() : Promise.resolve(null),
+      ]);
+
+      const rutasData = resRutas.data.data?.rutas || resRutas.data.data || [];
       
       // Deduplicar rutas por idruta
       const rutasUnicas: Ruta[] = [];
@@ -47,6 +52,15 @@ export const ModalSeleccionarRuta: React.FC<Props> = ({ isOpen, onClose, onSelec
       }
       
       setRutas(rutasUnicas);
+
+      // Mapear recorridos
+      if (resRecorridos?.data?.data?.recorridos) {
+        const map: Record<number, string> = {};
+        for (const r of resRecorridos.data.data.recorridos) {
+          map[r.idruta] = r.recorrido;
+        }
+        setRecorridos(map);
+      }
     } catch (err) {
       console.error('Error cargando rutas:', err);
     } finally {
@@ -169,6 +183,11 @@ export const ModalSeleccionarRuta: React.FC<Props> = ({ isOpen, onClose, onSelec
                         <p style={{ fontSize: '11px', color: '#94a3b8', margin: '2px 0 0 0' }}>
                           {ruta.nombreagenciaorigen} - {ruta.nombreagenciadestino}
                         </p>
+                        {recorridos[ruta.idruta] && (
+                          <p style={{ fontSize: '10px', color: '#64748b', margin: '3px 0 0 0', fontStyle: 'italic' }}>
+                            Recorrido: {recorridos[ruta.idruta]}
+                          </p>
+                        )}
                         {(ruta.duracionh || ruta.duracionm) && (
                           <p style={{ fontSize: '11px', color: '#64748b', margin: '2px 0 0 0' }}>
                             Duración: {ruta.duracionh ? `${ruta.duracionh}h ` : ''}{ruta.duracionm ? `${ruta.duracionm}min` : ''}

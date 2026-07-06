@@ -70,7 +70,7 @@ export const Button = ({
     Object.assign(e.currentTarget.style, {
       backgroundColor: baseStyles.backgroundColor,
       transform: 'translateY(0)',
-      boxShadow: baseStyles.boxShadow,
+      boxShadow: 'boxShadow' in baseStyles ? baseStyles.boxShadow : 'none',
     });
   };
 

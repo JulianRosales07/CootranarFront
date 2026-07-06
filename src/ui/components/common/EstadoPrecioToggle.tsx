@@ -1,7 +1,7 @@
 import { useConfiguracionSistema, ESTADOS_PRECIO } from '../../hooks/useConfiguracionSistema';
 
 export const EstadoPrecioToggle = () => {
-  const { estadoPrecio, cambiarEstado, isLoading, esTraficoAlto } = useConfiguracionSistema();
+  const { estadoPrecio: _estadoPrecio, cambiarEstado, isLoading, esTraficoAlto } = useConfiguracionSistema();
 
   const handleToggle = () => {
     const nuevoEstado = esTraficoAlto ? ESTADOS_PRECIO.NORMAL : ESTADOS_PRECIO.TRAFICO_ALTO;

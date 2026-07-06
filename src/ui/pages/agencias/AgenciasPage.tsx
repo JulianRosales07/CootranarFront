@@ -99,7 +99,16 @@ export const AgenciasPage = () => {
     editingId ? updateAgencia({ id: editingId, data: payload }, { onSuccess: onOk, onError: onErr } as any) : createAgencia(payload, { onSuccess: onOk, onError: onErr } as any);
   };
 
-  const handleDelete = (id: string) => { if (window.confirm('¿Eliminar esta agencia?')) deleteAgencia(id); };
+  const handleDelete = (id: string) => {
+    if (window.confirm('¿Eliminar esta agencia?')) {
+      deleteAgencia(id, {
+        onError: (error: any) => {
+          const msg = error?.response?.data?.message || error?.message || 'Error al eliminar la agencia.';
+          alert(msg);
+        }
+      } as any);
+    }
+  };
 
   const focusBorder = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => (e.currentTarget.style.borderColor = '#93b4e0');
   const blurBorder = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => (e.currentTarget.style.borderColor = '#e2e8f0');
@@ -120,7 +129,7 @@ export const AgenciasPage = () => {
             <Field label="Ciudad">
               <select value={ciudadId} onChange={e => setCiudadId(e.target.value)} style={{ ...inputStyle, appearance: 'none' }} onFocus={focusBorder} onBlur={blurBorder}>
                 <option value="">Seleccionar Ciudad...</option>
-                {ciudadesList.map((c: any) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+                {ciudadesList.filter((c: any) => c.activo || String(c.id) === ciudadId).map((c: any) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
               </select>
             </Field>
           </div>

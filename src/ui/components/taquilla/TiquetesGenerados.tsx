@@ -1,5 +1,4 @@
 import React from 'react';
-import { Layout } from '../../components/layout/Layout';
 // ─── Este componente debe ser renderizado dentro de <Layout>
 // ─── igual que VehiculosPage, FormularioPasajeros, etc.
 // ─── Layout ya provee: header global (título, breadcrumb, campana, settings) + sidebar.
@@ -22,7 +21,7 @@ export const TiquetesGenerados: React.FC<TiquetesGeneradosProps> = ({
   tiquetes,
   onDescargarPdf,
   onNuevaVenta,
-  viaje,
+  viaje: _viaje,
 }) => {
   /* ── handlers ── */
   const handleDescargarTodos = () => {

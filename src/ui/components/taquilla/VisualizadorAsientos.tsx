@@ -214,9 +214,10 @@ export const VisualizadorAsientos: React.FC<VisualizadorAsientosProps> = ({
 
               {/* Mini-legend */}
               <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                <LegendDot color="#e8f5ee" border="#52b788" label="Libre" />
-                <LegendDot color="#00355f" border="#00355f" label="Elegido" textColor="#fff" />
-                <LegendDot color="#e8eaed" border="#c5cad3" label="Vendido" textColor="#aaa" />
+                <LegendDot color="#ffffff" border="#cbd5e1" label="Disponible" />
+                <LegendDot color="#22c55e" border="#16a34a" label="Seleccionado" textColor="#fff" />
+                <LegendDot color="#0e3a8c" border="#0e3a8c" label="Vendido" textColor="#fff" />
+                <LegendDot color="#facc15" border="#eab308" label="Reservado" />
               </div>
             </div>
           </div>
@@ -301,24 +302,30 @@ export const VisualizadorAsientos: React.FC<VisualizadorAsientosProps> = ({
 
                 const seleccionado = asientosSeleccionados.includes(seatData.idasientoviaje);
                 const tomadoPorOtro = asientosYaSeleccionados.includes(seatData.idasientoviaje);
-                const esVendido = seatData.estado === 'VENDIDO' || seatData.estado === 'RESERVADO' || tomadoPorOtro;
+                const esReservado = seatData.estado === 'RESERVADO';
+                const esVendido = seatData.estado === 'VENDIDO' || esReservado || tomadoPorOtro;
                 const disponible = !esVendido || seleccionado;
                 const esPoltrona = seatData.espoltrona;
 
-                // Color scheme matching Image 2
+                // Color scheme: blanco=libre, verde=seleccionado, azul=vendido, amarillo=reservado
                 let bg: string, border: string, numColor: string, iconColor: string;
 
                 if (seleccionado) {
-                  bg = '#00355f'; border = '#00355f'; numColor = '#fff'; iconColor = '#fff';
+                  bg = '#22c55e'; border = '#16a34a'; numColor = '#fff'; iconColor = '#fff';
                 } else if (tomadoPorOtro) {
                   // Tomado por otro pasajero del mismo grupo — naranja
                   bg = '#fff7ed'; border = '#f97316'; numColor = '#c2410c'; iconColor = '#f97316';
-                } else if (esVendido) {
-                  bg = '#e8eaed'; border = '#c5cad3'; numColor = '#aab0bb'; iconColor = '#aab0bb';
+                } else if (esReservado) {
+                  // Reservado por otro usuario — amarillo
+                  bg = '#facc15'; border = '#eab308'; numColor = '#713f12'; iconColor = '#eab308';
+                } else if (seatData.estado === 'VENDIDO') {
+                  // Vendido — azul
+                  bg = '#0e3a8c'; border = '#0e3a8c'; numColor = '#fff'; iconColor = '#fff';
                 } else if (esPoltrona) {
                   bg = '#fef3c7'; border = '#f59e0b'; numColor = '#92400e'; iconColor = '#f59e0b';
                 } else {
-                  bg = '#d1fae5'; border = '#6ee7b7'; numColor = '#065f46'; iconColor = '#34d399';
+                  // Libre — blanco
+                  bg = '#ffffff'; border = '#cbd5e1'; numColor = '#475569'; iconColor = '#94a3b8';
                 }
 
                 return (
@@ -389,8 +396,8 @@ export const VisualizadorAsientos: React.FC<VisualizadorAsientosProps> = ({
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ width: 28, height: 28, background: '#d1fae5', border: '2px solid #6ee7b7', borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 13, color: '#34d399' }}>event_seat</span>
+                <div style={{ width: 28, height: 28, background: '#ffffff', border: '2px solid #cbd5e1', borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 13, color: '#94a3b8' }}>event_seat</span>
                 </div>
                 <div>
                   <p style={{ fontSize: 11, fontWeight: 700, color: '#0b1c30', margin: 0, lineHeight: 1 }}>Standard</p>

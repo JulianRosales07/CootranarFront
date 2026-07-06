@@ -2,12 +2,18 @@ import type { ConductorRepository } from '../../domain/repositories/ConductorRep
 import type { Conductor } from '../../domain/entities/Conductor';
 import { httpClient } from '../api/httpClient';
 
+function mapEstado(c: any): 'ACTIVO' | 'INACTIVO' | 'SUSPENDIDO' {
+  if (c.estado) return c.estado;
+  if (c.activo === false) return 'INACTIVO';
+  if (c.activo === true) return 'ACTIVO';
+  return 'ACTIVO';
+}
+
 export class ApiConductorRepository implements ConductorRepository {
   async findAll(): Promise<Conductor[]> {
-    const response = await httpClient.get('/conductores');
+    const response = await httpClient.get('/conductores', { params: { limit: 1000 } });
     const data = response.data;
     
-    // Handle both plain array and wrapped responses: { data: { conductores: [...] } }
     const list = Array.isArray(data)
       ? data
       : Array.isArray(data?.conductores)
@@ -31,9 +37,9 @@ export class ApiConductorRepository implements ConductorRepository {
         categoriaLicencia: c.categorialicencia ?? c.categoriaLicencia ?? '',
         vencimientoLicencia: c.fechavencimientolicencia ?? c.vencimientoLicencia ?? '',
         telefono: c.telefono,
-        email: c.correoelectronico ?? c.email ?? '',
+        email: c.correoelectronico ?? c.correo ?? c.email ?? '',
         fechaContratacion: c.fechacontratacion ?? c.fechaContratacion ?? '',
-        estado: c.estado ?? 'ACTIVO',
+        estado: mapEstado(c),
         urlLicencia: c.archivolicenciaurl ?? c.rutalicencia ?? c.ruta_licencia ?? c.url_licencia ?? c.licenciaUrl ?? c.archivolicencia ?? c.archivo_licencia ?? (typeof c.licencia === 'string' && c.licencia.startsWith('http') ? c.licencia : undefined),
         createdAt: c.createdAt ?? '',
         updatedAt: c.updatedAt ?? '',
@@ -59,9 +65,9 @@ export class ApiConductorRepository implements ConductorRepository {
         categoriaLicencia: c.categorialicencia ?? c.categoriaLicencia ?? '',
         vencimientoLicencia: c.fechavencimientolicencia ?? c.vencimientoLicencia ?? '',
         telefono: c.telefono,
-        email: c.correoelectronico ?? c.email ?? '',
+        email: c.correoelectronico ?? c.correo ?? c.email ?? '',
         fechaContratacion: c.fechacontratacion ?? c.fechaContratacion ?? '',
-        estado: c.estado ?? 'ACTIVO',
+        estado: mapEstado(c),
         urlLicencia: c.archivolicenciaurl ?? c.rutalicencia ?? c.ruta_licencia ?? c.url_licencia ?? c.licenciaUrl ?? c.archivolicencia ?? c.archivo_licencia ?? (typeof c.licencia === 'string' && c.licencia.startsWith('http') ? c.licencia : undefined),
         createdAt: c.createdAt ?? '',
         updatedAt: c.updatedAt ?? '',
@@ -89,9 +95,9 @@ export class ApiConductorRepository implements ConductorRepository {
       categoriaLicencia: c.categorialicencia ?? c.categoriaLicencia ?? '',
       vencimientoLicencia: c.fechavencimientolicencia ?? c.vencimientoLicencia ?? '',
       telefono: c.telefono,
-      email: c.correoelectronico ?? c.email ?? '',
+      email: c.correoelectronico ?? c.correo ?? c.email ?? '',
       fechaContratacion: c.fechacontratacion ?? c.fechaContratacion ?? '',
-      estado: c.estado ?? 'ACTIVO',
+      estado: mapEstado(c),
       urlLicencia: c.archivolicenciaurl ?? c.rutalicencia ?? c.ruta_licencia ?? c.url_licencia ?? c.licenciaUrl ?? c.archivolicencia ?? c.archivo_licencia ?? (typeof c.licencia === 'string' && c.licencia.startsWith('http') ? c.licencia : undefined),
       createdAt: c.createdAt ?? '',
       updatedAt: c.updatedAt ?? '',
@@ -115,9 +121,9 @@ export class ApiConductorRepository implements ConductorRepository {
       categoriaLicencia: c.categorialicencia ?? c.categoriaLicencia ?? '',
       vencimientoLicencia: c.fechavencimientolicencia ?? c.vencimientoLicencia ?? '',
       telefono: c.telefono,
-      email: c.correoelectronico ?? c.email ?? '',
+      email: c.correoelectronico ?? c.correo ?? c.email ?? '',
       fechaContratacion: c.fechacontratacion ?? c.fechaContratacion ?? '',
-      estado: c.estado ?? 'ACTIVO',
+      estado: mapEstado(c),
       urlLicencia: c.archivolicenciaurl ?? c.rutalicencia ?? c.ruta_licencia ?? c.url_licencia ?? c.licenciaUrl ?? c.archivolicencia ?? c.archivo_licencia ?? (typeof c.licencia === 'string' && c.licencia.startsWith('http') ? c.licencia : undefined),
       createdAt: c.createdAt ?? '',
       updatedAt: c.updatedAt ?? '',
@@ -125,6 +131,10 @@ export class ApiConductorRepository implements ConductorRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await httpClient.delete(`/conductores/${id}`);
+    await httpClient.patch(`/conductores/desactivar/${id}`);
+  }
+
+  async activate(id: string): Promise<void> {
+    await httpClient.patch(`/conductores/activar/${id}`);
   }
 }

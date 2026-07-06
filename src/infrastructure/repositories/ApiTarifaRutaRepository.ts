@@ -50,4 +50,21 @@ export class ApiTarifaRutaRepository implements TarifaRutaRepository {
   async eliminar(id: string): Promise<void> {
     await httpClient.delete(`/tarifas-ruta/${id}`);
   }
+
+  // Aliases used by use-cases
+  async save(data: Partial<TarifaRuta>): Promise<TarifaRuta> {
+    return this.crear(data);
+  }
+
+  async delete(id: string): Promise<void> {
+    return this.eliminar(id);
+  }
+
+  async findByRuta(idRuta: string): Promise<TarifaRuta[]> {
+    return this.obtenerPorRuta(idRuta);
+  }
+
+  async update(id: string, data: Partial<TarifaRuta>): Promise<TarifaRuta> {
+    return this.actualizar(id, data);
+  }
 }

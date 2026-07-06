@@ -3,6 +3,8 @@ export interface Ciudad {
   nombre: string;
   departamento: string;
   codigo: string;
+  codigoDane: string | null;
+  urlImagenCiudad: string | null;
   activo: boolean;
   createdAt: Date;
   updatedAt: Date;

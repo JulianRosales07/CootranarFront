@@ -4,6 +4,9 @@ export interface Oficina {
   codigo: string;
   agenciaId: string;
   activo: boolean;
+  direccion?: string;
+  telefono?: string;
+  email?: string;
   createdAt: Date;
   updatedAt: Date;
 }

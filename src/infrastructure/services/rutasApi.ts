@@ -29,11 +29,14 @@ export const rutasApi = {
     httpClient.patch(`/rutas/desactivar/${id}`),
 
   eliminar: (id: string | number) => 
-    httpClient.patch(`/rutas/desactivar/${id}`),
+    httpClient.delete(`/rutas/${id}`),
 
   obtenerPuntos: (idruta: string | number) =>
     httpClient.get(`/rutas/${idruta}/puntos`),
 
   obtenerCompletitudTarifas: (idruta: string | number) =>
     httpClient.get(`/rutas/${idruta}/tarifas/completitud`),
+
+  obtenerResumenRecorridos: () =>
+    httpClient.get('/rutas/resumen-recorridos'),
 };

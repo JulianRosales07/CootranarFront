@@ -1,55 +1,76 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { rutasApi } from '../../infrastructure/services/rutasApi';
 
-export const useRutas = () => {
+export type FiltroRutas = 'todos' | 'activos' | 'inactivos';
+
+interface UseRutasOptions {
+  filtro?: FiltroRutas;
+  busqueda?: string;
+  page?: number;
+  limit?: number;
+}
+
+interface RutasResult {
+  rutas: ReturnType<typeof mapearRuta>[];
+  total: number;
+}
+
+const mapearRuta = (ruta: any) => ({
+  id: ruta.idruta,
+  nombre: ruta.nombre,
+  origen: ruta.idagenciaorigen ? String(ruta.idagenciaorigen) : '',
+  destino: ruta.idagenciadestino ? String(ruta.idagenciadestino) : '',
+  tiporuta: ruta.tiporuta || 'INTERMUNICIPAL',
+  duracionMinutos: ruta.duracionaprox || 0,
+  duracionh: ruta.duracionh ?? 0,
+  duracionm: ruta.duracionm ?? 0,
+  precioBase: ruta.distanciakm || 0,
+  distanciakm: ruta.distanciakm || null,
+  via: ruta.via || '',
+  activa: ruta.activo !== false,
+  precioNormal: ruta.valornormal ? Number(ruta.valornormal) : null,
+  precioTraficoAlto: ruta.valortraficoalto ? Number(ruta.valortraficoalto) : null,
+  adicionalPoltrona: ruta.adicionalpoltrona ? Number(ruta.adicionalpoltrona) : null,
+  precioActual: ruta.precioactual ? Number(ruta.precioactual) : null,
+  estadoPrecio: ruta.estraficoalto ? 'trafico-alto' : 'normal',
+  tipoBus: ruta.nombretipobus || null,
+  idTipoBus: ruta.idtipobus || null,
+  nombreagenciaorigen: ruta.nombreagenciaorigen || '',
+  nombreagenciadestino: ruta.nombreagenciadestino || '',
+});
+
+export const useRutas = (options: UseRutasOptions = {}) => {
+  const { filtro = 'todos', busqueda = '', page = 1, limit = 10 } = options;
   const queryClient = useQueryClient();
 
-  const { data: rutas, isLoading, error } = useQuery({
-    queryKey: ['rutas'],
+  const { data, isLoading, error } = useQuery<RutasResult>({
+    queryKey: ['rutas', filtro, busqueda, page, limit],
     queryFn: async () => {
-      const response = await rutasApi.obtenerTodas({ limit: 100, page: 1 });
-      console.log('Response rutas:', response.data);
-      const data = response.data.data;
-      const rutasArray = data.rutas || data || [];
-      
-      // Debug: ver una ruta completa
-      if (rutasArray.length > 0) {
-        console.log('Primera ruta raw:', rutasArray[0]);
+      const params = { limit, page };
+      let response;
+
+      if (busqueda.trim()) {
+        response = await rutasApi.buscar(busqueda.trim(), params);
+      } else if (filtro === 'activos') {
+        response = await rutasApi.obtenerActivas(params);
+      } else if (filtro === 'inactivos') {
+        response = await rutasApi.obtenerInactivas(params);
+      } else {
+        response = await rutasApi.obtenerTodas(params);
       }
 
-      // Mapear campos del backend al frontend
-      const rutasMapeadas = rutasArray.map((ruta: any) => ({
-        id: ruta.idruta,
-        nombre: ruta.nombre,
-        origen: ruta.idagenciaorigen ? String(ruta.idagenciaorigen) : '',
-        destino: ruta.idagenciadestino ? String(ruta.idagenciadestino) : '',
-        tiporuta: ruta.tiporuta || 'INTERMUNICIPAL',
-        duracionMinutos: ruta.duracionaprox || 0,
-        duracionh: ruta.duracionh ?? 0,
-        duracionm: ruta.duracionm ?? 0,
-        precioBase: ruta.distanciakm || 0,
-        distanciakm: ruta.distanciakm || null,
-        via: ruta.via || '',
-        activa: ruta.activo !== false,
-        precioNormal: ruta.valornormal ? Number(ruta.valornormal) : null,
-        precioTraficoAlto: ruta.valortraficoalto ? Number(ruta.valortraficoalto) : null,
-        adicionalPoltrona: ruta.adicionalpoltrona ? Number(ruta.adicionalpoltrona) : null,
-        precioActual: ruta.precioactual ? Number(ruta.precioactual) : null,
-        estadoPrecio: ruta.estraficoalto ? 'trafico-alto' : 'normal',
-        tipoBus: ruta.nombretipobus || null,
-        idTipoBus: ruta.idtipobus || null,
-        nombreagenciaorigen: ruta.nombreagenciaorigen || '',
-        nombreagenciadestino: ruta.nombreagenciadestino || '',
-      }));
-      
-      // Debug: ver una ruta mapeada
-      if (rutasMapeadas.length > 0) {
-        console.log('Primera ruta mapeada:', rutasMapeadas[0]);
-      }
-      
-      return rutasMapeadas;
+      const responseData = response.data.data || response.data;
+      const rutasArray = responseData.rutas || responseData || [];
+      const paginacion = responseData.paginacion || response.data.paginacion;
+      const total = paginacion?.total ?? rutasArray.length;
+
+      return { rutas: rutasArray.map(mapearRuta), total };
     },
+    placeholderData: keepPreviousData,
   });
+
+  const rutas = data?.rutas;
+  const total = data?.total ?? 0;
 
   const create = useMutation({
     mutationFn: async (data: any) => {
@@ -127,7 +148,7 @@ export const useRutas = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['rutas'] }),
   });
 
-  return { rutas, isLoading, error, create, update, remove, toggleEstado };
+  return { rutas, total, isLoading, error, create, update, remove, toggleEstado };
 };
 
 /** Hook auxiliar para obtener los puntos de una ruta específica */

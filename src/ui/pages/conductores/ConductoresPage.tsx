@@ -109,7 +109,7 @@ const inputWithIconStyle: React.CSSProperties = {
 
 /* ═══════════════════════════════════════════════════════════ */
 export const ConductoresPage = () => {
-  const { conductores, isLoading, create, update, remove } = useConductores();
+  const { conductores, isLoading, create, update, remove, activate: _activate } = useConductores();
 
   /* ── form state ──────────────────────────────────────────── */
   const [nombre, setNombre]                     = useState('');
@@ -197,10 +197,12 @@ export const ConductoresPage = () => {
     formData.append('fechavencimientolicencia', vencimientoLicencia);
     formData.append('telefono', telefono);
     formData.append('correoelectronico', email);
-    formData.append('email', email); // Para asegurar que el backend reciba el email
+    formData.append('email', email);
     formData.append('correo', email);
     formData.append('fechacontratacion', fechaContratacion);
-    formData.append('estado', estado);
+    // El backend usa 'activo' (boolean), no 'estado' (string)
+    const activo = estado === 'ACTIVO' ? 'true' : 'false';
+    formData.append('activo', activo);
     
     if (archivoLicencia) {
       formData.append('licencia', archivoLicencia);
@@ -685,7 +687,7 @@ export const ConductoresPage = () => {
                             </button>
                             <button
                               title="Eliminar"
-                              onClick={() => handleDelete(conductor.id)}
+                              onClick={() => handleDelete(String(conductor.idusuario ?? conductor.id))}
                               style={{
                                 background: 'none', border: 'none', padding: 0,
                                 cursor: 'pointer', color: '#94a3b8',

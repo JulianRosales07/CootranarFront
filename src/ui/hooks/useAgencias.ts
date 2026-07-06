@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { agenciasApi } from '../../infrastructure/services/agenciasApi';
-import type { Agencia } from '../../domain/entities/Agencia';
 
 export const useAgencias = () => {
   const queryClient = useQueryClient();
@@ -52,6 +51,7 @@ export const useAgencias = () => {
       if (data.ciudadId) backendData.idciudad = parseInt(data.ciudadId, 10);
       if (data.direccion !== undefined) backendData.direccion = data.direccion || null;
       if (data.telefono !== undefined) backendData.telefono = data.telefono || null;
+      if (data.activo !== undefined) backendData.activo = data.activo;
       
       const response = await agenciasApi.actualizar(id, backendData);
       return response.data.data;

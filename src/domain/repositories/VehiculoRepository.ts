@@ -6,4 +6,5 @@ export interface VehiculoRepository {
   save(vehiculo: Omit<Vehiculo, 'id' | 'createdAt' | 'updatedAt'>): Promise<Vehiculo>;
   update(id: string, data: Partial<Vehiculo>): Promise<Vehiculo>;
   delete(id: string): Promise<void>;
+  activar(id: string): Promise<void>;
 }

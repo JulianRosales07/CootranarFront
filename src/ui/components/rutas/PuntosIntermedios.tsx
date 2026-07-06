@@ -74,7 +74,7 @@ export const PuntosIntermedios: React.FC<Props> = ({
       <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px 16px', overflowX: 'auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
           <VizNodo label={origenNombre} tipo="origen" />
-          {puntos.map((p, i) => {
+          {puntos.map((p, _i) => {
             const label = p.esAgencia
               ? (agencias.find(a => a.idagencia === parseInt(p.idagencia || ''))?.nombre || 'Agencia...')
               : (p.nombre || 'Punto...');
@@ -91,10 +91,10 @@ export const PuntosIntermedios: React.FC<Props> = ({
       </div>
 
       {/* Punto origen fijo */}
-      <div style={{ ...s.card, background: '#f0fdf4', borderColor: '#bbf7d0' }}>
-        <div style={{ ...s.badge, background: '#16a34a', color: 'white' }}>0</div>
+      <div style={{ ...s.card, background: '#f0f6ffff', borderColor: '#f0f4f9ff' }}>
+        <div style={{ ...s.badge, background: '#0D3B8E', color: 'white' }}>0</div>
         <span style={{ flex: 1, fontSize: '13px', fontWeight: 600, color: '#374151', alignSelf: 'center' }}>{origenNombre}</span>
-        <span style={{ fontSize: '11px', padding: '2px 10px', background: '#dcfce7', color: '#15803d', borderRadius: '12px', fontWeight: 600 }}>★ Origen</span>
+        <span style={{ fontSize: '11px', padding: '2px 10px', background: '#d8e8ffff',border:'solid 1px #0D3B8E', color: '#002975ff', borderRadius: '12px', fontWeight: 600 }}>★ Origen</span>
       </div>
 
       {/* Puntos intermedios editables */}
@@ -127,8 +127,8 @@ export const PuntosIntermedios: React.FC<Props> = ({
           {/* Toggle agencia/parada */}
           <button type="button" onClick={() => onToggleAgencia(p._id)} style={{
             ...s.iconBtn, gap: '4px', fontSize: '11px', padding: '4px 8px', borderRadius: '12px', flexShrink: 0, marginTop: '4px',
-            background: p.esAgencia ? '#dcfce7' : '#f1f5f9', color: p.esAgencia ? '#15803d' : '#64748b',
-            borderColor: p.esAgencia ? '#86efac' : '#e2e8f0',
+            background: p.esAgencia ? '#e7eaffff' : '#f1f5f9', color: p.esAgencia ? '#0D3B8E' : '#64748b',
+            borderColor: p.esAgencia ? '#0D3B8E' : '#e2e8f0',
           }}>
             <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>{p.esAgencia ? 'store' : 'location_on'}</span>
             {p.esAgencia ? 'Agencia' : 'Parada'}
@@ -172,9 +172,9 @@ export const PuntosIntermedios: React.FC<Props> = ({
 /* Sub-componentes de visualización */
 function VizNodo({ label, tipo }: { label: string; tipo: 'origen' | 'destino' | 'agencia' | 'parada' }) {
   const colors: Record<string, { bg: string; color: string; border?: string }> = {
-    origen: { bg: '#16a34a', color: 'white' },
+    origen: { bg: '#0D3B8E', color: 'white' },
     destino: { bg: '#1e293b', color: 'white' },
-    agencia: { bg: '#dcfce7', color: '#15803d', border: '2px solid #16a34a' },
+    agencia: { bg: '#d8e8ffff', color: '#0D3B8E', border: '2px solid #0D3B8E' },
     parada: { bg: 'white', color: '#94a3b8', border: '1px dashed #d1d5db' },
   };
   const c = colors[tipo];
@@ -185,7 +185,7 @@ function VizNodo({ label, tipo }: { label: string; tipo: 'origen' | 'destino' | 
       </div>
       <span style={{ fontSize: '10px', color: '#64748b', textAlign: 'center', whiteSpace: 'nowrap' }}>{label}</span>
       {(tipo === 'origen' || tipo === 'agencia') && (
-        <span style={{ fontSize: '9px', color: '#16a34a', fontWeight: 600 }}>★ vende</span>
+        <span style={{ fontSize: '9px', color: '#0D3B8E', fontWeight: 600 }}>★ vende</span>
       )}
     </div>
   );

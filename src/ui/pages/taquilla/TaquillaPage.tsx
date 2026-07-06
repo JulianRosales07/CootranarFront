@@ -1,7 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { Layout } from '../../components/layout/Layout';
-import { SeleccionTramo } from '../../components/taquilla/SeleccionTramo';
 import { BuscadorViajes } from '../../components/taquilla/BuscadorViajes';
 import { ListaViajes } from '../../components/taquilla/ListaViajes';
 import { VisualizadorAsientos } from '../../components/taquilla/VisualizadorAsientos';
@@ -9,10 +8,11 @@ import { FormularioPasajeros } from '../../components/taquilla/FormularioPasajer
 import { ResumenVenta } from '../../components/taquilla/ResumenVenta';
 import { TiquetesGenerados } from '../../components/taquilla/TiquetesGenerados';
 import { SelectorGrupo } from '../../components/taquilla/SelectorGrupo';
-import { IndicadorProgresoPasajero } from '../../components/taquilla/IndicadorProgresoPasajero';
 import { useTaquilla } from '../../hooks/useTaquilla';
+import { useAsientosRealtime } from '../../hooks/useAsientosRealtime';
 import metodosPagoApiService from '../../../infrastructure/services/metodosPagoApi';
 import taquillaApiService from '../../../infrastructure/services/taquillaApi';
+import asientosApiService from '../../../infrastructure/services/asientosApi';
 
 // ── Paleta MD3 ────────────────────────────────────────────────────────────────
 const C = {
@@ -30,7 +30,7 @@ const C = {
 
 const FONT = "'Hanken Grotesk', 'Plus Jakarta Sans', sans-serif";
 
-type Paso = 'busqueda' | 'configurar-grupo' | 'seleccion-tramo' | 'seleccion-asiento-pasajero' | 'seleccion-asientos' | 'datos-pasajeros' | 'resumen' | 'completado';
+type Paso = 'busqueda' | 'configurar-grupo' | 'seleccion-asientos' | 'datos-pasajeros' | 'resumen' | 'completado';
 
 interface ConfigPasajero {
   tipoPasajero: 'adulto' | 'nino';
@@ -82,11 +82,14 @@ export const TaquillaPage = () => {
   const [puntosRuta, setPuntosRuta] = useState<any[]>([]);
   const [tramoSeleccionado, setTramoSeleccionado] = useState<{ origen: number; destino: number; precio: number; tarifaCompleta?: any } | null>(null);
 
+  // ── Preservación de destinos al navegar hacia atrás (Req 7.4) ────────────
+  const [destinosPorPasajeroGuardados, setDestinosPorPasajeroGuardados] = useState<{ [idAsiento: number]: { puntoDestino: number; precio: number; tarifaCompleta?: any } } | null>(null);
+
   // ── Multi-tiquete ──────────────────────────────────────────────────────────
   const [configuracionGrupo, setConfiguracionGrupo] = useState<{ adultos: number; ninos: number } | null>(null);
   const [configPasajeros, setConfigPasajeros] = useState<ConfigPasajero[]>([]);
-  const [pasajeroActualIdx, setPasajeroActualIdx] = useState(0);
-  const [asientosYaSeleccionadosGrupo, setAsientosYaSeleccionadosGrupo] = useState<number[]>([]);
+  const [, setPasajeroActualIdx] = useState(0);
+  const [, setAsientosYaSeleccionadosGrupo] = useState<number[]>([]);
 
   // ── Viajes sugeridos (cargados desde el backend) ───────────────────────
   const [viajesSugeridos, setViajesSugeridos] = useState<any[]>([]);
@@ -100,19 +103,114 @@ export const TaquillaPage = () => {
     confirmarVenta, cancelarOperacion, descargarPdf, obtenerTarifaTramo,
   } = useTaquilla();
 
-  // ── Safety-net: liberar asientos si el componente se desmonta inesperadamente
-  // (cierre de pestaña, navegación del navegador, etc.)
-  useEffect(() => {
-    return () => {
-      // Solo ejecutar si hay asientos reservados sin completar la venta
-      if (viajeSeleccionado && asientosReservados.length) {
-        // Usamos el servicio directamente (no mutation) porque el componente ya se desmonta
-        import('../../../infrastructure/services/taquillaApi').then(({ default: svc }) => {
-          svc.cancelarOperacion({ idviaje: viajeSeleccionado.idviaje }).catch(() => {});
-        });
+  // ── Ref para asientos pendientes de confirmación Realtime ────────────────
+  const asientosPendientesRef = useRef<Set<number>>(new Set());
+
+  // ── Refs para liberación segura al cerrar pestaña / desmontar ────────────
+  const viajeRef = useRef<number | null>(null);
+  const asientosReservadosRef = useRef<number[]>([]);
+  const ventaCompletadaRef = useRef(false);
+
+  // ── Realtime: actualizar asientos cuando cambian externamente ──────────
+  useAsientosRealtime(
+    viajeSeleccionado?.idviaje ?? null,
+    useCallback((idasientoviaje: number, nuevoEstado: 'LIBRE' | 'RESERVADO' | 'VENDIDO') => {
+      // Si el asiento está en "pendientes" (yo lo acabo de reservar, esperando confirmación Realtime)
+      if (asientosPendientesRef.current.has(idasientoviaje) && nuevoEstado === 'RESERVADO') {
+        // Realtime confirmó MI reserva — ahora sí pintarlo como seleccionado (verde)
+        asientosPendientesRef.current.delete(idasientoviaje);
+        setAsientosReservados(prev => prev.includes(idasientoviaje) ? prev : [...prev, idasientoviaje]);
+        // No actualizar el estado del asiento en el array — el VisualizadorAsientos
+        // lo pintará verde porque está en asientosReservados (asientosSeleccionados prop)
+        return;
       }
+
+      // Si el asiento es MÍO (ya confirmado en mis reservados)
+      setAsientosReservados(prev => {
+        const esMio = prev.includes(idasientoviaje);
+        if (esMio) {
+          if (nuevoEstado === 'VENDIDO') {
+            // Conflicto: alguien más lo vendió — quitarlo
+            setAsientos(prevA => prevA.map(a =>
+              a.idasientoviaje === idasientoviaje ? { ...a, estado: nuevoEstado } : a
+            ));
+            return prev.filter(id => id !== idasientoviaje);
+          }
+          if (nuevoEstado === 'LIBRE') {
+            // Fue liberado externamente — quitarlo de mis reservados
+            setAsientos(prevA => prevA.map(a =>
+              a.idasientoviaje === idasientoviaje ? { ...a, estado: nuevoEstado } : a
+            ));
+            return prev.filter(id => id !== idasientoviaje);
+          }
+          // RESERVADO para mi propio asiento — no hacer nada
+          return prev;
+        }
+        // No es mío — actualizar normalmente el mapa de asientos
+        setAsientos(prevA => prevA.map(a =>
+          a.idasientoviaje === idasientoviaje ? { ...a, estado: nuevoEstado } : a
+        ));
+        return prev;
+      });
+    }, []),
+    useCallback(async () => {
+      // Reconexión Realtime — refetch puntual sin polling
+      if (!viajeSeleccionado) return;
+      try {
+        const res = await obtenerAsientos.mutateAsync(viajeSeleccionado.idviaje);
+        const nuevos: any[] = res.data?.data?.asientos || res.data?.asientos || [];
+        if (!nuevos.length) return;
+        setAsientos(prev => prev.map(a => {
+          if (asientosReservados.includes(a.idasientoviaje)) return a;
+          const actualizado = nuevos.find((n: any) => n.idasientoviaje === a.idasientoviaje);
+          return actualizado ?? a;
+        }));
+      } catch { /* silencioso */ }
+    }, [viajeSeleccionado])
+  );
+
+  // ── Safety-net: liberar asientos al cerrar pestaña (pagehide + sendBeacon) ──
+  // y al desmontar el componente por navegación interna (useEffect return)
+  useEffect(() => {
+    // Sincronizar refs con state actual
+    viajeRef.current = viajeSeleccionado?.idviaje ?? null;
+    asientosReservadosRef.current = asientosReservados;
+  });
+
+  useEffect(() => {
+    // Marcar venta como completada para evitar liberación innecesaria
+    if (pasoActual === 'completado') {
+      ventaCompletadaRef.current = true;
+      viajeRef.current = null;
+      asientosReservadosRef.current = [];
+    }
+  }, [pasoActual]);
+
+  useEffect(() => {
+    const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+
+    const handlePageHide = () => {
+      if (ventaCompletadaRef.current) return;
+      const idviaje = viajeRef.current;
+      if (!idviaje || asientosReservadosRef.current.length === 0) return;
+      const url = `${apiBase}/taquilla/ventas/cancelar`;
+      const blob = new Blob([JSON.stringify({ idviaje })], { type: 'application/json' });
+      navigator.sendBeacon(url, blob);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    window.addEventListener('pagehide', handlePageHide);
+
+    return () => {
+      window.removeEventListener('pagehide', handlePageHide);
+      // Cleanup por desmontaje (navegación interna React Router)
+      if (ventaCompletadaRef.current) return;
+      const idviaje = viajeRef.current;
+      if (!idviaje || asientosReservadosRef.current.length === 0) return;
+      // Usamos import dinámico porque el componente ya se desmonta
+      import('../../../infrastructure/services/taquillaApi').then(({ default: svc }) => {
+        svc.cancelarOperacion({ idviaje }).catch(() => {});
+      });
+    };
   }, []);
 
   useEffect(() => {
@@ -174,7 +272,27 @@ export const TaquillaPage = () => {
         
         if (pts && pts.length > 0) {
           setPuntosRuta(pts); // Guardar todos los puntos
-          const puntoDestino = pts[pts.length - 1].idpuntoruta;
+          
+          // Determinar punto destino: usar el destino buscado (tramo de paso) si existe,
+          // sino usar el último punto de la ruta (viaje directo/completo)
+          let puntoDestino = pts[pts.length - 1].idpuntoruta;
+          
+          // Si el viaje es de paso, tiene idpuntodestino_buscado con el punto exacto que el usuario buscó
+          if (viaje.idpuntodestino_buscado) {
+            puntoDestino = viaje.idpuntodestino_buscado;
+            console.log('📍 Viaje de paso: usando destino buscado:', puntoDestino);
+          } else if (viaje.ciudaddestino) {
+            // Fallback: buscar en los puntos de la ruta uno que coincida con la ciudad destino del viaje
+            const puntoCoincide = pts.find((p: any) => 
+              p.nombre?.toLowerCase().includes(viaje.ciudaddestino.toLowerCase()) ||
+              viaje.ciudaddestino.toLowerCase().includes(p.nombre?.toLowerCase())
+            );
+            if (puntoCoincide) {
+              puntoDestino = puntoCoincide.idpuntoruta;
+              console.log('📍 Destino coincide con ciudad buscada:', puntoCoincide.nombre);
+            }
+          }
+          
           setPuntoDestinoFinal(puntoDestino);
           console.log('✅ Punto destino final:', puntoDestino);
         }
@@ -205,7 +323,7 @@ export const TaquillaPage = () => {
         }
       }
       
-      setPasoActual('configurar-grupo');
+      setPasoActual('seleccion-asientos');
     } catch (err: any) {
       alert(err.response?.data?.message || 'Error al procesar el viaje');
     }
@@ -222,25 +340,10 @@ export const TaquillaPage = () => {
     setPasajeroActualIdx(0);
     setAsientosYaSeleccionadosGrupo([]);
     setAsientosReservados([]);
-    setPasoActual('seleccion-tramo');
+    setPasoActual('seleccion-asientos');
   };
 
-  // ── Paso 2.5: Selección de Tramo (por pasajero) ───────────────────────────
-  const handleSeleccionarTramo = (puntoOrigen: number, puntoDestino: number, precio: number, tarifaCompleta?: any) => {
-    // Multi-tiquete: guardar el tramo del pasajero actual
-    if (configuracionGrupo && configPasajeros.length > 1) {
-      setConfigPasajeros(prev => prev.map((p, i) =>
-        i === pasajeroActualIdx ? { ...p, tramo: { origen: puntoOrigen, destino: puntoDestino, precio, tarifaCompleta } } : p
-      ));
-      setTramoSeleccionado({ origen: puntoOrigen, destino: puntoDestino, precio, tarifaCompleta });
-      setAsientosReservados([]);
-      setPasoActual('seleccion-asiento-pasajero');
-    } else {
-      // Flujo original (1 pasajero)
-      setTramoSeleccionado({ origen: puntoOrigen, destino: puntoDestino, precio, tarifaCompleta });
-      setPasoActual('seleccion-asientos');
-    }
-  };
+
 
   const handleConsultarTarifa = async (puntoOrigen: number, puntoDestino: number, piso: number) => {
     return await obtenerTarifaTramo.mutateAsync({
@@ -252,16 +355,40 @@ export const TaquillaPage = () => {
   };
 
   // ── Paso 3 ────────────────────────────────────────────────────────────────
-  const handleToggleAsiento = (id: number) =>
-    setAsientosReservados(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  const [reservandoAsiento, setReservandoAsiento] = useState<number | null>(null);
+
+  const handleToggleAsiento = async (id: number) => {
+    if (reservandoAsiento) return; // Evitar doble clic mientras procesa
+    setReservandoAsiento(id);
+    try {
+      const esMio = asientosReservados.includes(id) || asientosPendientesRef.current.has(id);
+      if (esMio) {
+        // Liberar — el asiento es mío (confirmado o pendiente de confirmación Realtime)
+        asientosPendientesRef.current.delete(id);
+        await asientosApiService.liberarAsientos(viajeSeleccionado.idviaje, [id]);
+        // NO quitar localmente — Realtime enviará LIBRE y el callback lo quitará
+        setAsientosReservados(prev => prev.filter(x => x !== id));
+      } else {
+        // Reservar — marcar como pendiente, NO pintar aún
+        asientosPendientesRef.current.add(id);
+        await asientosApiService.reservarAsientos({ idviaje: viajeSeleccionado.idviaje, asientos: [id] });
+        // NO agregar a asientosReservados aquí — Realtime confirmará y el callback lo pintará
+        // Así taquilla y plataforma ecommerce pintan al mismo tiempo (cuando Realtime llega)
+      }
+    } catch (err: any) {
+      // Si falló, quitar de pendientes
+      asientosPendientesRef.current.delete(id);
+      console.error('[Taquilla] Error al reservar/liberar asiento:', err);
+    } finally {
+      setReservandoAsiento(null);
+    }
+  };
 
   // ── Paso 4 ────────────────────────────────────────────────────────────────
   const handleContinuarAPasajeros = async () => {
     if (!asientosReservados.length) { alert('Seleccione al menos un asiento'); return; }
-    try {
-      await reservarAsientos.mutateAsync({ idviaje: viajeSeleccionado.idviaje, asientos: asientosReservados });
-      
-      const basePrice = Number(tramoSeleccionado?.precio || 50000);
+    // Los asientos ya están reservados desde el clic — no re-reservar aquí
+    const basePrice = Number(tramoSeleccionado?.precio || 50000);
       const adicPoltrona = Number(tramoSeleccionado?.tarifaCompleta?.adicionalPoltrona || 20000);
       
       const puntoOrigenSeleccionado = tramoSeleccionado?.origen;
@@ -290,63 +417,6 @@ export const TaquillaPage = () => {
         });
       setAsientosConDatos(sel);
       setPasoActual('datos-pasajeros');
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Error al reservar asientos');
-    }
-  };
-
-  // ── Paso asiento-por-pasajero (multi-tiquete) ────────────────────────────
-  const handleAsientoSeleccionadoPasajero = async () => {
-    if (!asientosReservados.length) { alert('Seleccione un asiento'); return; }
-    const idAsientoSeleccionado = asientosReservados[asientosReservados.length - 1];
-    const seatData = asientos.find(a => a.idasientoviaje === idAsientoSeleccionado);
-
-    try {
-      await reservarAsientos.mutateAsync({ idviaje: viajeSeleccionado.idviaje, asientos: [idAsientoSeleccionado] });
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Error al reservar asiento');
-      return;
-    }
-
-    // Guardar el asiento en la config del pasajero actual
-    setConfigPasajeros(prev => prev.map((p, i) =>
-      i === pasajeroActualIdx ? { ...p, idasientoviaje: idAsientoSeleccionado, numeroAsiento: seatData?.numeroasiento } : p
-    ));
-    setAsientosYaSeleccionadosGrupo(prev => [...prev, idAsientoSeleccionado]);
-
-    const siguiente = pasajeroActualIdx + 1;
-    if (siguiente < configPasajeros.length) {
-      // Hay más pasajeros → siguiente pasajero elige tramo y asiento
-      setPasajeroActualIdx(siguiente);
-      setAsientosReservados([]);
-      setTramoSeleccionado(null);
-      setPasoActual('seleccion-tramo');
-    } else {
-      // Último pasajero → armar asientosConDatos y pasar a datos-pasajeros
-      const updatedConfig = configPasajeros.map((p, i) =>
-        i === pasajeroActualIdx ? { ...p, idasientoviaje: idAsientoSeleccionado, numeroAsiento: seatData?.numeroasiento } : p
-      );
-
-      const sel = updatedConfig.map(cp => {
-        const seatRaw = asientos.find(a => a.idasientoviaje === cp.idasientoviaje);
-        const base = Number(cp.tramo?.precio || 50000);
-        const adPol = Number(cp.tramo?.tarifaCompleta?.adicionalPoltrona || 20000);
-        const precio = seatRaw?.espoltrona ? base + adPol : base;
-        const pOrigenObj = puntosRuta.find(pt => pt.idpuntoruta === cp.tramo?.origen);
-        const pDestinoObj = puntosRuta.find(pt => pt.idpuntoruta === cp.tramo?.destino);
-        return {
-          ...seatRaw,
-          numero: seatRaw?.numeroasiento, // Mapear numeroasiento a numero
-          pasajero: undefined,
-          puntoOrigen: { idpuntoruta: cp.tramo?.origen, nombre: pOrigenObj?.nombre },
-          puntoDestino: { idpuntoruta: cp.tramo?.destino, nombre: pDestinoObj?.nombre },
-          precio,
-          tipoPasajero: cp.tipoPasajero,
-        };
-      });
-      setAsientosConDatos(sel);
-      setPasoActual('datos-pasajeros');
-    }
   };
 
   // ── Paso 5 ────────────────────────────────────────────────────────────────
@@ -358,18 +428,17 @@ export const TaquillaPage = () => {
   };
 
   // ── Paso 6 ────────────────────────────────────────────────────────────────
-  const handleAsignarPasajero = async (idAsiento: number, pasajero: any) => {
+  const handleAsignarPasajero = async (idAsiento: number, pasajero: any, destino?: { puntoDestino: number; precio: number; tarifaCompleta?: any }) => {
     const res = await buscarOCrearPasajero.mutateAsync(pasajero);
     const pasajeroCreado = res.data.data.usuario;
     
-    // CRÍTICO: Usar SIEMPRE el tramo seleccionado
-    const puntoOrigenSeleccionado = tramoSeleccionado?.origen;
-    const puntoDestinoSeleccionado = tramoSeleccionado?.destino;
+    // Prioridad: destino del FormularioPasajeros (selector inline) > tramoSeleccionado > defaults
+    const puntoOrigenSeleccionado = puntoOrigenTaquillero || tramoSeleccionado?.origen;
+    const puntoDestinoSeleccionado = destino?.puntoDestino || tramoSeleccionado?.destino || puntoDestinoFinal;
     
-    // El precio ya fue calculado e inicializado correctamente en handleContinuarAPasajeros
-    // Solo lo recuperamos del estado actual de asientosConDatos
+    // Precio: usar el del destino inline si existe, sino fallback al tramo o al asiento actual
     const asientoConDatosActual = asientosConDatos.find(a => a.idasientoviaje === idAsiento);
-    const precioCalculado = asientoConDatosActual?.precio || tramoSeleccionado?.precio || 50000;
+    const precioCalculado = destino?.precio || asientoConDatosActual?.precio || tramoSeleccionado?.precio || 50000;
     
     // Obtener nombres de los puntos
     const puntoOrigenObj = puntosRuta.find(p => p.idpuntoruta === puntoOrigenSeleccionado);
@@ -453,6 +522,7 @@ export const TaquillaPage = () => {
     setConfigPasajeros([]);
     setPasajeroActualIdx(0);
     setAsientosYaSeleccionadosGrupo([]);
+    setDestinosPorPasajeroGuardados(null);
     setPasoActual('busqueda');
   };
 
@@ -648,14 +718,12 @@ export const TaquillaPage = () => {
             {renderBreadcrumb()}
             <h1 style={{ fontSize: '42px', fontWeight: '800', color: C.primary, margin: 0, lineHeight: 1.1, letterSpacing: '-0.02em' }}>
               {pasoActual === 'busqueda'           && 'Buscador de Viajes'}
-              {pasoActual === 'seleccion-tramo'    && 'Selección de Tramo'}
               {pasoActual === 'seleccion-asientos' && 'Selección de Asientos'}
               {pasoActual === 'datos-pasajeros'    && 'Datos de Pasajeros'}
               {pasoActual === 'resumen'             && 'Resumen de Pago'}
             </h1>
             <p style={{ fontSize: '15px', color: C.onSurfaceVariant, marginTop: '6px', fontWeight: '500' }}>
               {pasoActual === 'busqueda'            && 'Gestione las rutas y disponibilidad en tiempo real para el sistema COOTRANAR.'}
-              {pasoActual === 'seleccion-tramo'     && 'Selecciona el origen y destino del pasajero para ver el precio del tramo.'}
               {pasoActual === 'seleccion-asientos'  && 'Selecciona los asientos disponibles para tu viaje.'}
               {pasoActual === 'datos-pasajeros'     && 'Completa los datos de cada pasajero asignado.'}
               {pasoActual === 'resumen'              && 'Verifica la información antes de confirmar el pago.'}
@@ -671,6 +739,7 @@ export const TaquillaPage = () => {
           <BuscadorViajes
             pasoActual={pasoActual}
             onBuscar={handleBuscarViajes}
+            onLimpiar={() => setViajes([])}
             cargando={buscarViajes.isPending}
           />
 
@@ -699,67 +768,9 @@ export const TaquillaPage = () => {
         />
       )}
 
-      {/* ── Paso: Selección de Tramo ────────────────────────────────────── */}
-      {pasoActual === 'seleccion-tramo' && viajeSeleccionado && (
-        <>
-          {configuracionGrupo && configPasajeros.length > 1 && (
-            <IndicadorProgresoPasajero
-              pasajeros={configPasajeros}
-              indiceActual={pasajeroActualIdx}
-              subfase="tramo"
-            />
-          )}
-          <SeleccionTramo
-            viaje={viajeSeleccionado}
-            puntosRuta={puntosRuta}
-            puntoOrigenDefault={puntoOrigenTaquillero || undefined}
-            puntoDestinoDefault={puntoDestinoFinal || undefined}
-            onContinuar={handleSeleccionarTramo}
-            onVolver={() => configuracionGrupo ? setPasoActual('configurar-grupo') : setPasoActual('busqueda')}
-            onConsultarTarifa={handleConsultarTarifa}
-            pasajeroIdx={configuracionGrupo && configPasajeros.length > 1 ? pasajeroActualIdx : undefined}
-            totalPasajeros={configPasajeros.length}
-            tipoPasajero={configPasajeros[pasajeroActualIdx]?.tipoPasajero}
-          />
-        </>
-      )}
 
-      {/* ── Paso: Asiento individual por pasajero (multi-tiquete) ─────────── */}
-      {pasoActual === 'seleccion-asiento-pasajero' && viajeSeleccionado && (
-        <>
-          <IndicadorProgresoPasajero
-            pasajeros={configPasajeros}
-            indiceActual={pasajeroActualIdx}
-            subfase="asiento"
-          />
-          <VisualizadorAsientos
-            viaje={viajeSeleccionado}
-            asientos={asientos}
-            asientosSeleccionados={asientosReservados}
-            onSeleccionar={(id) => setAsientosReservados([id])}
-            onContinuar={handleAsientoSeleccionadoPasajero}
-            onCancelar={async () => {
-              // Si ya había asientos reservados para pasajeros anteriores del grupo,
-              // hay que liberarlos antes de volver a selección de tramo
-              if (asientosYaSeleccionadosGrupo.length > 0 || asientosReservados.length > 0) {
-                await liberarAsientosYRefrescar();
-                setAsientosYaSeleccionadosGrupo([]);
-                setConfigPasajeros(prev => prev.map(p => ({ ...p, idasientoviaje: undefined, numeroAsiento: undefined })));
-                setPasajeroActualIdx(0);
-              }
-              setPasoActual('seleccion-tramo');
-            }}
-            cargando={reservarAsientos.isPending}
-            precioBase={tramoSeleccionado?.precio}
-            adicionalPoltrona={tramoSeleccionado?.tarifaCompleta?.adicionalPoltrona}
-            asientosYaSeleccionados={asientosYaSeleccionadosGrupo}
-            pasajeroIdx={pasajeroActualIdx}
-            totalPasajeros={configPasajeros.length}
-            tipoPasajero={configPasajeros[pasajeroActualIdx]?.tipoPasajero}
-            modoSingleSeleccion={true}
-          />
-        </>
-      )}
+
+
 
       {/* ── Paso: Asientos (flujo original 1 pasajero) ─────────────────── */}
       {pasoActual === 'seleccion-asientos' && viajeSeleccionado && (
@@ -769,7 +780,11 @@ export const TaquillaPage = () => {
           asientosSeleccionados={asientosReservados}
           onSeleccionar={handleToggleAsiento}
           onContinuar={handleContinuarAPasajeros}
-          onCancelar={() => setPasoActual('seleccion-tramo')}
+          onCancelar={async () => {
+            // Req 7.1: Liberar asientos reservados antes de volver a búsqueda
+            await liberarAsientosYRefrescar();
+            setPasoActual('busqueda');
+          }}
           cargando={reservarAsientos.isPending}
           precioBase={tramoSeleccionado?.precio}
           adicionalPoltrona={tramoSeleccionado?.tarifaCompleta?.adicionalPoltrona}
@@ -785,8 +800,7 @@ export const TaquillaPage = () => {
           onAsignarPasajero={handleAsignarPasajero}
           onContinuar={handleContinuarAResumen}
           onVolver={async () => {
-            // ¡CRÍTICO! Liberar los asientos reservados en el backend antes de volver.
-            // Sin esto, los asientos quedan bloqueados y nadie más puede comprarlos.
+            // Req 7.2: Liberar asientos reservados antes de volver a seleccion-asientos
             await liberarAsientosYRefrescar();
             // Para el flujo grupal, volver al selector de asiento del primer pasajero
             if (configuracionGrupo && configPasajeros.length > 1) {
@@ -794,12 +808,19 @@ export const TaquillaPage = () => {
               setConfigPasajeros(prev => prev.map(p => ({ ...p, idasientoviaje: undefined, numeroAsiento: undefined })));
               setPasajeroActualIdx(0);
               setTramoSeleccionado(null);
-              setPasoActual('seleccion-tramo');
-            } else {
-              setPasoActual('seleccion-asientos');
             }
+            setPasoActual('seleccion-asientos');
           }}
+          onGuardarDestinos={(destinos) => {
+            // Req 7.4: Preservar destinos al navegar hacia atrás
+            setDestinosPorPasajeroGuardados(destinos);
+          }}
+          destinosGuardados={destinosPorPasajeroGuardados}
           cargando={buscarOCrearPasajero.isPending}
+          puntosRuta={puntosRuta}
+          puntoOrigenDefault={puntoOrigenTaquillero!}
+          puntoDestinoDefault={puntoDestinoFinal!}
+          onConsultarTarifa={handleConsultarTarifa}
         />
       )}
 

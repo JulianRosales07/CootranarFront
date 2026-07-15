@@ -16,6 +16,8 @@ interface VisualizadorAsientosProps {
   totalPasajeros?: number;
   tipoPasajero?: 'adulto' | 'nino';
   modoSingleSeleccion?: boolean;
+  // Tramo de paso
+  tramoInfo?: { origen: string; destino: string } | null;
 }
 
 export const VisualizadorAsientos: React.FC<VisualizadorAsientosProps> = ({
@@ -33,6 +35,7 @@ export const VisualizadorAsientos: React.FC<VisualizadorAsientosProps> = ({
   totalPasajeros: _totalPasajeros = 1,
   tipoPasajero: _tipoPasajero,
   modoSingleSeleccion: _modoSingleSeleccion = false,
+  tramoInfo,
 }) => {
   const [pisoActual, setPisoActual] = useState(1);
   const [distribucionGrid, setDistribucionGrid] = useState<{ distribucion: any[]; columnas: number }>(() => {
@@ -155,6 +158,14 @@ export const VisualizadorAsientos: React.FC<VisualizadorAsientosProps> = ({
             <p style={{ fontSize: 12, color: '#5f7080', fontWeight: 500, margin: 0 }}>
               {viaje?.nombretipobus || 'Bus Clásico'} • Vehículo #{viaje?.numeromovil || '1042'} • {fmtFecha(viaje?.fechasalida)}
             </p>
+            {tramoInfo && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 14, color: '#0058be' }}>route</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: '#0058be', background: '#eff6ff', borderRadius: 6, padding: '2px 8px' }}>
+                  Tramo: {tramoInfo.origen} → {tramoInfo.destino}
+                </span>
+              </div>
+            )}
           </div>
         </div>
         <div style={{ textAlign: 'right' }}>

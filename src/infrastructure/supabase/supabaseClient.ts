@@ -4,7 +4,7 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  console.warn('[Supabase] VITE_SUPABASE_URL o VITE_SUPABASE_ANON_KEY no configuradas — Realtime deshabilitado');
+  throw new Error('[Supabase] VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY son requeridas para el funcionamiento del sistema. Por favor configura el archivo .env');
 }
 
-export const supabase = createClient(SUPABASE_URL ?? '', SUPABASE_ANON_KEY ?? '');
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);

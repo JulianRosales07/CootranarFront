@@ -251,6 +251,8 @@ export const LoginPage = () => {
       setTimeout(() => {
         if (loggedUser?.nombrerol === 'TAQUILLERO') {
           navigate(ROUTES.TAQUILLA);
+        } else if (loggedUser?.nombrerol === 'EMPLEADO_ENCOMIENDAS') {
+          navigate(ROUTES.ENCOMIENDAS);
         } else {
           navigate(ROUTES.DASHBOARD);
         }

@@ -38,6 +38,7 @@ const sections: NavSection[] = [
     { path: ROUTES.USUARIOS, label: 'Gestión de Usuarios', icon: 'manage_accounts' },
   ]},
   { title: 'Encomiendas', items: [
+    { path: ROUTES.ENCOMIENDAS, label: 'Gestión de Encomiendas', icon: 'inventory_2' },
     { path: ROUTES.OFICINAS_ENCOMIENDAS, label: 'Oficinas de Encomiendas', icon: 'local_shipping' },
     { path: ROUTES.EMPLEADOS_ENCOMIENDAS, label: 'Empleados Encomiendas', icon: 'package_2' },
   ]},
@@ -62,6 +63,10 @@ export const Sidebar = () => {
       if (user?.nombrerol === 'TAQUILLERO') {
         // El taquillero solo tiene acceso a Venta de Tiquetes (TAQUILLA), Gestión de Viajes (VIAJES) y Tiquetes por Viaje
         return item.path === ROUTES.TAQUILLA || item.path === ROUTES.VIAJES || item.path === ROUTES.GESTION_TIQUETES;
+      }
+      if (user?.nombrerol === 'EMPLEADO_ENCOMIENDAS') {
+        // El empleado de encomiendas tiene acceso a todas las pantallas relacionadas con encomiendas
+        return item.path === ROUTES.ENCOMIENDAS || item.path === ROUTES.OFICINAS_ENCOMIENDAS || item.path === ROUTES.EMPLEADOS_ENCOMIENDAS;
       }
       return true;
     });

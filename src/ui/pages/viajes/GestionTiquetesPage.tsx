@@ -78,6 +78,8 @@ interface Tiquete {
   // Tramo
   origentramo?: string;
   destinotramo?: string;
+  // PDF
+  urlpdf?: string | null;
 }
 
 // ── Buscador de viajes ────────────────────────────────────────────────────────
@@ -216,13 +218,16 @@ const EstadoBadge = ({ validado }: { validado?: boolean }) => {
 };
 
 // ── Fila de tiquete en tabla ──────────────────────────────────────────────────
-const TiqueteFila = ({ t, onVerDetalle, onValidar, validando }: {
+const TiqueteFila = ({ t, onVerDetalle, onValidar, validando, onDescargarPdf, descargandoPdfId }: {
   t: Tiquete;
   onVerDetalle: (t: Tiquete) => void;
   onValidar: (t: Tiquete) => void;
   validando: boolean;
+  onDescargarPdf: (t: Tiquete) => void;
+  descargandoPdfId: number | null;
 }) => {
   const [hover, setHover] = useState(false);
+  const descargando = descargandoPdfId === t.idtiquete;
 
   return (
     <tr
@@ -270,6 +275,22 @@ const TiqueteFila = ({ t, onVerDetalle, onValidar, validando }: {
             <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>visibility</span>
             Detalle
           </button>
+          <button
+            onClick={() => onDescargarPdf(t)}
+            disabled={!t.urlpdf || descargando}
+            title={t.urlpdf ? 'Descargar PDF del tiquete' : 'PDF no disponible aún'}
+            style={{
+              padding: '6px 10px', background: C.surfaceContainerLow, color: C.onSurface, border: `1px solid ${C.outlineVariant}`,
+              borderRadius: '7px', cursor: (!t.urlpdf || descargando) ? 'not-allowed' : 'pointer',
+              display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: '700',
+              fontFamily: FONT, opacity: (!t.urlpdf || descargando) ? 0.5 : 1,
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>
+              {descargando ? 'progress_activity' : 'picture_as_pdf'}
+            </span>
+            {descargando ? 'Abriendo…' : 'PDF'}
+          </button>
           {!t.validado && (
             <button
               onClick={() => onValidar(t)}
@@ -313,13 +334,16 @@ const TH: React.CSSProperties = {
 };
 
 // ── Modal de detalle del tiquete ──────────────────────────────────────────────
-const ModalDetalle = ({ tiquete, viaje, onClose, onValidar, validando }: {
+const ModalDetalle = ({ tiquete, viaje, onClose, onValidar, validando, onDescargarPdf, descargandoPdfId }: {
   tiquete: Tiquete;
   viaje: ViajeResumen | null;
   onClose: () => void;
   onValidar: (t: Tiquete) => void;
   validando: boolean;
+  onDescargarPdf: (t: Tiquete) => void;
+  descargandoPdfId: number | null;
 }) => {
+  const descargando = descargandoPdfId === tiquete.idtiquete;
   const seccion = (titulo: string, icono: string, children: React.ReactNode) => (
     <div style={{ marginBottom: '20px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', paddingBottom: '8px', borderBottom: `1px solid ${C.outlineVariant}` }}>
@@ -441,6 +465,25 @@ const ModalDetalle = ({ tiquete, viaje, onClose, onValidar, validando }: {
             {campo('Forma de Pago', tiquete.formapago)}
           </>)}
 
+          {/* Botón descargar PDF */}
+          <button
+            onClick={() => onDescargarPdf(tiquete)}
+            disabled={!tiquete.urlpdf || descargando}
+            title={tiquete.urlpdf ? 'Descargar PDF del tiquete' : 'PDF no disponible aún'}
+            style={{
+              width: '100%', padding: '13px', background: '#fff', color: C.primary,
+              border: `1.5px solid ${C.primary}`, borderRadius: '12px', fontSize: '14px', fontWeight: '800',
+              cursor: (!tiquete.urlpdf || descargando) ? 'not-allowed' : 'pointer', fontFamily: FONT,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+              opacity: (!tiquete.urlpdf || descargando) ? 0.5 : 1, marginBottom: '10px',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '19px' }}>
+              {descargando ? 'progress_activity' : 'picture_as_pdf'}
+            </span>
+            {descargando ? 'Abriendo PDF…' : tiquete.urlpdf ? 'Descargar PDF del Tiquete' : 'PDF no disponible aún'}
+          </button>
+
           {/* Botón validar */}
           {!tiquete.validado && (
             <button
@@ -493,6 +536,9 @@ export const GestionTiquetesPage = () => {
   // Estado validación
   const [validando, setValidando] = useState(false);
   const [msgValidacion, setMsgValidacion] = useState<{ tipo: 'ok' | 'error'; texto: string } | null>(null);
+
+  // Estado descarga de PDF
+  const [descargandoPdfId, setDescargandoPdfId] = useState<number | null>(null);
 
   // Filtro/búsqueda en tabla
   const [filtroBusqueda, setFiltroBusqueda] = useState('');
@@ -558,6 +604,25 @@ export const GestionTiquetesPage = () => {
       setValidando(false);
     }
   }, [tiqueteDetalle]);
+
+  // ── Descargar PDF del tiquete ──────────────────────────────────────────────
+  const handleDescargarPdf = useCallback(async (t: Tiquete) => {
+    if (!t.urlpdf) return;
+    setDescargandoPdfId(t.idtiquete);
+    try {
+      const res = await taquillaApiService.descargarPdfTiquete(t.idtiquete);
+      const signedUrl = res.data?.data?.signedUrl;
+      if (signedUrl) {
+        window.open(signedUrl, '_blank');
+      } else {
+        alert('No se pudo generar el enlace de descarga.');
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'No se pudo descargar el PDF del tiquete.');
+    } finally {
+      setDescargandoPdfId(null);
+    }
+  }, []);
 
   // ── Filtrado de tiquetes ───────────────────────────────────────────────────
   const tiquetesFiltrados = tiquetes.filter(t => {
@@ -804,6 +869,8 @@ export const GestionTiquetesPage = () => {
                             onVerDetalle={setTiqueteDetalle}
                             onValidar={handleValidar}
                             validando={validando}
+                            onDescargarPdf={handleDescargarPdf}
+                            descargandoPdfId={descargandoPdfId}
                           />
                         ))
                       )}
@@ -838,6 +905,8 @@ export const GestionTiquetesPage = () => {
           onClose={() => setTiqueteDetalle(null)}
           onValidar={handleValidar}
           validando={validando}
+          onDescargarPdf={handleDescargarPdf}
+          descargandoPdfId={descargandoPdfId}
         />
       )}
     </Layout>

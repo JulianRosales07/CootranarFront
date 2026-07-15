@@ -40,11 +40,17 @@ export const AppRouter = () => {
             <Route path={ROUTES.GESTION_TIQUETES} element={<GestionTiquetesPage />} />
           </Route>
 
+          {/* Rutas de Encomiendas (Administrador y Empleado de Encomiendas) */}
+          <Route element={<PrivateRoute allowedRoles={['ADMINISTRADOR', 'EMPLEADO_ENCOMIENDAS']} />}>
+            <Route path={ROUTES.ENCOMIENDAS} element={<EncomiendaPage />} />
+            <Route path={ROUTES.EMPLEADOS_ENCOMIENDAS} element={<EmpleadosEncomiendasPage />} />
+            <Route path={ROUTES.OFICINAS_ENCOMIENDAS} element={<OficinasEncomiendasPage />} />
+          </Route>
+
           {/* Rutas exclusivas del Administrador */}
           <Route element={<PrivateRoute allowedRoles={['ADMINISTRADOR']} />}>
             <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
             <Route path={ROUTES.TIQUETES} element={<TiquetesPage />} />
-            <Route path={ROUTES.ENCOMIENDAS} element={<EncomiendaPage />} />
             <Route path={ROUTES.RUTAS} element={<RutasPage />} />
             <Route path="/rutas/:idruta/tarifas" element={<TarifasRutaPage />} />
             <Route path="/rutas/:idruta/tarifas-masivas" element={<ConfiguracionMasivaTarifasPage />} />
@@ -58,8 +64,6 @@ export const AppRouter = () => {
             <Route path={ROUTES.TIPOS_SERVICIO} element={<TiposServicioPage />} />
             <Route path={ROUTES.TIPOS_BUS} element={<TiposBusPage />} />
             <Route path={ROUTES.TAQUILLEROS} element={<TaquillerosPage />} />
-            <Route path={ROUTES.EMPLEADOS_ENCOMIENDAS} element={<EmpleadosEncomiendasPage />} />
-            <Route path={ROUTES.OFICINAS_ENCOMIENDAS} element={<OficinasEncomiendasPage />} />
             <Route path={ROUTES.USUARIOS} element={<UsuariosPage />} />
           </Route>
 

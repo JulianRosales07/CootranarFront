@@ -62,12 +62,17 @@ export class ApiAuthService implements AuthService {
         }
 
         // Mapear el usuario del backend al formato del frontend
+        let mappedRol = usuario?.nombrerol || usuario?.rol || 'ADMINISTRADOR';
+        if (mappedRol === 'ENCOMIENDAS') {
+          mappedRol = 'EMPLEADO_ENCOMIENDAS';
+        }
+
         const user: User = {
           idusuario: Number(usuario?.idusuario || usuario?.id || 0),
           correo: usuario?.correo || usuario?.email || credentials.correo,
           nombre: usuario?.nombre || 'Usuario',
           apellido: usuario?.apellido || '',
-          nombrerol: usuario?.nombrerol || usuario?.rol || 'ADMINISTRADOR',
+          nombrerol: mappedRol,
           activo: usuario?.activo !== undefined ? usuario?.activo : true,
         };
 

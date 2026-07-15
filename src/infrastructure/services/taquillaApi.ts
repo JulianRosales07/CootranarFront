@@ -92,9 +92,9 @@ export const taquillaApiService = {
     return taquillaApi.post('/ventas/cancelar', data);
   },
 
-  // Descargar PDF de tiquete
+  // Descargar PDF de tiquete (retorna una signedUrl temporal a Supabase Storage)
   descargarPdfTiquete: (idTiquete: number) => {
-    return taquillaApi.get(`/tiquetes/${idTiquete}/pdf`);
+    return taquillaApi.get<{ success: boolean; data: { signedUrl: string } }>(`/tiquetes/${idTiquete}/pdf`);
   },
 
   // Abrir taquilla

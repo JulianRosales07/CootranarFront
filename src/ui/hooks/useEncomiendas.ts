@@ -1,95 +1,102 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { encomiendasApi } from '../../infrastructure/services/encomiendasApi';
+import type { EncomiendaDTO, EstadoEncomienda } from '../../application/dto/EncomiendaDTO';
 
-export type EstadoEncomienda = 'RECIBIDA' | 'EN_TRANSITO' | 'ENTREGADA' | 'DEVUELTA';
+export type { EstadoEncomienda };
 
-const mapearEncomienda = (e: any) => ({
+export const mapearEncomienda = (e: any): EncomiendaDTO => ({
   id: String(e.idencomienda),
-  codigoReferencia: e.codigoreferencia || e.referencia || '',
-  remitenteNombre: e.remitentenombre || '',
-  remitenteDocumento: e.remitentedocumento || '',
-  remitenteTelefono: e.remitentetelefono || '',
-  destinatarioNombre: e.destinatarionombre || '',
-  destinatarioDocumento: e.destinatariodocumento || '',
-  destinatarioTelefono: e.destinatariotelefono || '',
-  peso: e.peso != null ? Number(e.peso) : 0,
-  descripcion: e.descripcion || '',
-  valorDeclarado: e.valordeclarado != null ? Number(e.valordeclarado) : 0,
-  oficinaOrigenId: e.idoficinaorigen ? String(e.idoficinaorigen) : '',
-  oficinaDestinoId: e.idoficinadestino ? String(e.idoficinadestino) : '',
+  referencia: e.referenciaencomienda || '',
+  idOficinaOrigen: e.idoficinaorigen ? String(e.idoficinaorigen) : '',
+  idOficinaDestino: e.idoficinadestino ? String(e.idoficinadestino) : '',
   oficinaOrigenNombre: e.nombreoficinaorigen || '',
   oficinaDestinoNombre: e.nombreoficinadestino || '',
-  estado: (e.estado || 'RECIBIDA') as EstadoEncomienda,
-  fechaEnvio: e.fechaenvio || null,
-  fechaEntregaEstimada: e.fechaentregaestimada || null,
+  nombreRemitente: e.nombreremitente || '',
+  nombreEmpleado: e.nombreempleado || '',
+  nombreDestinatario: e.nombredestinatario || '',
+  documentoDestinatario: e.documentodestinatario || '',
+  telefonoDestinatario: e.telefonodestinatario || '',
+  direccionDestinatario: e.direcciondestinatario || '',
+  contenidoDeclarado: e.contenidodeclarado || '',
+  pesoEstimado: e.pesoestimado != null ? Number(e.pesoestimado) : null,
+  volumenEstimado: e.volumenestimado != null ? Number(e.volumenestimado) : null,
+  pesoReal: e.pesoreal != null ? Number(e.pesoreal) : null,
+  volumenReal: e.volumenreal != null ? Number(e.volumenreal) : null,
+  valorDeclarado: e.valordeclarado != null ? Number(e.valordeclarado) : 0,
+  valorCobrado: e.valorcobrado != null ? Number(e.valorcobrado) : null,
+  esDomicilio: e.esdomicilio ?? false,
+  valorDomicilio: e.valordomicilio != null ? Number(e.valordomicilio) : 0,
+  estado: (e.estado || 'COTIZADA') as EstadoEncomienda,
+  fechaRegistro: e.fecharegistro || null,
+  fechaDespacho: e.fechadespacho || null,
+  fechaRecepcionDestino: e.fecharecepciondestino || null,
+  fechaEntrega: e.fechaentrega || null,
 });
 
-export const useEncomiendas = () => {
+interface FiltrosEncomiendas {
+  estado?: string;
+  busqueda?: string;
+  page?: number;
+  limit?: number;
+}
+
+export const useEncomiendas = (filtros: FiltrosEncomiendas = {}) => {
   const queryClient = useQueryClient();
+  const { estado, busqueda, page = 1, limit = 10 } = filtros;
 
-  const { data: encomiendas, isLoading, error } = useQuery({
-    queryKey: ['encomiendas'],
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['encomiendas', estado, busqueda, page, limit],
     queryFn: async () => {
-      const response = await encomiendasApi.obtenerTodas();
+      const params: Record<string, unknown> = { page, limit };
+      if (estado) params.estado = estado;
+      if (busqueda) params.busqueda = busqueda;
+
+      const response = await encomiendasApi.obtenerTodas(params);
       const data = response.data.data;
-      const encomiendasArray = data.encomiendas || data || [];
-      return encomiendasArray.map(mapearEncomienda);
-    },
-  });
-
-  const create = useMutation({
-    mutationFn: async (data: any) => {
-      const origenInt = parseInt(data.oficinaOrigenId, 10);
-      const destinoInt = parseInt(data.oficinaDestinoId, 10);
-
-      if (isNaN(origenInt) || isNaN(destinoInt)) {
-        throw new Error('Debe seleccionar oficina de origen y destino válidas');
-      }
-
-      const backendData = {
-        remitentenombre: data.remitenteNombre,
-        remitentedocumento: data.remitenteDocumento,
-        remitentetelefono: data.remitenteTelefono || null,
-        destinatarionombre: data.destinatarioNombre,
-        destinatariodocumento: data.destinatarioDocumento,
-        destinatariotelefono: data.destinatarioTelefono || null,
-        peso: parseFloat(data.peso) || 0,
-        descripcion: data.descripcion || null,
-        valordeclarado: parseFloat(data.valorDeclarado) || 0,
-        idoficinaorigen: origenInt,
-        idoficinadestino: destinoInt,
+      const encomiendasArray = data.encomiendas || [];
+      return {
+        encomiendas: encomiendasArray.map(mapearEncomienda),
+        paginacion: data.paginacion || null,
       };
-
-      const response = await encomiendasApi.crear(backendData);
-      return response.data.data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['encomiendas'] }),
-  });
-
-  const update = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      const backendData: any = {};
-      if (data.remitenteNombre !== undefined) backendData.remitentenombre = data.remitenteNombre;
-      if (data.remitenteDocumento !== undefined) backendData.remitentedocumento = data.remitenteDocumento;
-      if (data.remitenteTelefono !== undefined) backendData.remitentetelefono = data.remitenteTelefono || null;
-      if (data.destinatarioNombre !== undefined) backendData.destinatarionombre = data.destinatarioNombre;
-      if (data.destinatarioDocumento !== undefined) backendData.destinatariodocumento = data.destinatarioDocumento;
-      if (data.destinatarioTelefono !== undefined) backendData.destinatariotelefono = data.destinatarioTelefono || null;
-      if (data.peso !== undefined) backendData.peso = parseFloat(data.peso) || 0;
-      if (data.descripcion !== undefined) backendData.descripcion = data.descripcion || null;
-      if (data.valorDeclarado !== undefined) backendData.valordeclarado = parseFloat(data.valorDeclarado) || 0;
-      if (data.oficinaOrigenId) backendData.idoficinaorigen = parseInt(data.oficinaOrigenId, 10);
-      if (data.oficinaDestinoId) backendData.idoficinadestino = parseInt(data.oficinaDestinoId, 10);
-
-      const response = await encomiendasApi.actualizar(id, backendData);
-      return response.data.data;
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['encomiendas'] }),
   });
 
   const cambiarEstado = useMutation({
-    mutationFn: async ({ id, estado }: { id: string; estado: EstadoEncomienda }) => {
-      const response = await encomiendasApi.actualizarEstado(id, estado);
+    mutationFn: async ({
+      id,
+      accion,
+      documentoRecibe,
+      nombreRecibe,
+      observaciones,
+    }: {
+      id: string;
+      accion: 'CONFIRMAR_RECEPCION' | 'ENTREGAR' | 'DEVOLVER';
+      documentoRecibe?: string;
+      nombreRecibe?: string;
+      observaciones?: string;
+    }) => {
+      const response = await encomiendasApi.cambiarEstado(id, {
+        accion,
+        documentoRecibe,
+        nombreRecibe,
+        observaciones,
+      });
+      return response.data.data;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['encomiendas'] }),
+  });
+
+  const registrarConPreinscripcion = useMutation({
+    mutationFn: async (data: Record<string, unknown>) => {
+      const response = await encomiendasApi.registrar(data);
+      return response.data.data;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['encomiendas'] }),
+  });
+
+  const registrarDirecta = useMutation({
+    mutationFn: async (data: Record<string, unknown>) => {
+      const response = await encomiendasApi.registrar(data);
       return response.data.data;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['encomiendas'] }),
@@ -104,24 +111,49 @@ export const useEncomiendas = () => {
   });
 
   return {
-    encomiendas,
+    encomiendas: data?.encomiendas || [],
+    paginacion: data?.paginacion || null,
     isLoading,
     error,
-    create,
-    update,
+    refetch,
     cambiarEstado,
+    registrarConPreinscripcion,
+    registrarDirecta,
     eliminar,
   };
 };
 
 /**
- * Busca una encomienda por su código de referencia (generado por la plataforma
- * e-commerce al momento de la compra, ya sea como texto o codificado en un QR).
+ * Consulta el detalle completo de una encomienda por su id (acción "Ver").
  */
-export const buscarEncomiendaPorReferencia = async (referencia: string) => {
-  const response = await encomiendasApi.buscarPorReferencia(referencia.trim());
+export const consultarEncomiendaPorId = async (id: string) => {
+  const response = await encomiendasApi.obtenerPorId(id);
   const data = response.data.data;
   const encomienda = data?.encomienda || data;
   if (!encomienda) return null;
   return mapearEncomienda(encomienda);
+};
+
+/**
+ * Calcula la cotización estimada en tiempo real (sin persistir nada).
+ */
+export const cotizarEncomienda = async (datos: {
+  idOficinaOrigen: string;
+  idOficinaDestino: string;
+  pesoEstimado: string;
+  volumenEstimado?: string;
+  valorDeclarado?: string;
+  esDomicilio?: boolean;
+  valorDomicilio?: string;
+}) => {
+  const response = await encomiendasApi.cotizar({
+    idOficinaOrigen: datos.idOficinaOrigen,
+    idOficinaDestino: datos.idOficinaDestino,
+    pesoEstimado: datos.pesoEstimado,
+    volumenEstimado: datos.volumenEstimado || 1,
+    valorDeclarado: datos.valorDeclarado || 0,
+    esDomicilio: datos.esDomicilio || false,
+    valorDomicilio: datos.valorDomicilio || 0,
+  });
+  return response.data.data.cotizacion as number;
 };

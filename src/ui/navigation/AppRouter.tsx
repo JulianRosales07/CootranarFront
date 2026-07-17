@@ -4,6 +4,7 @@ import { DashboardPage } from '../pages/dashboard/DashboardPage';
 import { TiquetesPage } from '../pages/tiquetes/TiquetesPage';
 import { TaquillaPage } from '../pages/taquilla/TaquillaPage';
 import { EncomiendaPage } from '../pages/encomiendas/EncomiendaPage';
+import { DespachosPage } from '../pages/despachos/DespachosPage';
 import { GestionTiquetesPage } from '../pages/viajes/GestionTiquetesPage';
 import { AgenciasPage } from '../pages/agencias/AgenciasPage';
 import { AseguradorasPage } from '../pages/aseguradoras/AseguradorasPage';
@@ -43,6 +44,7 @@ export const AppRouter = () => {
           {/* Rutas de Encomiendas (Administrador y Empleado de Encomiendas) */}
           <Route element={<PrivateRoute allowedRoles={['ADMINISTRADOR', 'EMPLEADO_ENCOMIENDAS']} />}>
             <Route path={ROUTES.ENCOMIENDAS} element={<EncomiendaPage />} />
+            <Route path={ROUTES.DESPACHOS} element={<DespachosPage />} />
             <Route path={ROUTES.EMPLEADOS_ENCOMIENDAS} element={<EmpleadosEncomiendasPage />} />
             <Route path={ROUTES.OFICINAS_ENCOMIENDAS} element={<OficinasEncomiendasPage />} />
           </Route>

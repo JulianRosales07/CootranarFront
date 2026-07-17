@@ -1,26 +1,26 @@
 import { httpClient } from '../api/httpClient';
 
 export const encomiendasApi = {
-  obtenerTodas: (params: Record<string, unknown> = {}) =>
-    httpClient.get('/encomiendas', { params }),
+  cotizar: (data: Record<string, unknown>) =>
+    httpClient.post('/encomiendas/cotizar', data),
 
-  obtenerPorEstado: (estado: string, params: Record<string, unknown> = {}) =>
-    httpClient.get('/encomiendas', { params: { estado, ...params } }),
-
-  obtenerPorId: (id: string) =>
-    httpClient.get(`/encomiendas/${id}`),
+  crearPreinscripcion: (data: Record<string, unknown>) =>
+    httpClient.post('/encomiendas/preinscripcion', data),
 
   buscarPorReferencia: (referencia: string) =>
     httpClient.get(`/encomiendas/referencia/${encodeURIComponent(referencia)}`),
 
-  crear: (data: Record<string, unknown>) =>
-    httpClient.post('/encomiendas', data),
+  registrar: (data: Record<string, unknown>) =>
+    httpClient.post('/encomiendas/registrar', data),
 
-  actualizar: (id: string, data: Record<string, unknown>) =>
-    httpClient.put(`/encomiendas/${id}`, data),
+  cambiarEstado: (id: string, data: Record<string, unknown>) =>
+    httpClient.patch(`/encomiendas/${id}/estado`, data),
 
-  actualizarEstado: (id: string, estado: string) =>
-    httpClient.patch(`/encomiendas/${id}/estado`, { estado }),
+  obtenerTodas: (params: Record<string, unknown> = {}) =>
+    httpClient.get('/encomiendas', { params }),
+
+  obtenerPorId: (id: string) =>
+    httpClient.get(`/encomiendas/${id}`),
 
   eliminar: (id: string) =>
     httpClient.delete(`/encomiendas/${id}`),

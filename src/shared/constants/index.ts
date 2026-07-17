@@ -7,6 +7,7 @@ export const ROUTES = {
   TIQUETE_DETAIL: '/tiquetes/:id',
   ENCOMIENDAS: '/encomiendas',
   ENCOMIENDA_DETAIL: '/encomiendas/:id',
+  DESPACHOS: '/encomiendas/despachos',
   RUTAS: '/rutas',
   USUARIOS: '/usuarios',
   AGENCIAS: '/agencias',
@@ -34,10 +35,18 @@ export const ESTADOS_TIQUETE = {
 } as const;
 
 export const ESTADOS_ENCOMIENDA = {
-  RECIBIDA: 'Recibida',
+  COTIZADA: 'Cotizada',
+  REGISTRADA: 'Registrada',
   EN_TRANSITO: 'En Tránsito',
+  EN_DESTINO: 'En Destino',
   ENTREGADA: 'Entregada',
   DEVUELTA: 'Devuelta',
+} as const;
+
+export const ESTADOS_DESPACHO = {
+  PROGRAMADO: 'Programado',
+  EN_RUTA: 'En Ruta',
+  LLEGADO: 'Llegado',
 } as const;
 
 export const ROLES = {

@@ -565,7 +565,7 @@ export const TaquillaPage = () => {
   const handleDescargarPdf = async (idTiquete: number, intentos = 0) => {
     try {
       const res = await descargarPdf.mutateAsync(idTiquete);
-      const url = res.data?.data?.signedUrl || res.data?.signedUrl;
+      const url = res.data?.data?.signedUrl;
       if (!url) {
         if (intentos < 2) { await new Promise(r => setTimeout(r, 2000)); return handleDescargarPdf(idTiquete, intentos + 1); }
         alert('El PDF aún se está generando. Intente nuevamente.'); return;

@@ -15,7 +15,7 @@ export const PrivateRoute = ({ allowedRoles }: PrivateRouteProps) => {
 
   if (allowedRoles && user && !allowedRoles.includes(user.nombrerol)) {
     // Redirección por defecto según el rol del usuario
-    let defaultRoute = ROUTES.DASHBOARD;
+    let defaultRoute: string = ROUTES.DASHBOARD;
     if (user.nombrerol === 'TAQUILLERO') {
       defaultRoute = ROUTES.TAQUILLA;
     } else if (user.nombrerol === 'EMPLEADO_ENCOMIENDAS') {

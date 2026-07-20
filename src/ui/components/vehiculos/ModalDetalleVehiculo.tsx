@@ -149,11 +149,18 @@ export default function ModalDetalleVehiculo({ vehiculo, onCerrar }: ModalDetall
         <div style={{ padding: '20px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#f8fafc' }}>
           <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', backgroundColor: '#e0e7ff', borderRadius: '10px', color: '#0D3B8E' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>directions_bus</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>{vehiculo.tipovehiculo === 'FURGON' ? 'local_shipping' : 'directions_bus'}</span>
             </div>
             <div>
                <span style={{ color: '#0f172a' }}>Vehículo: {vehiculo.placa}</span>
                <span style={{ color: '#64748b', fontSize: '14px', marginLeft: '8px', fontWeight: 500 }}>Móvil {vehiculo.numeromovil}</span>
+               <span style={{
+                 marginLeft: '10px', fontSize: '11px', fontWeight: 700, padding: '3px 10px', borderRadius: '999px',
+                 backgroundColor: vehiculo.tipovehiculo === 'FURGON' ? '#fef3c7' : '#dbeafe',
+                 color: vehiculo.tipovehiculo === 'FURGON' ? '#92400e' : '#1e40af',
+               }}>
+                 {vehiculo.tipovehiculo === 'FURGON' ? 'FURGÓN' : 'BUS'}
+               </span>
             </div>
           </h3>
           <button 
@@ -184,10 +191,12 @@ export default function ModalDetalleVehiculo({ vehiculo, onCerrar }: ModalDetall
                 {[
                   { label: 'Placa', value: vehiculo.placa },
                   { label: 'Nº Móvil', value: vehiculo.numeromovil },
-                  { label: 'Tipo Servicio', value: vehiculo.nombretiposervicio },
-                  { label: 'Tipo Bus', value: vehiculo.nombretipobus },
-                  { label: 'Capacidad', value: vehiculo.capacidad },
-                  { label: 'Pisos', value: vehiculo.cantidadpisos },
+                  ...(vehiculo.tipovehiculo === 'FURGON' ? [] : [
+                    { label: 'Tipo Servicio', value: vehiculo.nombretiposervicio },
+                    { label: 'Tipo Bus', value: vehiculo.nombretipobus },
+                    { label: 'Capacidad', value: vehiculo.capacidad },
+                    { label: 'Pisos', value: vehiculo.cantidadpisos },
+                  ]),
                   { label: 'Año', value: vehiculo.anio },
                   { label: 'Color', value: vehiculo.color },
                   { label: 'Marca', value: vehiculo.marca },
@@ -210,6 +219,7 @@ export default function ModalDetalleVehiculo({ vehiculo, onCerrar }: ModalDetall
                   </div>
                 </div>
 
+                {vehiculo.tipovehiculo !== 'FURGON' && (
                 <div style={{ gridColumn: '1 / -1', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px', paddingTop: '8px', borderTop: '1px solid #e2e8f0', marginTop: '8px' }}>
                   <button
                     type="button"
@@ -237,8 +247,9 @@ export default function ModalDetalleVehiculo({ vehiculo, onCerrar }: ModalDetall
                     <span style={{ fontSize: '12px', color: '#94a3b8' }}>Sin plano guardado en sistema</span>
                   )}
                 </div>
+                )}
 
-                {verAsientos && (
+                {verAsientos && vehiculo.tipovehiculo !== 'FURGON' && (
                   <div style={{ gridColumn: '1 / -1', marginTop: '8px' }}>
                     {distribucionAsientos && distribucionAsientos.length > 0 ? (
                       <div style={{ maxHeight: 'min(70vh, 720px)', overflow: 'auto', borderRadius: '12px' }}>

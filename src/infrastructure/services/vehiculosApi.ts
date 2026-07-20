@@ -6,7 +6,8 @@ export const vehiculosApi = {
   obtenerTodos: (params = {}) =>
     httpClient.get('/vehiculos', { params }),
 
-  obtenerActivos: (params = {}) =>
+  // params puede incluir { tipo: 'BUS' | 'FURGON' } para filtrar por tipo de vehículo
+  obtenerActivos: (params: { tipo?: 'BUS' | 'FURGON'; [key: string]: any } = {}) =>
     httpClient.get('/vehiculos/activos', { params }),
 
   obtenerInactivos: (params = {}) =>

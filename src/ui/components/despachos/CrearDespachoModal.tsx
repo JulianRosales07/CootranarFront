@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useOficinasEncomiendas } from '../../hooks/useOficinasEncomiendas';
-import { vehiculosApi } from '../../../infrastructure/services/vehiculosApi';
 import { conductoresApi } from '../../../infrastructure/services/conductoresApi';
+import { ModalSeleccionarFurgon } from './ModalSeleccionarFurgon';
+import { ModalSeleccionarConductorDespacho } from './ModalSeleccionarConductorDespacho';
 import type { EncomiendaDTO } from '../../../application/dto/EncomiendaDTO';
 
 const BLUE = '#0D3B8E';
@@ -23,7 +24,15 @@ function Field({ label, required, children }: { label: string; required?: boolea
   );
 }
 
-interface Vehiculo { idvehiculo: number; placa: string; numeromovil: string }
+interface Vehiculo {
+  idvehiculo: number;
+  placa: string;
+  numeromovil: string;
+  idconductor1?: number | null;
+  nombreconductor1?: string | null;
+  apellidoconductor1?: string | null;
+  documentoconductor1?: string | null;
+}
 interface Conductor { idusuario: number; nombre: string; apellido: string; documento: string }
 
 interface CrearDespachoModalProps {
@@ -52,33 +61,66 @@ export const CrearDespachoModal: React.FC<CrearDespachoModalProps> = ({
   const { oficinas } = useOficinasEncomiendas();
   const oficinasList = Array.isArray(oficinas) ? oficinas.filter((o: any) => o.activo && o.id !== idOficinaOrigen) : [];
 
-  const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
-  const [conductores, setConductores] = useState<Conductor[]>([]);
   const [idOficinaDestino, setIdOficinaDestino] = useState('');
-  const [idVehiculo, setIdVehiculo] = useState('');
-  const [idConductor, setIdConductor] = useState('');
+  const [furgonSeleccionado, setFurgonSeleccionado] = useState<Vehiculo | null>(null);
+  const [conductorSeleccionado, setConductorSeleccionado] = useState<Conductor | null>(null);
+  const [conductorAutocompletado, setConductorAutocompletado] = useState(false);
   const [fechaProgramada, setFechaProgramada] = useState('');
   const [seleccionadas, setSeleccionadas] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
+  const [mostrarModalFurgon, setMostrarModalFurgon] = useState(false);
+  const [mostrarModalConductor, setMostrarModalConductor] = useState(false);
 
-  useEffect(() => {
-    if (!isOpen) return;
-    vehiculosApi.obtenerActivos().then(res => {
-      const data = res.data?.data;
-      setVehiculos(data?.vehiculos || data || []);
-    }).catch(() => setVehiculos([]));
-    conductoresApi.obtenerActivos().then(res => {
-      const data = res.data?.data;
-      setConductores(data?.conductores || data || []);
-    }).catch(() => setConductores([]));
-  }, [isOpen]);
+  const idVehiculo = furgonSeleccionado ? String(furgonSeleccionado.idvehiculo) : '';
+  const idConductor = conductorSeleccionado ? String(conductorSeleccionado.idusuario) : '';
 
   useEffect(() => {
     if (!isOpen) {
-      setIdOficinaDestino(''); setIdVehiculo(''); setIdConductor('');
+      setIdOficinaDestino(''); setFurgonSeleccionado(null); setConductorSeleccionado(null);
+      setConductorAutocompletado(false);
       setFechaProgramada(''); setSeleccionadas(new Set()); setError(null);
     }
   }, [isOpen]);
+
+  const handleSeleccionarFurgon = async (v: Vehiculo) => {
+    setFurgonSeleccionado(v);
+    setMostrarModalFurgon(false);
+    // Autocompletar con el conductor principal del furgón, si tiene uno asignado.
+    // El usuario puede cambiarlo después si lo desea.
+    if (v.idconductor1) {
+      try {
+        const res = await conductoresApi.obtenerActivos();
+        const data = res.data?.data;
+        const lista: Conductor[] = data?.conductores || data || [];
+        const conductorPrincipal = lista.find(c => c.idusuario === v.idconductor1);
+        if (conductorPrincipal) {
+          setConductorSeleccionado(conductorPrincipal);
+        } else {
+          // El listado de activos no lo trajo (p.ej. quedó inactivo); usamos los
+          // datos ya disponibles del propio furgón para no dejar el campo vacío.
+          setConductorSeleccionado({
+            idusuario: v.idconductor1,
+            nombre: v.nombreconductor1 || '',
+            apellido: v.apellidoconductor1 || '',
+            documento: v.documentoconductor1 || '',
+          });
+        }
+        setConductorAutocompletado(true);
+      } catch {
+        setConductorSeleccionado(null);
+        setConductorAutocompletado(false);
+      }
+    } else {
+      setConductorSeleccionado(null);
+      setConductorAutocompletado(false);
+    }
+  };
+
+  const handleSeleccionarConductor = (c: Conductor) => {
+    setConductorSeleccionado(c);
+    setConductorAutocompletado(false);
+    setMostrarModalConductor(false);
+  };
 
   if (!isOpen) return null;
 
@@ -147,20 +189,55 @@ export const CrearDespachoModal: React.FC<CrearDespachoModalProps> = ({
             </Field>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-            <Field label="Vehículo asignado" required>
-              <select value={idVehiculo} onChange={e => setIdVehiculo(e.target.value)} style={{ ...inputStyle, appearance: 'none' }}>
-                <option value="">Seleccionar vehículo...</option>
-                {vehiculos.map(v => <option key={v.idvehiculo} value={v.idvehiculo}>{v.placa} - Móvil #{v.numeromovil}</option>)}
-              </select>
-            </Field>
-            <Field label="Conductor encargado" required>
-              <select value={idConductor} onChange={e => setIdConductor(e.target.value)} style={{ ...inputStyle, appearance: 'none' }}>
-                <option value="">Seleccionar conductor...</option>
-                {conductores.map(c => <option key={c.idusuario} value={c.idusuario}>{c.nombre} {c.apellido} - {c.documento}</option>)}
-              </select>
-            </Field>
-          </div>
+          <Field label="Furgón asignado" required>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input
+                type="text"
+                value={furgonSeleccionado ? `${furgonSeleccionado.placa} - Móvil #${furgonSeleccionado.numeromovil}` : ''}
+                readOnly
+                placeholder="Seleccione un furgón"
+                style={{ ...inputStyle, flex: 1, background: '#f8fafc' }}
+              />
+              <button
+                type="button"
+                onClick={() => setMostrarModalFurgon(true)}
+                style={{ padding: '9px 16px', background: BLUE, color: 'white', borderRadius: '7px', fontSize: '13px', fontWeight: 600, border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
+              >
+                Seleccionar
+              </button>
+            </div>
+            {furgonSeleccionado && (
+              <p style={{ fontSize: '11.5px', color: '#64748b', margin: '6px 0 0' }}>
+                Conductor principal: {furgonSeleccionado.nombreconductor1
+                  ? `${furgonSeleccionado.nombreconductor1} ${furgonSeleccionado.apellidoconductor1 ?? ''}`
+                  : 'Sin conductor asignado'}
+              </p>
+            )}
+          </Field>
+
+          <Field label="Conductor encargado" required>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input
+                type="text"
+                value={conductorSeleccionado ? `${conductorSeleccionado.nombre} ${conductorSeleccionado.apellido} - ${conductorSeleccionado.documento}` : ''}
+                readOnly
+                placeholder="Seleccione un conductor"
+                style={{ ...inputStyle, flex: 1, background: '#f8fafc' }}
+              />
+              <button
+                type="button"
+                onClick={() => setMostrarModalConductor(true)}
+                style={{ padding: '9px 16px', background: BLUE, color: 'white', borderRadius: '7px', fontSize: '13px', fontWeight: 600, border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
+              >
+                Seleccionar
+              </button>
+            </div>
+            {conductorAutocompletado && (
+              <p style={{ fontSize: '11.5px', color: '#0D3B8E', margin: '6px 0 0', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                Autocompletado con el conductor principal del furgón. Puedes cambiarlo si lo deseas.
+              </p>
+            )}
+          </Field>
 
           <div>
             <p style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px' }}>
@@ -203,6 +280,19 @@ export const CrearDespachoModal: React.FC<CrearDespachoModalProps> = ({
           </div>
         </form>
       </div>
+
+      <ModalSeleccionarFurgon
+        isOpen={mostrarModalFurgon}
+        onClose={() => setMostrarModalFurgon(false)}
+        onSelect={handleSeleccionarFurgon}
+      />
+
+      <ModalSeleccionarConductorDespacho
+        isOpen={mostrarModalConductor}
+        onClose={() => setMostrarModalConductor(false)}
+        onSelect={handleSeleccionarConductor}
+        idSeleccionado={idConductor}
+      />
     </div>
   );
 };

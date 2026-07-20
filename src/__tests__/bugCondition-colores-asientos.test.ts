@@ -15,10 +15,15 @@
  * **Validates: Requirements 1.2, 1.3, 1.4, 1.5**
  */
 
+/// <reference types="node" />
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
-import * as fs from 'fs';
-import * as path from 'path';
+import { readFileSync, existsSync } from 'node:fs';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // ─── Replicate the FIXED color logic from VisualizadorAsientos.tsx ───
 // This matches the corrected component logic (blanco=libre, verde=seleccionado, azul=vendido, amarillo=reservado)
@@ -118,8 +123,8 @@ describe('Bug Condition Exploration: Colores de Asientos', () => {
   describe('Bug Condition: Sin Supabase Realtime', () => {
 
     it('el package.json NO contiene @supabase/supabase-js como dependencia (sin realtime)', () => {
-      const packageJsonPath = path.resolve(__dirname, '../../package.json');
-      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+      const packageJsonPath = resolve(__dirname, '../../package.json');
+      const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
 
       const allDeps = {
         ...packageJson.dependencies,
@@ -132,25 +137,25 @@ describe('Bug Condition Exploration: Colores de Asientos', () => {
     });
 
     it('debe existir un archivo supabaseClient.ts en el proyecto', () => {
-      const supabaseClientPath = path.resolve(
+      const supabaseClientPath = resolve(
         __dirname,
         '../infrastructure/supabase/supabaseClient.ts'
       );
 
       // El test ESPERA que el archivo exista (comportamiento correcto)
       // Como actualmente NO existe, este test FALLARÁ — demostrando el bug
-      expect(fs.existsSync(supabaseClientPath)).toBe(true);
+      expect(existsSync(supabaseClientPath)).toBe(true);
     });
 
     it('debe existir un hook useAsientosRealtime.ts en el proyecto', () => {
-      const hookPath = path.resolve(
+      const hookPath = resolve(
         __dirname,
         '../ui/hooks/useAsientosRealtime.ts'
       );
 
       // El test ESPERA que el hook exista (comportamiento correcto)
       // Como actualmente NO existe, este test FALLARÁ — demostrando el bug
-      expect(fs.existsSync(hookPath)).toBe(true);
+      expect(existsSync(hookPath)).toBe(true);
     });
   });
 });

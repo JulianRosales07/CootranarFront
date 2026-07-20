@@ -4,7 +4,8 @@ import { conductoresApi } from '../../../infrastructure/services/conductoresApi'
 import DisenadorAsientos from './DisenadorAsientos';
 import gsap from 'gsap';
 
-const PASOS = ['Propietario', 'Vehículo', 'Asientos', 'Documentos', 'Pólizas', 'Conductores'];
+const PASOS_BUS = ['Propietario', 'Vehículo', 'Asientos', 'Documentos', 'Pólizas', 'Conductores'];
+const PASOS_FURGON = ['Propietario', 'Vehículo', 'Documentos', 'Pólizas', 'Conductores'];
 // Shared inline style constants
 const IS: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box', padding: '12px 16px',
@@ -51,6 +52,11 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
   const [nuevoProp, setNuevoProp] = useState({ 
     nombre: '', apellido: '', tipodocumento: 'CC', documento: '', telefono: '', correo: '' 
   });
+
+  // Tipo de vehículo: BUS (transporte de pasajeros) o FURGON (encomiendas).
+  // Determina qué campos/pasos se muestran (asientos, categoría comercial, etc).
+  const [tipoVehiculo, setTipoVehiculo] = useState<'BUS' | 'FURGON'>('BUS');
+  const PASOS = tipoVehiculo === 'FURGON' ? PASOS_FURGON : PASOS_BUS;
 
   // Paso 2: Vehículo
   const [vehiculo, setVehiculo] = useState({
@@ -131,6 +137,7 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
         if (!v) throw new Error('No se pudo cargar el vehículo');
 
         // Paso 2: Datos del vehículo
+        setTipoVehiculo(v.tipovehiculo === 'FURGON' ? 'FURGON' : 'BUS');
         setVehiculo({
           idtiposervicio: String(v.idtiposervicio || ''),
           idtipobus: String(v.idtipobus || ''),
@@ -422,27 +429,35 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
     }
     if (!propietario) return alert('Debe asignar un propietario');
     const totalCond = conductores.length + (propEsConductor ? 1 : 0);
-    if (!modoEdicion && totalCond < 2) return alert('Debe asignar al menos 2 conductores');
-    if (!distribucion) return alert('Debe configurar la distribución de asientos');
+    if (tipoVehiculo === 'BUS') {
+      if (!modoEdicion && totalCond < 2) return alert('Debe asignar al menos 2 conductores');
+      if (!distribucion) return alert('Debe configurar la distribución de asientos');
+    } else {
+      if (!modoEdicion && totalCond < 1) return alert('Debe asignar al menos 1 conductor');
+    }
 
     setGuardando(true);
     try {
-      const capacidadReal = distribucion?.distribucion
-        ? distribucion.distribucion.filter((a: any) => !a.vacio && !a.esBano).length
-        : parseInt(vehiculo.capacidad);
+      const esFurgon = tipoVehiculo === 'FURGON';
+      const capacidadReal = esFurgon
+        ? null
+        : (distribucion?.distribucion
+            ? distribucion.distribucion.filter((a: any) => !a.vacio && !a.esBano).length
+            : parseInt(vehiculo.capacidad));
 
       // ─── MODO EDICIÓN ──────────────────────────────────────────────
       if (modoEdicion && vehiculoId) {
         // 1. Actualizar datos básicos del vehículo
         await vehiculosApi.actualizar(vehiculoId, {
           ...vehiculo,
-          idtiposervicio: parseInt(vehiculo.idtiposervicio),
-          idtipobus: parseInt(vehiculo.idtipobus),
+          tipovehiculo: tipoVehiculo,
+          idtiposervicio: esFurgon ? null : parseInt(vehiculo.idtiposervicio),
+          idtipobus: esFurgon ? null : parseInt(vehiculo.idtipobus),
           idusuariopropietario: propietario.idusuario,
           capacidad: capacidadReal,
-          cantidadpisos: parseInt(String(vehiculo.cantidadpisos)),
+          cantidadpisos: esFurgon ? null : parseInt(String(vehiculo.cantidadpisos)),
           anio: parseInt(String(vehiculo.anio)),
-          distribucionasientos: distribucion,
+          distribucionasientos: esFurgon ? null : distribucion,
         });
 
         // 2. Actualizar documentos (si tienen ID asignado)
@@ -612,13 +627,14 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
       const data = {
         vehiculo: {
           ...vehiculo,
-          idtiposervicio: parseInt(vehiculo.idtiposervicio),
-          idtipobus: parseInt(vehiculo.idtipobus),
+          tipovehiculo: tipoVehiculo,
+          idtiposervicio: esFurgon ? null : parseInt(vehiculo.idtiposervicio),
+          idtipobus: esFurgon ? null : parseInt(vehiculo.idtipobus),
           idusuariopropietario: propietario.idusuario,
           capacidad: capacidadReal,
-          cantidadpisos: parseInt(String(vehiculo.cantidadpisos)),
+          cantidadpisos: esFurgon ? null : parseInt(String(vehiculo.cantidadpisos)),
           anio: parseInt(String(vehiculo.anio)),
-          distribucionasientos: distribucion
+          distribucionasientos: esFurgon ? null : distribucion
         },
         documentos: Object.entries(documentos).map(([tipo, d]: [string, any]) => ({
           tipodocumento: tipo, numerodocumento: d.numerodocumento, fechavencimiento: d.fechavencimiento
@@ -679,7 +695,8 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
 
   const siguiente = () => {
     if (pasoActual === 1) {
-      if (!vehiculo.idtiposervicio || !vehiculo.idtipobus || !vehiculo.placa || !vehiculo.numeromovil || !vehiculo.capacidad) {
+      const camposBusFaltantes = tipoVehiculo === 'BUS' && (!vehiculo.idtiposervicio || !vehiculo.idtipobus || !vehiculo.capacidad);
+      if (camposBusFaltantes || !vehiculo.placa || !vehiculo.numeromovil) {
         alert('Complete todos los campos obligatorios del vehículo.');
         return;
       }
@@ -915,22 +932,57 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
 
   const renderPaso2 = () => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-        <FLD>
-          <label style={LB}>Tipo de Servicio <span style={REQ}>*</span></label>
-          <select style={IS} value={vehiculo.idtiposervicio} onChange={(e) => setVehiculo(v => ({ ...v, idtiposervicio: e.target.value }))} onFocus={onFocus} onBlur={onBlur}>
-            <option value="">Seleccionar...</option>
-            {tiposServicio.map(t => <option key={t.idtiposervicio} value={t.idtiposervicio}>{t.nombre}</option>)}
-          </select>
-        </FLD>
-        <FLD>
-          <label style={LB}>Tipo de Bus <span style={REQ}>*</span></label>
-          <select style={IS} value={vehiculo.idtipobus} onChange={(e) => setVehiculo(v => ({ ...v, idtipobus: e.target.value }))} onFocus={onFocus} onBlur={onBlur}>
-            <option value="">Seleccionar...</option>
-            {tiposBus.map(t => <option key={t.idtipobus} value={t.idtipobus}>{t.nombre}</option>)}
-          </select>
-        </FLD>
-      </div>
+      <FLD>
+        <label style={LB}>Tipo de vehículo <span style={REQ}>*</span></label>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          {(['BUS', 'FURGON'] as const).map(tipo => (
+            <button
+              key={tipo}
+              type="button"
+              disabled={modoEdicion}
+              onClick={() => setTipoVehiculo(tipo)}
+              style={{
+                flex: 1, padding: '12px', borderRadius: '8px', fontSize: '13px', fontWeight: 700,
+                cursor: modoEdicion ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
+                border: tipoVehiculo === tipo ? '2px solid #0D3B8E' : '1.5px solid #e2e8f0',
+                background: tipoVehiculo === tipo ? '#eff6ff' : 'white',
+                color: tipoVehiculo === tipo ? '#0D3B8E' : '#64748b',
+                opacity: modoEdicion ? 0.6 : 1,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+                {tipo === 'BUS' ? 'directions_bus' : 'local_shipping'}
+              </span>
+              {tipo === 'BUS' ? 'Bus (pasajeros)' : 'Furgón (encomiendas)'}
+            </button>
+          ))}
+        </div>
+        {modoEdicion && (
+          <span style={{ fontSize: '11.5px', color: '#94a3b8', marginTop: '6px' }}>
+            El tipo de vehículo no se puede cambiar una vez registrado.
+          </span>
+        )}
+      </FLD>
+
+      {tipoVehiculo === 'BUS' && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <FLD>
+            <label style={LB}>Tipo de Servicio <span style={REQ}>*</span></label>
+            <select style={IS} value={vehiculo.idtiposervicio} onChange={(e) => setVehiculo(v => ({ ...v, idtiposervicio: e.target.value }))} onFocus={onFocus} onBlur={onBlur}>
+              <option value="">Seleccionar...</option>
+              {tiposServicio.map(t => <option key={t.idtiposervicio} value={t.idtiposervicio}>{t.nombre}</option>)}
+            </select>
+          </FLD>
+          <FLD>
+            <label style={LB}>Tipo de Bus <span style={REQ}>*</span></label>
+            <select style={IS} value={vehiculo.idtipobus} onChange={(e) => setVehiculo(v => ({ ...v, idtipobus: e.target.value }))} onFocus={onFocus} onBlur={onBlur}>
+              <option value="">Seleccionar...</option>
+              {tiposBus.map(t => <option key={t.idtipobus} value={t.idtipobus}>{t.nombre}</option>)}
+            </select>
+          </FLD>
+        </div>
+      )}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
         <FLD>
           <label style={LB}>Placa <span style={REQ}>*</span></label>
@@ -998,14 +1050,18 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
           <label style={LB}>Marca</label>
           <input type="text" style={IS} value={vehiculo.marca} onChange={(e) => setVehiculo(v => ({ ...v, marca: e.target.value }))} placeholder="Ej: Mercedes Benz" onFocus={onFocus} onBlur={onBlur} />
         </FLD>
-        <FLD>
-          <label style={LB}>Capacidad <span style={REQ}>*</span></label>
-          <input type="number" style={IS} value={vehiculo.capacidad} onChange={(e) => setVehiculo(v => ({ ...v, capacidad: e.target.value }))} min="1" placeholder="42" onFocus={onFocus} onBlur={onBlur} />
-        </FLD>
-        <FLD>
-          <label style={LB}>Pisos</label>
-          <input type="number" style={IS} value={vehiculo.cantidadpisos} onChange={(e) => setVehiculo(v => ({ ...v, cantidadpisos: Number(e.target.value) }))} min="1" max="2" onFocus={onFocus} onBlur={onBlur} />
-        </FLD>
+        {tipoVehiculo === 'BUS' && (
+          <>
+            <FLD>
+              <label style={LB}>Capacidad <span style={REQ}>*</span></label>
+              <input type="number" style={IS} value={vehiculo.capacidad} onChange={(e) => setVehiculo(v => ({ ...v, capacidad: e.target.value }))} min="1" placeholder="42" onFocus={onFocus} onBlur={onBlur} />
+            </FLD>
+            <FLD>
+              <label style={LB}>Pisos</label>
+              <input type="number" style={IS} value={vehiculo.cantidadpisos} onChange={(e) => setVehiculo(v => ({ ...v, cantidadpisos: Number(e.target.value) }))} min="1" max="2" onFocus={onFocus} onBlur={onBlur} />
+            </FLD>
+          </>
+        )}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
         <FLD>
@@ -1089,6 +1145,16 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
             <span className="material-symbols-outlined" style={{ color: '#0D3B8E', fontSize: '20px' }}>shield</span>
             Póliza {tipo}
           </h4>
+          {tipo === 'CONTRACTUAL' && (
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', padding: '10px 12px', backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', marginBottom: '16px' }}>
+              <span className="material-symbols-outlined" style={{ color: '#d97706', fontSize: '18px', marginTop: '1px' }}>info</span>
+              <span style={{ fontSize: '12px', color: '#78350f', lineHeight: '1.5' }}>
+                {tipoVehiculo === 'FURGON'
+                  ? 'Según el Decreto 91 de 1998, artículo 10, la póliza contractual de carga cubre la responsabilidad del transportador frente al remitente, destinatario o dueño de la mercancía por pérdidas, daños o retrasos. Monto mínimo: 250 SMLMV por despacho.'
+                  : 'Según el Decreto 91 de 1998, artículo 10, la póliza contractual de pasajeros cubre muerte, incapacidad permanente/temporal y gastos médicos. Monto mínimo: 60 SMLMV por persona, por riesgo.'}
+              </span>
+            </div>
+          )}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
             <FLD>
               <label style={LB}>Aseguradora <span style={REQ}>*</span></label>
@@ -1129,7 +1195,8 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', padding: '14px 16px', backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px' }}>
         <span className="material-symbols-outlined" style={{ color: '#d97706', fontSize: '20px', marginTop: '1px' }}>info</span>
         <p style={{ margin: 0, fontSize: '13px', color: '#78350f', lineHeight: '1.5' }}>
-          Busque conductores por cédula. Si no existe, podrá crearlo aquí. <strong>Mínimo 2 conductores principales requeridos.</strong>
+          Busque conductores por cédula. Si no existe, podrá crearlo aquí.{' '}
+          <strong>{tipoVehiculo === 'BUS' ? 'Mínimo 2 conductores principales requeridos.' : 'Mínimo 1 conductor principal requerido.'}</strong>
         </p>
       </div>
 
@@ -1431,18 +1498,25 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
         </div>
       )}
 
-      {(conductores.length + (propEsConductor ? 1 : 0)) < 2 && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '10px' }}>
-          <span className="material-symbols-outlined" style={{ color: '#dc2626', fontSize: '20px' }}>warning</span>
-          <p style={{ margin: 0, fontSize: '13px', color: '#991b1b', fontWeight: 600 }}>
-            Faltan {2 - conductores.length - (propEsConductor ? 1 : 0)} conductor(es) principal(es) por asignar
-          </p>
-        </div>
-      )}
+      {(() => {
+        const minimoConductores = tipoVehiculo === 'FURGON' ? 1 : 2;
+        const totalActual = conductores.length + (propEsConductor ? 1 : 0);
+        if (totalActual >= minimoConductores) return null;
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '10px' }}>
+            <span className="material-symbols-outlined" style={{ color: '#dc2626', fontSize: '20px' }}>warning</span>
+            <p style={{ margin: 0, fontSize: '13px', color: '#991b1b', fontWeight: 600 }}>
+              Faltan {minimoConductores - totalActual} conductor(es) principal(es) por asignar
+            </p>
+          </div>
+        );
+      })()}
     </div>
   );
 
-  const pasos = [renderPaso1, renderPaso2, renderPaso3, renderPaso4, renderPaso5, renderPaso6];
+  const pasos = tipoVehiculo === 'FURGON'
+    ? [renderPaso1, renderPaso2, renderPaso4, renderPaso5, renderPaso6]
+    : [renderPaso1, renderPaso2, renderPaso3, renderPaso4, renderPaso5, renderPaso6];
 
   if (cargandoDatos) {
     return (

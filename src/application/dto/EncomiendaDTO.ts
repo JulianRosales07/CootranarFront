@@ -14,6 +14,8 @@ export interface EncomiendaDTO {
   oficinaOrigenNombre: string;
   oficinaDestinoNombre: string;
   nombreRemitente: string;
+  documentoRemitente: string;
+  telefonoRemitente: string;
   nombreEmpleado: string;
   nombreDestinatario: string;
   documentoDestinatario: string;
@@ -62,6 +64,12 @@ export interface PreinscripcionEncomiendaDTO {
 
 export interface RegistrarEncomiendaConPreinscripcionDTO {
   referenciaEncomienda: string;
+  nombreDestinatario?: string;
+  documentoDestinatario?: string;
+  telefonoDestinatario?: string;
+  direccionDestinatario?: string;
+  contenidoDeclarado?: string;
+  valorDeclarado?: string;
   pesoReal: string;
   volumenReal: string;
   idMetodoPago: string;

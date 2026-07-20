@@ -58,7 +58,9 @@ export const RegistroEncomiendaModal: React.FC<RegistroEncomiendaModalProps> = (
 
   const esConPreinscripcion = !!preinscripcion;
 
-  // Remitente / destinatario (solo editable en registro directo)
+  // Remitente: solo editable en registro directo (en preinscripción es la cuenta
+  // del cliente, se muestra en solo lectura). Destinatario/contenido/valor declarado
+  // son editables en ambos modos para permitir corregir errores de digitación.
   const [nombreRemitente, setNombreRemitente] = useState('');
   const [documentoRemitente, setDocumentoRemitente] = useState('');
   const [telefonoRemitente, setTelefonoRemitente] = useState('');
@@ -81,6 +83,7 @@ export const RegistroEncomiendaModal: React.FC<RegistroEncomiendaModalProps> = (
 
   const [precioEstimado, setPrecioEstimado] = useState<number | null>(null);
   const [calculando, setCalculando] = useState(false);
+  const [errorPrecio, setErrorPrecio] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -101,17 +104,24 @@ export const RegistroEncomiendaModal: React.FC<RegistroEncomiendaModalProps> = (
       setIdOficinaDestino(preinscripcion.idOficinaDestino || '');
       setValorDeclarado(preinscripcion.valorDeclarado ? String(preinscripcion.valorDeclarado) : '');
       setPesoReal(preinscripcion.pesoEstimado != null ? String(preinscripcion.pesoEstimado) : '');
+      setVolumenReal(preinscripcion.volumenEstimado != null ? String(preinscripcion.volumenEstimado) : '');
       setEsDomicilio(preinscripcion.esDomicilio || false);
       setValorDomicilio(preinscripcion.valorDomicilio ? String(preinscripcion.valorDomicilio) : '');
     } else {
       setNombreRemitente(''); setDocumentoRemitente(''); setTelefonoRemitente('');
       setNombreDestinatario(''); setDocumentoDestinatario(''); setTelefonoDestinatario('');
       setDireccionDestinatario(''); setContenidoDeclarado(''); setIdOficinaDestino('');
-      setValorDeclarado(''); setPesoReal(''); setEsDomicilio(false); setValorDomicilio('');
+      setValorDeclarado(''); setPesoReal(''); setVolumenReal(''); setEsDomicilio(false); setValorDomicilio('');
     }
-    setVolumenReal(''); setIdMetodoPago(''); setFormaPago('CONTADO'); setNumeroCuotas('1');
+    setIdMetodoPago(''); setFormaPago('CONTADO'); setNumeroCuotas('1');
     setPrecioEstimado(null); setError(null);
   }, [isOpen, preinscripcion]);
+
+  // Los campos de peso/volumen real se prellenan con los valores estimados de la
+  // cotización cuando la encomienda proviene de una preinscripción. El empleado debe
+  // verificarlos físicamente antes de confirmar el registro.
+  const pesoVolumenPrellenados = esConPreinscripcion
+    && (preinscripcion?.pesoEstimado != null || preinscripcion?.volumenEstimado != null);
 
   // Cálculo de precio en tiempo real
   useEffect(() => {
@@ -119,10 +129,12 @@ export const RegistroEncomiendaModal: React.FC<RegistroEncomiendaModalProps> = (
     const origen = esConPreinscripcion ? preinscripcion!.idOficinaOrigen : idOficinaOrigen;
     if (!destino || !origen || !pesoReal || Number(pesoReal) <= 0) {
       setPrecioEstimado(null);
+      setErrorPrecio(null);
       return;
     }
     const timeout = setTimeout(() => {
       setCalculando(true);
+      setErrorPrecio(null);
       cotizarEncomienda({
         idOficinaOrigen: origen,
         idOficinaDestino: destino,
@@ -132,8 +144,11 @@ export const RegistroEncomiendaModal: React.FC<RegistroEncomiendaModalProps> = (
         esDomicilio,
         valorDomicilio: valorDomicilio || '0',
       })
-        .then(setPrecioEstimado)
-        .catch(() => setPrecioEstimado(null))
+        .then(precio => { setPrecioEstimado(precio); setErrorPrecio(null); })
+        .catch((err: any) => {
+          setPrecioEstimado(null);
+          setErrorPrecio(err?.response?.data?.message || err?.message || 'No se pudo calcular el precio.');
+        })
         .finally(() => setCalculando(false));
     }, 400);
     return () => clearTimeout(timeout);
@@ -157,8 +172,17 @@ export const RegistroEncomiendaModal: React.FC<RegistroEncomiendaModalProps> = (
     if (esDomicilio && (!valorDomicilio || Number(valorDomicilio) < 0)) { setError('Ingresa el valor del domicilio.'); return; }
 
     if (esConPreinscripcion) {
+      if (!nombreDestinatario || !documentoDestinatario || !telefonoDestinatario) { setError('Los datos del destinatario son obligatorios.'); return; }
+      if (!contenidoDeclarado) { setError('La descripción del contenido es obligatoria.'); return; }
+
       onRegistrarConPreinscripcion({
         referenciaEncomienda: preinscripcion!.referencia,
+        nombreDestinatario,
+        documentoDestinatario,
+        telefonoDestinatario,
+        direccionDestinatario: direccionDestinatario || undefined,
+        contenidoDeclarado,
+        valorDeclarado: Number(valorDeclarado) || 0,
         pesoReal: Number(pesoReal),
         volumenReal: Number(volumenReal),
         idMetodoPago: Number(idMetodoPago),
@@ -260,15 +284,50 @@ export const RegistroEncomiendaModal: React.FC<RegistroEncomiendaModalProps> = (
           )}
 
           {esConPreinscripcion && preinscripcion && (
-            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px 14px', fontSize: '12.5px', color: '#475569' }}>
-              <div><strong>Remitente:</strong> {preinscripcion.nombreRemitente || 'N/A'}</div>
-              <div><strong>Destinatario:</strong> {preinscripcion.nombreDestinatario} ({preinscripcion.documentoDestinatario})</div>
-              <div><strong>Ruta:</strong> {preinscripcion.oficinaOrigenNombre} → {preinscripcion.oficinaDestinoNombre}</div>
-              <div><strong>Contenido:</strong> {preinscripcion.contenidoDeclarado}</div>
-            </div>
+            <>
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px 14px', fontSize: '12.5px', color: '#475569' }}>
+                <div><strong>Remitente:</strong> {preinscripcion.nombreRemitente || 'N/A'} {preinscripcion.documentoRemitente && `— C.C. ${preinscripcion.documentoRemitente}`} {preinscripcion.telefonoRemitente && `— Tel. ${preinscripcion.telefonoRemitente}`}</div>
+                <div><strong>Ruta:</strong> {preinscripcion.oficinaOrigenNombre} → {preinscripcion.oficinaDestinoNombre}</div>
+              </div>
+
+              <p style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>Destinatario</p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                <Field label="Nombre" required>
+                  <input value={nombreDestinatario} onChange={e => setNombreDestinatario(e.target.value)} style={inputStyle} />
+                </Field>
+                <Field label="Documento" required>
+                  <input value={documentoDestinatario} onChange={e => setDocumentoDestinatario(e.target.value)} style={inputStyle} />
+                </Field>
+                <Field label="Teléfono" required>
+                  <input value={telefonoDestinatario} onChange={e => setTelefonoDestinatario(e.target.value)} style={inputStyle} />
+                </Field>
+              </div>
+              <Field label="Dirección destinatario">
+                <input value={direccionDestinatario} onChange={e => setDireccionDestinatario(e.target.value)} style={inputStyle} />
+              </Field>
+
+              <Field label="Descripción del contenido" required>
+                <input value={contenidoDeclarado} onChange={e => setContenidoDeclarado(e.target.value)} placeholder="Ej. Caja de documentos" style={inputStyle} />
+              </Field>
+
+              <Field label="Valor declarado">
+                <input type="number" min="0" value={valorDeclarado} onChange={e => setValorDeclarado(e.target.value)} placeholder="0" style={inputStyle} />
+              </Field>
+            </>
           )}
 
           <p style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>Datos físicos y pago</p>
+
+          {pesoVolumenPrellenados && (
+            <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', padding: '10px 14px', display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#b45309' }}>info</span>
+              <span style={{ fontSize: '12px', color: '#92400e', lineHeight: 1.4 }}>
+                Peso y volumen fueron prellenados automáticamente con los valores <strong>estimados</strong> en la cotización.
+                Verifica el peso y volumen reales de la mercancía antes de confirmar; pueden diferir de lo estimado.
+              </span>
+            </div>
+          )}
+
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <Field label="Peso real (kg)" required>
               <input type="number" min="0" step="0.1" value={pesoReal} onChange={e => setPesoReal(e.target.value)} style={inputStyle} />
@@ -309,10 +368,10 @@ export const RegistroEncomiendaModal: React.FC<RegistroEncomiendaModalProps> = (
             </Field>
           )}
 
-          <div style={{ background: '#eff6ff', border: '1px solid #dbeafe', borderRadius: '8px', padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '13px', fontWeight: 700, color: '#1e40af' }}>Precio estimado:</span>
-            <span style={{ fontSize: '18px', fontWeight: 800, color: '#1e40af' }}>
-              {calculando ? 'Calculando...' : precioEstimado != null ? formatPeso(precioEstimado) : '—'}
+          <div style={{ background: errorPrecio ? '#fef2f2' : '#eff6ff', border: `1px solid ${errorPrecio ? '#fecaca' : '#dbeafe'}`, borderRadius: '8px', padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '13px', fontWeight: 700, color: errorPrecio ? '#b91c1c' : '#1e40af' }}>Precio estimado:</span>
+            <span style={{ fontSize: errorPrecio ? '12.5px' : '18px', fontWeight: errorPrecio ? 600 : 800, color: errorPrecio ? '#b91c1c' : '#1e40af', textAlign: 'right' }}>
+              {calculando ? 'Calculando...' : errorPrecio ? errorPrecio : precioEstimado != null ? formatPeso(precioEstimado) : '—'}
             </span>
           </div>
 

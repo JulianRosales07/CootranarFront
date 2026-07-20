@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+  import React, { useState, useCallback, useEffect } from 'react';
 import { Layout } from '../../components/layout/Layout';
 import { useVehiculos } from '../../hooks/useVehiculos';
 import { vehiculosApi as vehiculosService } from '../../../infrastructure/services/vehiculosApi';
@@ -296,6 +296,7 @@ export const VehiculosPage = () => {
               <thead>
                 <tr style={{ background: '#f8fafc' }}>
                   {[
+                    { label: 'TipoVehiculo',        width: '90px'  },
                     { label: 'Placa',       width: '110px' },
                     { label: 'Nº Móvil',    width: '100px' },
                     { label: 'Tipo Bus',    width: '140px' },
@@ -315,7 +316,7 @@ export const VehiculosPage = () => {
               <tbody>
                 {vehiculosApi.length === 0 ? (
                   <tr>
-                    <td colSpan={6} style={{ padding: '48px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>
+                    <td colSpan={7} style={{ padding: '48px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>
                       No se encontraron vehículos.
                     </td>
                   </tr>
@@ -324,10 +325,20 @@ export const VehiculosPage = () => {
                     <tr key={v.idvehiculo} style={{ borderBottom: '1px solid #f1f5f9' }}
                       onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')}
                       onMouseLeave={e => (e.currentTarget.style.background = 'white')}>
+                      <td style={{ padding: '12px 16px' }}>
+                        <span style={{
+                          display: 'inline-block', padding: '3px 10px', borderRadius: '999px',
+                          fontSize: '11px', fontWeight: 700,
+                          background: v.tipovehiculo === 'FURGON' ? '#fef3c7' : '#dbeafe',
+                          color: v.tipovehiculo === 'FURGON' ? '#92400e' : '#1e40af',
+                        }}>
+                          {v.tipovehiculo === 'FURGON' ? 'FURGÓN' : 'BUS'}
+                        </span>
+                      </td>
                       <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 700, color: '#1e293b', fontFamily: 'monospace' }}>{v.placa}</td>
                       <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{v.numeromovil}</td>
-                      <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{v.nombretipobus || '—'}</td>
-                      <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', textAlign: 'center' }}>{v.capacidad}</td>
+                      <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{v.tipovehiculo === 'FURGON' ? '—' : (v.nombretipobus || '—')}</td>
+                      <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', textAlign: 'center' }}>{v.tipovehiculo === 'FURGON' ? '—' : v.capacidad}</td>
                       <td style={{ padding: '12px 16px' }}>
                         <span style={{
                           display: 'inline-block',

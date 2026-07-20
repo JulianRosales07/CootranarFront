@@ -12,6 +12,8 @@ export const mapearEncomienda = (e: any): EncomiendaDTO => ({
   oficinaOrigenNombre: e.nombreoficinaorigen || '',
   oficinaDestinoNombre: e.nombreoficinadestino || '',
   nombreRemitente: e.nombreremitente || '',
+  documentoRemitente: e.documentoremitente || '',
+  telefonoRemitente: e.telefonoremitente || '',
   nombreEmpleado: e.nombreempleado || '',
   nombreDestinatario: e.nombredestinatario || '',
   documentoDestinatario: e.documentodestinatario || '',

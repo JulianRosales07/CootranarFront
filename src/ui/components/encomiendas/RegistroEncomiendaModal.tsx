@@ -173,6 +173,7 @@ export const RegistroEncomiendaModal: React.FC<RegistroEncomiendaModalProps> = (
 
     if (esConPreinscripcion) {
       if (!nombreDestinatario || !documentoDestinatario || !telefonoDestinatario) { setError('Los datos del destinatario son obligatorios.'); return; }
+      if (!/^\d{1,10}$/.test(documentoDestinatario.trim())) { setError('El documento del destinatario debe ser numérico y tener como máximo 10 dígitos.'); return; }
       if (!contenidoDeclarado) { setError('La descripción del contenido es obligatoria.'); return; }
 
       onRegistrarConPreinscripcion({
@@ -193,7 +194,9 @@ export const RegistroEncomiendaModal: React.FC<RegistroEncomiendaModalProps> = (
       });
     } else {
       if (!nombreRemitente || !documentoRemitente || !telefonoRemitente) { setError('Los datos del remitente son obligatorios.'); return; }
+      if (!/^\d{1,10}$/.test(documentoRemitente.trim())) { setError('El documento del remitente debe ser numérico y tener como máximo 10 dígitos.'); return; }
       if (!nombreDestinatario || !documentoDestinatario || !telefonoDestinatario) { setError('Los datos del destinatario son obligatorios.'); return; }
+      if (!/^\d{1,10}$/.test(documentoDestinatario.trim())) { setError('El documento del destinatario debe ser numérico y tener como máximo 10 dígitos.'); return; }
       if (!contenidoDeclarado) { setError('La descripción del contenido es obligatoria.'); return; }
       if (!idOficinaDestino) { setError('Selecciona la oficina de destino.'); return; }
       if (idOficinaDestino === idOficinaOrigen) { setError('La oficina destino debe ser diferente a tu oficina.'); return; }
@@ -240,7 +243,14 @@ export const RegistroEncomiendaModal: React.FC<RegistroEncomiendaModalProps> = (
                   <input value={nombreRemitente} onChange={e => setNombreRemitente(e.target.value)} style={inputStyle} />
                 </Field>
                 <Field label="Documento" required>
-                  <input value={documentoRemitente} onChange={e => setDocumentoRemitente(e.target.value)} style={inputStyle} />
+                  <input
+                    value={documentoRemitente}
+                    onChange={e => setDocumentoRemitente(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    placeholder="Ej. 1234567890"
+                    maxLength={10}
+                    inputMode="numeric"
+                    style={inputStyle}
+                  />
                 </Field>
                 <Field label="Teléfono" required>
                   <input value={telefonoRemitente} onChange={e => setTelefonoRemitente(e.target.value)} style={inputStyle} />
@@ -253,7 +263,14 @@ export const RegistroEncomiendaModal: React.FC<RegistroEncomiendaModalProps> = (
                   <input value={nombreDestinatario} onChange={e => setNombreDestinatario(e.target.value)} style={inputStyle} />
                 </Field>
                 <Field label="Documento" required>
-                  <input value={documentoDestinatario} onChange={e => setDocumentoDestinatario(e.target.value)} style={inputStyle} />
+                  <input
+                    value={documentoDestinatario}
+                    onChange={e => setDocumentoDestinatario(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    placeholder="Ej. 1234567890"
+                    maxLength={10}
+                    inputMode="numeric"
+                    style={inputStyle}
+                  />
                 </Field>
                 <Field label="Teléfono" required>
                   <input value={telefonoDestinatario} onChange={e => setTelefonoDestinatario(e.target.value)} style={inputStyle} />
@@ -296,7 +313,14 @@ export const RegistroEncomiendaModal: React.FC<RegistroEncomiendaModalProps> = (
                   <input value={nombreDestinatario} onChange={e => setNombreDestinatario(e.target.value)} style={inputStyle} />
                 </Field>
                 <Field label="Documento" required>
-                  <input value={documentoDestinatario} onChange={e => setDocumentoDestinatario(e.target.value)} style={inputStyle} />
+                  <input
+                    value={documentoDestinatario}
+                    onChange={e => setDocumentoDestinatario(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    placeholder="Ej. 1234567890"
+                    maxLength={10}
+                    inputMode="numeric"
+                    style={inputStyle}
+                  />
                 </Field>
                 <Field label="Teléfono" required>
                   <input value={telefonoDestinatario} onChange={e => setTelefonoDestinatario(e.target.value)} style={inputStyle} />

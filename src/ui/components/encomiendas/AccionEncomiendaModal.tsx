@@ -47,8 +47,8 @@ export const AccionEncomiendaModal: React.FC<AccionEncomiendaModalProps> = ({
 
   const handleConfirmar = () => {
     if (tipo === 'ENTREGAR') {
-      if (!documentoRecibe || documentoRecibe.length < 5) {
-        setError('El documento de quien recibe es obligatorio (mínimo 5 caracteres).');
+      if (!documentoRecibe || !/^\d{5,10}$/.test(documentoRecibe.trim())) {
+        setError('El documento de quien recibe es obligatorio (solo números, entre 5 y 10 dígitos).');
         return;
       }
       onConfirmar({ documentoRecibe, nombreRecibe, observaciones });
@@ -89,7 +89,14 @@ export const AccionEncomiendaModal: React.FC<AccionEncomiendaModalProps> = ({
                 <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#64748b', marginBottom: '5px' }}>
                   Documento de quien recibe <span style={{ color: '#dc2626' }}>*</span>
                 </label>
-                <input value={documentoRecibe} onChange={e => setDocumentoRecibe(e.target.value)} placeholder="Ej. 1234567890" style={inputStyle} />
+                <input
+                  value={documentoRecibe}
+                  onChange={e => setDocumentoRecibe(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                  placeholder="Ej. 1234567890"
+                  maxLength={10}
+                  inputMode="numeric"
+                  style={inputStyle}
+                />
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#64748b', marginBottom: '5px' }}>

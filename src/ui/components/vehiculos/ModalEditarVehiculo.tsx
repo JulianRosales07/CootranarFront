@@ -3,7 +3,8 @@ import { vehiculosApi, propietariosApi, tiposBusApi, tiposServicioApi, asegurado
 import { conductoresApi } from '../../../infrastructure/services/conductoresApi';
 import DisenadorAsientos from './DisenadorAsientos';
 
-const PASOS = ['Propietario', 'Vehículo', 'Asientos', 'Documentos', 'Pólizas', 'Conductores'];
+const PASOS_BUS = ['Propietario', 'Vehículo', 'Asientos', 'Documentos', 'Pólizas', 'Conductores'];
+const PASOS_FURGON = ['Propietario', 'Vehículo', 'Documentos', 'Pólizas', 'Conductores'];
 
 const abrirArchivo = async (url: string) => {
   if (!url) return;
@@ -20,6 +21,21 @@ export default function ModalEditarVehiculo({ vehiculo, onCerrar, onActualizado 
   const [pasoActual, setPasoActual] = useState(0);
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState('');
+
+  // Tipo de vehículo: BUS (transporte de pasajeros) o FURGON (encomiendas).
+  // Determina si se muestra el paso "Asientos" y los campos exclusivos de
+  // bus (idTipoBus, idTipoServicio, capacidad, distribucionAsientos), ya
+  // que para FURGON la BD exige que esos 4 campos queden en NULL
+  // (constraint chk_vehiculo_campos_segun_tipo).
+  const [tipoVehiculo, setTipoVehiculo] = useState<'BUS' | 'FURGON'>('BUS');
+  const esFurgon = tipoVehiculo === 'FURGON';
+  const PASOS = esFurgon ? PASOS_FURGON : PASOS_BUS;
+  // Mapea el índice visible del stepper (pasoActual) a una clave de paso,
+  // para no depender de índices numéricos fijos que cambian según el tipo.
+  const stepKeys = esFurgon
+    ? ['propietario', 'vehiculo', 'documentos', 'polizas', 'conductores']
+    : ['propietario', 'vehiculo', 'asientos', 'documentos', 'polizas', 'conductores'];
+  const pasoActualKey = stepKeys[pasoActual];
 
   // Catálogos
   const [tiposBus, setTiposBus] = useState([]);
@@ -67,6 +83,7 @@ export default function ModalEditarVehiculo({ vehiculo, onCerrar, onActualizado 
     if (!vehiculo) return;
     setPasoActual(0);
     setError('');
+    setTipoVehiculo(vehiculo.tipovehiculo === 'FURGON' ? 'FURGON' : 'BUS');
     setForm({
       placa: vehiculo.placa || '',
       numeromovil: vehiculo.numeromovil || '',
@@ -177,7 +194,13 @@ export default function ModalEditarVehiculo({ vehiculo, onCerrar, onActualizado 
     setError('');
     try {
       const cambios: any = {};
-      const campos = ['placa','numeromovil','idtiposervicio','idtipobus','modelo','cantidadpisos','anio','color','chasis','motor'];
+      // Campos exclusivos de BUS (idtiposervicio, idtipobus) solo se
+      // comparan/envían si el vehículo es BUS. Para FURGON estos campos
+      // deben quedar en NULL en BD (constraint chk_vehiculo_campos_segun_tipo),
+      // así que nunca se incluyen en el payload de actualización.
+      const campos = esFurgon
+        ? ['placa','numeromovil','modelo','anio','color','chasis','motor']
+        : ['placa','numeromovil','idtiposervicio','idtipobus','modelo','cantidadpisos','anio','color','chasis','motor'];
       campos.forEach(k => {
         const v = (form as any)[k] === '' ? null : (form as any)[k];
         const orig = (vehiculo as any)[k] === undefined ? null : (vehiculo as any)[k];
@@ -188,7 +211,9 @@ export default function ModalEditarVehiculo({ vehiculo, onCerrar, onActualizado 
         cambios.idusuariopropietario = propietario.idusuario;
       }
 
-      if (distribucion) {
+      // El paso "Asientos" no existe para FURGON, así que distribucion nunca
+      // se toca en ese caso y no se envía capacidad/distribucionasientos.
+      if (!esFurgon && distribucion) {
         const dist = distribucion.distribucion ? distribucion.distribucion : distribucion;
         const capacidadReal = Array.isArray(dist) ? dist.filter((a: any) => !a.vacio).length : parseInt(form.capacidad);
         cambios.distribucionasientos = distribucion.distribucion
@@ -349,8 +374,8 @@ export default function ModalEditarVehiculo({ vehiculo, onCerrar, onActualizado 
             </div>
           )}
 
-          {/* PASO 0: PROPIETARIO */}
-          {pasoActual === 0 && (
+          {/* PASO PROPIETARIO */}
+          {pasoActualKey === 'propietario' && (
             <div className="space-y-5">
               <div className="p-4 bg-blue-50/50 border border-blue-100/50 rounded-2xl flex gap-3 text-xs text-blue-700">
                 <span className="material-symbols-outlined text-base font-black">info</span>
@@ -482,8 +507,8 @@ export default function ModalEditarVehiculo({ vehiculo, onCerrar, onActualizado 
             </div>
           )}
 
-          {/* PASO 1: VEHÍCULO */}
-          {pasoActual === 1 && (
+          {/* PASO VEHÍCULO */}
+          {pasoActualKey === 'vehiculo' && (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">
@@ -511,6 +536,7 @@ export default function ModalEditarVehiculo({ vehiculo, onCerrar, onActualizado 
                 />
               </div>
 
+              {!esFurgon && (
               <div>
                 <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">
                   Tipo de Servicio
@@ -526,7 +552,9 @@ export default function ModalEditarVehiculo({ vehiculo, onCerrar, onActualizado 
                   ))}
                 </select>
               </div>
+              )}
 
+              {!esFurgon && (
               <div>
                 <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">
                   Tipo de Bus
@@ -542,6 +570,7 @@ export default function ModalEditarVehiculo({ vehiculo, onCerrar, onActualizado 
                   ))}
                 </select>
               </div>
+              )}
 
               <div>
                 <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">
@@ -595,6 +624,7 @@ export default function ModalEditarVehiculo({ vehiculo, onCerrar, onActualizado 
                 />
               </div>
 
+              {!esFurgon && (
               <div>
                 <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">
                   Número de Pisos
@@ -608,11 +638,12 @@ export default function ModalEditarVehiculo({ vehiculo, onCerrar, onActualizado 
                   <option value={2}>2 Pisos</option>
                 </select>
               </div>
+              )}
             </div>
           )}
 
-          {/* PASO 2: ASIENTOS */}
-          {pasoActual === 2 && (
+          {/* PASO ASIENTOS (solo BUS) */}
+          {pasoActualKey === 'asientos' && (
             <div className="space-y-4">
               <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
                 <div>
@@ -634,8 +665,8 @@ export default function ModalEditarVehiculo({ vehiculo, onCerrar, onActualizado 
             </div>
           )}
 
-          {/* PASO 3: DOCUMENTOS */}
-          {pasoActual === 3 && (
+          {/* PASO DOCUMENTOS */}
+          {pasoActualKey === 'documentos' && (
             <div className="space-y-4">
               {documentos.map((doc, idx) => (
                 <div key={doc.iddocumento} className="p-5 border border-gray-150 rounded-2xl bg-white space-y-4">
@@ -710,8 +741,8 @@ export default function ModalEditarVehiculo({ vehiculo, onCerrar, onActualizado 
             </div>
           )}
 
-          {/* PASO 4: PÓLIZAS */}
-          {pasoActual === 4 && (
+          {/* PASO PÓLIZAS */}
+          {pasoActualKey === 'polizas' && (
             <div className="space-y-4">
               {polizas.map((pol, idx) => (
                 <div key={pol.idpoliza} className="p-5 border border-gray-150 rounded-2xl bg-white space-y-4">
@@ -805,8 +836,8 @@ export default function ModalEditarVehiculo({ vehiculo, onCerrar, onActualizado 
             </div>
           )}
 
-          {/* PASO 5: CONDUCTORES */}
-          {pasoActual === 5 && (
+          {/* PASO CONDUCTORES */}
+          {pasoActualKey === 'conductores' && (
             <div className="space-y-6">
               <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl">
                 <h4 className="text-xs font-black text-gray-700 mb-3">Conductores Actualmente Asignados</h4>

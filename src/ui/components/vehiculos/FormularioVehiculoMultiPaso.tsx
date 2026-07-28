@@ -25,6 +25,9 @@ const onFocus = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) =>
   (e.currentTarget.style.borderColor = '#0D3B8E');
 const onBlur = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) =>
   (e.currentTarget.style.borderColor = '#e2e8f0');
+// Extrae el mensaje de error real devuelto por el backend (axios), con fallback.
+const extraerMensajeError = (error: any, fallback: string): string =>
+  error?.response?.data?.message || error?.message || fallback;
 
 interface FormularioVehiculoMultiPasoProps {
   onVehiculoCreado: () => void;
@@ -38,6 +41,9 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
   const [guardando, setGuardando] = useState(false);
   const [cargandoDatos, setCargandoDatos] = useState(modoEdicion);
   const [exitoModal, setExitoModal] = useState<{ show: boolean; mensaje: string }>({ show: false, mensaje: '' });
+  // Errores críticos acumulados durante el guardado en modo edición (conductores).
+  // Antes estos errores solo se registraban en consola y el usuario nunca los veía.
+  const [erroresGuardado, setErroresGuardado] = useState<string[]>([]);
 
   // Refs para animaciones GSAP
   const contenidoPasoRef = useRef<HTMLDivElement>(null);
@@ -437,6 +443,8 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
     }
 
     setGuardando(true);
+    setErroresGuardado([]);
+    const erroresConductores: string[] = [];
     try {
       const esFurgon = tipoVehiculo === 'FURGON';
       const capacidadReal = esFurgon
@@ -531,8 +539,10 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
             
             // Asignar al vehículo
             await vehiculosApi.asignarConductor(vehiculoId, conductorCreado.idusuario, false);
-          } catch (error) {
+          } catch (error: any) {
+            const msg = extraerMensajeError(error, 'Error creando/asignando conductor principal');
             console.error('Error creando/asignando conductor principal:', error);
+            erroresConductores.push(`No se pudo registrar/asignar al conductor ${c.nombre || ''} ${c.apellido || ''}: ${msg}`);
           }
         }
         
@@ -544,8 +554,10 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
         for (const c of conductoresExistentesParaAsignar) {
           try {
             await vehiculosApi.asignarConductor(vehiculoId, c.idusuario, false);
-          } catch (error) {
+          } catch (error: any) {
+            const msg = extraerMensajeError(error, 'Error asignando conductor principal existente');
             console.error('Error asignando conductor principal existente:', error);
+            erroresConductores.push(`No se pudo asignar al conductor ${c.nombre || ''} ${c.apellido || ''}: ${msg}`);
           }
         }
         
@@ -580,8 +592,10 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
             console.log('Asignando conductor al vehículo como reemplazo...');
             await vehiculosApi.asignarConductor(vehiculoId, conductorCreado.idusuario, true);
             console.log('Conductor asignado exitosamente');
-          } catch (error) {
+          } catch (error: any) {
+            const msg = extraerMensajeError(error, 'Error creando/asignando conductor de reemplazo');
             console.error('Error creando/asignando conductor de reemplazo:', error);
+            erroresConductores.push(`No se pudo registrar/asignar como reemplazo al conductor ${c.nombre || ''} ${c.apellido || ''}: ${msg}`);
           }
         }
         
@@ -593,9 +607,75 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
         for (const c of conductoresReemplazoExistentesParaAsignar) {
           try {
             await vehiculosApi.asignarConductor(vehiculoId, c.idusuario, true);
-          } catch (error) {
+          } catch (error: any) {
+            const msg = extraerMensajeError(error, 'Error asignando conductor de reemplazo existente');
             console.error('Error asignando conductor de reemplazo existente:', error);
+            erroresConductores.push(`No se pudo asignar como reemplazo al conductor ${c.nombre || ''} ${c.apellido || ''}: ${msg}`);
           }
+        }
+
+        // 8. Propietario como conductor: en modo edición este bloque no se
+        // procesaba antes (el checkbox "el propietario también es conductor"
+        // no tenía ningún efecto al guardar). Si no tiene registro de
+        // conductor todavía, se crea (reutilizando el usuario existente); si
+        // ya lo tiene, solo se asigna si no estaba ya asignado al vehículo.
+        if (propEsConductor && propietario?.idusuario) {
+          try {
+            if (!propYaEsConductor) {
+              const formData = new FormData();
+              formData.append('nombre', propietario.nombre || '');
+              formData.append('apellido', propietario.apellido || '');
+              formData.append('tipodocumento', propietario.tipodocumento || 'CC');
+              formData.append('documento', propietario.documento || '');
+              formData.append('telefono', propietario.telefono || '');
+              formData.append('numerolicencia', propConductorData.numerolicencia);
+              formData.append('categorialicencia', propConductorData.categorialicencia);
+              formData.append('fechavencimientolicencia', propConductorData.fechavencimientolicencia);
+              if (archivoLicenciaProp) formData.append('licencia', archivoLicenciaProp);
+              await conductoresApi.crear(formData);
+            }
+            if (!conductoresOriginalesIds.has(propietario.idusuario)) {
+              await vehiculosApi.asignarConductor(vehiculoId, propietario.idusuario, false);
+            }
+          } catch (error: any) {
+            const msg = extraerMensajeError(error, 'Error registrando/asignando propietario como conductor');
+            console.error('Error registrando/asignando propietario como conductor:', error);
+            erroresConductores.push(`No se pudo registrar/asignar al propietario como conductor: ${msg}`);
+          }
+        }
+
+        // 9. Desasignar conductores que el usuario quitó de la lista (el
+        // botón "X" solo actualizaba el estado local; nunca llamaba al
+        // backend). Se hace al final, después de asignar los nuevos, porque
+        // el backend exige mantener al menos 1 conductor principal activo
+        // en todo momento.
+        const idsFinalesEnUI = new Set<number>();
+        [...conductores, ...conductoresReemplazo].forEach(c => {
+          if (c.idusuario) idsFinalesEnUI.add(c.idusuario);
+        });
+        if (propEsConductor && propietario?.idusuario) {
+          idsFinalesEnUI.add(propietario.idusuario);
+        }
+        for (const idOriginal of conductoresOriginalesIds) {
+          if (!idsFinalesEnUI.has(idOriginal)) {
+            try {
+              await vehiculosApi.desasignarConductor(vehiculoId, idOriginal);
+            } catch (error: any) {
+              const msg = extraerMensajeError(error, 'Error desasignando conductor removido');
+              console.error('Error desasignando conductor removido:', error);
+              erroresConductores.push(`No se pudo quitar al conductor (id ${idOriginal}) del vehículo: ${msg}`);
+            }
+          }
+        }
+
+        // Si hubo errores críticos en conductores, no mostramos el modal de
+        // éxito ni cerramos el formulario todavía (antes siempre se mostraba
+        // éxito y se cerraba, ocultando fallos reales del backend). El resto
+        // de campos (datos básicos, documentos, pólizas) sí se guardó, pero
+        // el usuario debe ver el detalle del error antes de salir.
+        if (erroresConductores.length > 0) {
+          setErroresGuardado(erroresConductores);
+          return;
         }
 
         setExitoModal({ show: true, mensaje: 'El vehículo ha sido actualizado correctamente.' });
@@ -1793,6 +1873,46 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
               e.currentTarget.style.backgroundColor = '#0D3B8E';
               gsap.to(e.currentTarget, { scale: 1, duration: 0.2 });
             }}
+          >
+            Entendido
+          </button>
+        </div>
+      </div>
+    )}
+
+    {/* Error Modal - errores de conductores ocurridos al guardar en modo edición */}
+    {erroresGuardado.length > 0 && (
+      <div
+        style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(15, 23, 42, 0.45)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px' }}
+        ref={(el) => {
+          if (el) {
+            gsap.fromTo(el, { opacity: 0 }, { opacity: 1, duration: 0.3 });
+          }
+        }}
+      >
+        <div
+          style={{ backgroundColor: 'white', borderRadius: '24px', padding: '40px 32px', width: '100%', maxWidth: '480px', textAlign: 'left', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+            <div style={{ width: '48px', height: '48px', backgroundColor: '#fee2e2', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <span className="material-symbols-outlined" style={{ color: '#dc2626', fontSize: '28px' }}>error</span>
+            </div>
+            <h3 style={{ fontSize: '19px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>El vehículo se actualizó con errores</h3>
+          </div>
+          <p style={{ fontSize: '14px', color: '#64748b', lineHeight: '1.6', marginBottom: '16px' }}>
+            Los datos básicos, documentos y pólizas se guardaron, pero ocurrieron los siguientes errores al gestionar los conductores. Revise y corrija antes de intentar un despacho:
+          </p>
+          <ul style={{ margin: '0 0 24px 0', padding: '0 0 0 20px', fontSize: '13px', color: '#991b1b', lineHeight: '1.6' }}>
+            {erroresGuardado.map((msg, i) => (
+              <li key={i} style={{ marginBottom: '6px' }}>{msg}</li>
+            ))}
+          </ul>
+          <button
+            onClick={() => {
+              setErroresGuardado([]);
+              onVehiculoCreado();
+            }}
+            style={{ width: '100%', padding: '14px', backgroundColor: '#0D3B8E', color: 'white', borderRadius: '14px', fontSize: '14px', fontWeight: 700, border: 'none', cursor: 'pointer' }}
           >
             Entendido
           </button>

@@ -24,6 +24,7 @@ export const ROUTES = {
   EMPLEADOS_ENCOMIENDAS: '/empleados/encomiendas',
   OFICINAS_ENCOMIENDAS: '/oficinas-encomiendas',
   TARIFAS_RUTA: '/rutas/tarifas',
+  REPORTE_INGRESOS: '/reportes/ingresos-por-bus',
   DEPARTAMENTOS: '/departamentos',
 } as const;
 

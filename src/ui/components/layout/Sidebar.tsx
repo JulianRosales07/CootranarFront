@@ -14,6 +14,7 @@ interface NavSection { title: string; items: NavItem[]; }
 const sections: NavSection[] = [
   { title: 'Análisis', items: [
     { path: ROUTES.DASHBOARD, label: 'Dashboard', icon: 'analytics' },
+    { path: ROUTES.REPORTE_INGRESOS, label: 'Ingresos por Bus', icon: 'request_quote' },
   ]},
   { title: 'Taquilla', items: [
     { path: ROUTES.TAQUILLA, label: 'Venta de Tiquetes', icon: 'point_of_sale' },

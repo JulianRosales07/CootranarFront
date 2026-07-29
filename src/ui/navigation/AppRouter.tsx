@@ -23,6 +23,7 @@ import { TaquillerosPage } from '../pages/empleados/TaquillerosPage';
 import { EmpleadosEncomiendasPage } from '../pages/empleados/EmpleadosEncomiendasPage';
 import { OficinasEncomiendasPage } from '../pages/oficinas-encomiendas/OficinasEncomiendasPage';
 import { UsuariosPage } from '../pages/usuarios/UsuariosPage';
+import { ReporteIngresosPage } from '../pages/reportes/ReporteIngresosPage';
 import { PrivateRoute } from './PrivateRoute';
 import { ErrorBoundary } from '../components/common/ErrorBoundary';
 import { ROUTES } from '../../shared/constants';
@@ -52,6 +53,7 @@ export const AppRouter = () => {
           {/* Rutas exclusivas del Administrador */}
           <Route element={<PrivateRoute allowedRoles={['ADMINISTRADOR']} />}>
             <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
+            <Route path={ROUTES.REPORTE_INGRESOS} element={<ReporteIngresosPage />} />
             <Route path={ROUTES.TIQUETES} element={<TiquetesPage />} />
             <Route path={ROUTES.RUTAS} element={<RutasPage />} />
             <Route path="/rutas/:idruta/tarifas" element={<TarifasRutaPage />} />

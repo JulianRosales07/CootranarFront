@@ -185,6 +185,8 @@ export const EncomiendaPage = () => {
         onClose={() => { setAccionModal(null); setAccionError(null); }}
         tipo={accionModal?.tipo ?? null}
         referencia={accionModal?.encomienda.referencia}
+        nombreDestinatario={accionModal?.encomienda.nombreDestinatario}
+        documentoDestinatario={accionModal?.encomienda.documentoDestinatario}
         cargando={cambiarEstado.isPending}
         onConfirmar={handleConfirmarAccion}
       />

@@ -79,8 +79,13 @@ export const BuscadorReferencia: React.FC<BuscadorReferenciaProps> = ({
       {encomiendaEncontrada && (
         <div style={{ marginTop: '14px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', flexWrap: 'wrap' }}>
           <div>
-            <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0f172a' }}>
-              {encomiendaEncontrada.nombreRemitente || 'Remitente'} → {encomiendaEncontrada.nombreDestinatario}
+            <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <span>{encomiendaEncontrada.nombreRemitente || 'Remitente'} → {encomiendaEncontrada.nombreDestinatario}</span>
+              {encomiendaEncontrada.radicadoRndc && (
+                <span style={{ fontSize: '11.5px', color: '#0369a1', background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '4px', padding: '1px 6px', fontWeight: 600 }}>
+                  RNDC: {encomiendaEncontrada.radicadoRndc}
+                </span>
+              )}
             </div>
             <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
               {encomiendaEncontrada.oficinaOrigenNombre || '-'} a {encomiendaEncontrada.oficinaDestinoNombre || '-'} · Estado: {encomiendaEncontrada.estado}

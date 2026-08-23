@@ -116,7 +116,7 @@ export const TablaEncomiendas: React.FC<TablaEncomiendasProps> = ({
 
   const esOficinaDestino = (enc: EncomiendaDTO) => !!idOficinaEmpleado && enc.idOficinaDestino === idOficinaEmpleado;
 
-  const columnas = ['Referencia', 'Remitente', 'Destinatario', 'Origen', 'Destino', 'Peso', 'Estado', 'Fecha', 'Acciones'];
+  const columnas = ['Referencia', 'Radicado RNDC', 'Remitente', 'Destinatario', 'Origen', 'Destino', 'Peso', 'Estado', 'Fecha', 'Acciones'];
 
   return (
     <div style={{ background: 'white', borderRadius: '10px', border: '1px solid #e8edf2', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
@@ -128,7 +128,7 @@ export const TablaEncomiendas: React.FC<TablaEncomiendasProps> = ({
             <input
               value={busqueda}
               onChange={e => onBusquedaChange(e.target.value)}
-              placeholder="Buscar por referencia, remitente o destinatario..."
+              placeholder="Buscar por referencia, radicado, remitente..."
               style={{ padding: '7px 12px 7px 32px', border: '1px solid #e2e8f0', borderRadius: '7px', fontSize: '12.5px', color: '#334155', outline: 'none', fontFamily: 'inherit', minWidth: '240px' }}
             />
           </div>
@@ -178,6 +178,15 @@ export const TablaEncomiendas: React.FC<TablaEncomiendasProps> = ({
                         </td>
                       )}
                       <td style={{ padding: '12px 16px', fontSize: '12.5px', fontFamily: 'monospace', color: '#334155', fontWeight: 600 }}>{enc.referencia}</td>
+                      <td style={{ padding: '12px 16px', fontSize: '12.5px', color: '#334155' }}>
+                        {enc.radicadoRndc ? (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f0f9ff', color: '#0369a1', border: '1px solid #bae6fd', borderRadius: '4px', padding: '2px 8px', fontFamily: 'monospace', fontSize: '11.5px', fontWeight: 600 }}>
+                            {enc.radicadoRndc}
+                          </span>
+                        ) : (
+                          <span style={{ color: '#94a3b8', fontSize: '12px' }}>—</span>
+                        )}
+                      </td>
                       <td style={{ padding: '12px 16px', fontSize: '13.5px', fontWeight: 600, color: '#1e293b' }}>
                         {enc.nombreRemitente || '—'}
                       </td>

@@ -9,6 +9,7 @@ export type EstadoEncomienda =
 export interface EncomiendaDTO {
   id: string;
   referencia: string;
+  radicadoRndc?: string | null;
   idOficinaOrigen: string;
   idOficinaDestino: string;
   oficinaOrigenNombre: string;

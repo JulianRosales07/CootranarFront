@@ -7,6 +7,17 @@ export type { EstadoEncomienda };
 export const mapearEncomienda = (e: any): EncomiendaDTO => ({
   id: String(e.idencomienda),
   referencia: e.referenciaencomienda || '',
+  radicadoRndc:
+    e.radicadorndc ||
+    e.radicado_rndc ||
+    e.radicadoRndc ||
+    e.radicado ||
+    e.numeroradicado ||
+    e.numero_radicado ||
+    e.numradicado ||
+    e.consecutivorndc ||
+    e.rndc ||
+    null,
   idOficinaOrigen: e.idoficinaorigen ? String(e.idoficinaorigen) : '',
   idOficinaDestino: e.idoficinadestino ? String(e.idoficinadestino) : '',
   oficinaOrigenNombre: e.nombreoficinaorigen || '',

@@ -55,7 +55,21 @@ export const EncomiendaPage = () => {
       onSuccess: (resultado: any) => {
         cerrarModalRegistro();
         limpiar();
-        setComprobante(resultado?.comprobantePdf || null);
+        const comp = resultado?.comprobantePdf ? {
+          ...resultado.comprobantePdf,
+          radicadoRndc:
+            resultado.comprobantePdf.radicadoRndc ||
+            resultado.comprobantePdf.radicadorndc ||
+            resultado.radicadoRndc ||
+            resultado.radicadorndc ||
+            resultado.radicado_rndc ||
+            resultado.radicado ||
+            resultado.encomienda?.radicadorndc ||
+            resultado.encomienda?.radicadoRndc ||
+            resultado.encomienda?.radicado ||
+            null,
+        } : null;
+        setComprobante(comp);
       },
       onError: (err: any) => {
         alert(err?.response?.data?.message || err?.message || 'Error al registrar la encomienda.');
@@ -67,7 +81,21 @@ export const EncomiendaPage = () => {
     registrarDirecta.mutate(data, {
       onSuccess: (resultado: any) => {
         cerrarModalRegistro();
-        setComprobante(resultado?.comprobantePdf || null);
+        const comp = resultado?.comprobantePdf ? {
+          ...resultado.comprobantePdf,
+          radicadoRndc:
+            resultado.comprobantePdf.radicadoRndc ||
+            resultado.comprobantePdf.radicadorndc ||
+            resultado.radicadoRndc ||
+            resultado.radicadorndc ||
+            resultado.radicado_rndc ||
+            resultado.radicado ||
+            resultado.encomienda?.radicadorndc ||
+            resultado.encomienda?.radicadoRndc ||
+            resultado.encomienda?.radicado ||
+            null,
+        } : null;
+        setComprobante(comp);
       },
       onError: (err: any) => {
         alert(err?.response?.data?.message || err?.message || 'Error al registrar la encomienda.');

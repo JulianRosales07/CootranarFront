@@ -256,7 +256,12 @@ export const CrearDespachoModal: React.FC<CrearDespachoModalProps> = ({
                         <td style={{ padding: '8px 12px', width: '32px' }}>
                           <input type="checkbox" checked={seleccionadas.has(enc.id)} onChange={() => toggleSeleccion(enc.id)} />
                         </td>
-                        <td style={{ padding: '8px 12px', fontSize: '12px', fontFamily: 'monospace', color: '#334155' }}>{enc.referencia}</td>
+                        <td style={{ padding: '8px 12px', fontSize: '12px', fontFamily: 'monospace', color: '#334155' }}>
+                          {enc.referencia}
+                          {enc.radicadoRndc && (
+                            <div style={{ fontSize: '10.5px', color: '#0369a1', fontWeight: 600 }}>RNDC: {enc.radicadoRndc}</div>
+                          )}
+                        </td>
                         <td style={{ padding: '8px 12px', fontSize: '12.5px', color: '#1e293b' }}>{enc.nombreDestinatario}</td>
                         <td style={{ padding: '8px 12px', fontSize: '12px', color: '#64748b' }}>{enc.pesoReal ?? enc.pesoEstimado ?? '-'} kg</td>
                       </tr>

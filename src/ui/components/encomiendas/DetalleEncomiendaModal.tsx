@@ -66,7 +66,18 @@ export const DetalleEncomiendaModal: React.FC<DetalleEncomiendaModalProps> = ({ 
         <div style={{ padding: '18px 24px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, background: 'white', zIndex: 10, borderRadius: '12px 12px 0 0' }}>
           <div>
             <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a', margin: 0 }}>Detalle de la Encomienda</h3>
-            {encomienda && <p style={{ fontSize: '12px', color: '#94a3b8', margin: '2px 0 0 0' }}>Referencia: {encomienda.referencia}</p>}
+            {encomienda && (
+              <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'center', marginTop: '3px' }}>
+                <span style={{ fontSize: '12px', color: '#64748b' }}>Referencia: <strong style={{ color: '#0f172a' }}>{encomienda.referencia}</strong></span>
+                {encomienda.radicadoRndc ? (
+                  <span style={{ fontSize: '12px', color: '#0369a1', background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '4px', padding: '1px 6px', fontWeight: 600 }}>
+                    RNDC: {encomienda.radicadoRndc}
+                  </span>
+                ) : (
+                  <span style={{ fontSize: '11.5px', color: '#94a3b8' }}>RNDC: Pendiente / No asignado</span>
+                )}
+              </div>
+            )}
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', padding: 0, display: 'flex' }}>
             <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>close</span>
@@ -88,9 +99,11 @@ export const DetalleEncomiendaModal: React.FC<DetalleEncomiendaModalProps> = ({ 
             <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '16px' }}>
               <h4 style={{ fontSize: '13px', fontWeight: 700, color: '#1e40af', margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>route</span>
-                Ruta
+                Ruta y Radicado
               </h4>
               <Grid campos={[
+                { label: 'Radicado RNDC', valor: encomienda.radicadoRndc ? <span style={{ fontFamily: 'monospace', color: '#0369a1', fontWeight: 700 }}>{encomienda.radicadoRndc}</span> : 'No registrado' },
+                { label: 'Referencia', valor: encomienda.referencia },
                 { label: 'Oficina origen', valor: encomienda.oficinaOrigenNombre },
                 { label: 'Oficina destino', valor: encomienda.oficinaDestinoNombre },
               ]} />

@@ -4,6 +4,7 @@ const BLUE = '#0D3B8E';
 
 interface ComprobanteEncomienda {
   referencia?: string;
+  radicadoRndc?: string | null;
   nombreDestinatario?: string;
   valorCobrado?: number;
   pdfBase64?: string | null;
@@ -43,9 +44,15 @@ export const ComprobanteEncomiendaModal: React.FC<ComprobanteEncomiendaModalProp
       <div style={{ background: 'white', borderRadius: '12px', width: '100%', maxWidth: '420px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.15)', textAlign: 'center', padding: '32px 28px' }}>
         <span className="material-symbols-outlined" style={{ fontSize: '48px', color: '#16a34a' }}>check_circle</span>
         <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#0f172a', margin: '12px 0 4px' }}>Encomienda registrada</h3>
-        <p style={{ fontSize: '12.5px', color: '#64748b', margin: '0 0 18px' }}>
+        <p style={{ fontSize: '12.5px', color: '#64748b', margin: '0 0 12px' }}>
           Referencia <strong style={{ color: '#0f172a' }}>{comprobante.referencia}</strong> para {comprobante.nombreDestinatario}
         </p>
+        {comprobante.radicadoRndc && (
+          <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '8px', padding: '8px 12px', marginBottom: '14px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontSize: '12px', color: '#0369a1', fontWeight: 600 }}>Radicado RNDC:</span>
+            <span style={{ fontSize: '13px', fontWeight: 700, color: '#0284c7', fontFamily: 'monospace' }}>{comprobante.radicadoRndc}</span>
+          </div>
+        )}
         {comprobante.valorCobrado != null && (
           <div style={{ background: '#eff6ff', border: '1px solid #dbeafe', borderRadius: '8px', padding: '12px', marginBottom: '18px' }}>
             <span style={{ fontSize: '12px', color: '#1e40af', fontWeight: 600 }}>Valor cobrado</span>

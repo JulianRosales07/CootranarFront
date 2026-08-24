@@ -1147,6 +1147,143 @@ export const PerfilPage: React.FC = () => {
         </div>
 
       </div>
+
+      {/* Modal / Lightbox para ver foto de perfil en pantalla completa */}
+      {modalVisualizarFoto && fotoUrl && (
+        <div
+          onClick={() => setModalVisualizarFoto(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.85)',
+            backdropFilter: 'blur(10px)',
+            zIndex: 9999,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '24px',
+            animation: 'fadeIn 0.2s ease-out',
+          }}
+        >
+          {/* Barra superior de controles */}
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: 'absolute',
+              top: '24px',
+              right: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+            }}
+          >
+            <a
+              href={fotoUrl}
+              download="foto-perfil-cootranar.jpg"
+              title="Descargar foto original"
+              style={{
+                width: '44px',
+                height: '44px',
+                borderRadius: '50%',
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textDecoration: 'none',
+                transition: 'background 0.15s, transform 0.15s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+                e.currentTarget.style.transform = 'scale(1.05)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>download</span>
+            </a>
+
+            <button
+              onClick={() => setModalVisualizarFoto(false)}
+              title="Cerrar vista"
+              style={{
+                width: '44px',
+                height: '44px',
+                borderRadius: '50%',
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                color: 'white',
+                border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                transition: 'background 0.15s, transform 0.15s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.85)';
+                e.currentTarget.style.transform = 'scale(1.05)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>close</span>
+            </button>
+          </div>
+
+          {/* Contenedor central de la Imagen */}
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              maxWidth: '90vw',
+              maxHeight: '82vh',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              position: 'relative',
+              animation: 'scaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+            }}
+          >
+            <img
+              src={fotoUrl}
+              alt="Foto de perfil ampliada"
+              style={{
+                maxWidth: '100%',
+                maxHeight: '74vh',
+                borderRadius: '24px',
+                boxShadow: '0 24px 60px rgba(0, 0, 0, 0.8)',
+                border: '2px solid rgba(255, 255, 255, 0.12)',
+                objectFit: 'contain',
+              }}
+            />
+            <div
+              style={{
+                marginTop: '16px',
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                backdropFilter: 'blur(6px)',
+                padding: '6px 16px',
+                borderRadius: '20px',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}
+            >
+              <span style={{ color: '#ffffff', fontSize: '13px', fontWeight: 700 }}>
+                {nombre} {apellido}
+              </span>
+              <span style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '12px' }}>•</span>
+              <span style={{ color: '#60a5fa', fontSize: '12px', fontWeight: 600 }}>
+                {cargo}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 };

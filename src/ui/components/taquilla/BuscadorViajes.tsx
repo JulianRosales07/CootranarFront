@@ -238,12 +238,13 @@ export const BuscadorViajes: React.FC<BuscadorViajesProps> = ({
 
   return (
     <section
+      className="taquilla-buscador-card"
       style={{
         background: '#fff',
-        borderRadius: '12px',
+        borderRadius: '16px',
         border: `1px solid ${C.outlineVariant}`,
         boxShadow: '0px 4px 20px rgba(15,76,129,0.05)',
-        padding: '32px',
+        padding: '28px',
         position: 'relative',
         overflow: 'visible',
         fontFamily: "'Hanken Grotesk', sans-serif",
@@ -259,7 +260,7 @@ export const BuscadorViajes: React.FC<BuscadorViajesProps> = ({
       }} />
 
       {/* ── Step Progress ── */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', maxWidth: '560px', margin: '0 auto 40px', gap: 0 }}>
+      <div className="taquilla-steps-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', maxWidth: '560px', margin: '0 auto 36px', gap: 0, overflowX: 'auto', paddingBottom: '8px' }}>
         {PASOS.map((paso, i) => {
           const isActive    = pasoActual === paso.id;
           const isCompleted = i < indicePaso;
@@ -267,9 +268,9 @@ export const BuscadorViajes: React.FC<BuscadorViajesProps> = ({
 
           return (
             <React.Fragment key={paso.id}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', flex: 1 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', flex: 1, minWidth: '70px' }}>
                 <div style={{
-                  width: '48px', height: '48px', borderRadius: '50%',
+                  width: '44px', height: '44px', borderRadius: '50%',
                   background: isCompleted ? '#22c55e' : isActive ? C.primary : C.surfaceContainerLow,
                   border: (!isCompleted && !isActive) ? `1px solid ${C.outlineVariant}` : 'none',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -287,6 +288,7 @@ export const BuscadorViajes: React.FC<BuscadorViajesProps> = ({
                   fontSize: '11px', fontWeight: '700', letterSpacing: '0.06em',
                   color: isActive ? C.primary : isCompleted ? '#16a34a' : C.outline,
                   transition: 'color 0.3s',
+                  whiteSpace: 'nowrap',
                 }}>
                   {paso.label}
                 </span>
@@ -294,7 +296,7 @@ export const BuscadorViajes: React.FC<BuscadorViajesProps> = ({
               {!isLast && (
                 <div style={{
                   flex: 1, height: '1px', background: C.outlineVariant,
-                  marginBottom: '28px', maxWidth: '80px',
+                  marginBottom: '28px', minWidth: '20px', maxWidth: '80px',
                 }} />
               )}
             </React.Fragment>
@@ -304,7 +306,7 @@ export const BuscadorViajes: React.FC<BuscadorViajesProps> = ({
 
       {/* ── Search Form ── */}
       <form onSubmit={handleSubmit}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: '16px', alignItems: 'end' }}>
+        <div className="taquilla-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: '16px', alignItems: 'end' }}>
 
           {/* Ciudad Origen */}
           <div style={{ gridColumn: 'span 4', position: 'relative', zIndex: 20 }}>

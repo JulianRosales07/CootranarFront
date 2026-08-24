@@ -670,7 +670,7 @@ export const GestionTiquetesPage = () => {
       </div>
 
       {/* Layout de dos columnas */}
-      <div style={{ display: 'grid', gridTemplateColumns: viajes.length > 0 ? '320px 1fr' : '1fr', gap: '20px', alignItems: 'start' }}>
+      <div className="gestion-tiquetes-grid" style={{ display: 'grid', gridTemplateColumns: viajes.length > 0 ? '320px 1fr' : '1fr', gap: '20px', alignItems: 'start' }}>
 
         {/* ── Lista de viajes ── */}
         {viajes.length > 0 && (
@@ -844,8 +844,8 @@ export const GestionTiquetesPage = () => {
                 </div>
 
                 {/* Tabla */}
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                  <table style={{ width: '100%', minWidth: '680px', borderCollapse: 'collapse' }}>
                     <thead>
                       <tr>
                         {['Nº Tiquete / Asiento', 'Pasajero', 'Tramo', 'Valor / Pago', 'Estado', ''].map(h => (

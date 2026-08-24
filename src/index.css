@@ -102,4 +102,337 @@
 body {
   font-family: var(--font-sans);
   background-color: #f8fafc;
+  color: #0f172a;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
+
+/* ============================================
+   MODO OSCURO GLOBAL - COOTRANAR
+   ============================================ */
+
+html.dark,
+html.dark body {
+  background-color: #09090b !important;
+  color: #f8fafc !important;
+}
+
+/* Encabezados y títulos */
+html.dark h1,
+html.dark h2,
+html.dark h3,
+html.dark h4,
+html.dark h5,
+html.dark h6 {
+  color: #f8fafc !important;
+}
+
+/* Textos oscuros inline convertidos a claros */
+html.dark [style*="color: rgb(15, 23, 42)"],
+html.dark [style*="color: rgb(30, 41, 59)"],
+html.dark [style*="color: rgb(11, 36, 84)"],
+html.dark [style*="color: rgb(51, 65, 85)"],
+html.dark [style*="color: rgb(71, 85, 105)"],
+html.dark [style*="color: #0f172a"],
+html.dark [style*="color: #1e293b"],
+html.dark [style*="color: #0b2454"],
+html.dark [style*="color: #334155"],
+html.dark [style*="color: #475569"],
+html.dark [style*="color: '#0f172a'"],
+html.dark [style*="color: '#1e293b'"],
+html.dark [style*="color: '#0b2454'"],
+html.dark [style*="color: '#334155'"],
+html.dark [style*="color: '#475569'"],
+html.dark .text-slate-900,
+html.dark .text-slate-800,
+html.dark .text-slate-700,
+html.dark .text-gray-900,
+html.dark .text-gray-800 {
+  color: #f8fafc !important;
+}
+
+/* Textos secundarios / muted */
+html.dark [style*="color: rgb(100, 116, 139)"],
+html.dark [style*="color: rgb(148, 163, 184)"],
+html.dark [style*="color: #64748b"],
+html.dark [style*="color: #94a3b8"],
+html.dark [style*="color: '#64748b'"],
+html.dark [style*="color: '#94a3b8'"],
+html.dark .text-slate-600,
+html.dark .text-slate-500,
+html.dark .text-slate-400,
+html.dark .text-gray-600,
+html.dark .text-gray-500 {
+  color: #94a3b8 !important;
+}
+
+/* Sufijos de KPI y textos azules (ej: COP, UNID, BUSES, enlaces) */
+html.dark [style*="color: rgb(13, 59, 142)"],
+html.dark [style*="color: #0D3B8E"],
+html.dark [style*="color: '#0D3B8E'"],
+html.dark [style*="color: #0d3b8e"],
+html.dark [style*="color: '#0d3b8e'"] {
+  color: #60a5fa !important;
+}
+
+/* Tarjetas, Contenedores y Wizards */
+html.dark .bg-white,
+html.dark [style*="background: white"],
+html.dark [style*="background: rgb(255, 255, 255)"],
+html.dark [style*="background: #ffffff"],
+html.dark [style*="backgroundColor: 'white'"],
+html.dark [style*="backgroundColor: '#ffffff'"],
+html.dark [style*="backgroundColor: rgb(255, 255, 255)"],
+html.dark [style*="background-color: white"],
+html.dark [style*="background-color: #ffffff"],
+html.dark [style*="background-color: rgb(255, 255, 255)"] {
+  background-color: #121215 !important;
+  color: #f8fafc;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Fondos secundarios, barras, wizard-steps y filtros */
+html.dark .bg-slate-50,
+html.dark .bg-gray-50,
+html.dark .bg-slate-100,
+html.dark .bg-gray-100,
+html.dark [style*="background: rgb(248, 250, 252)"],
+html.dark [style*="background: rgb(241, 245, 249)"],
+html.dark [style*="background: rgb(250, 251, 252)"],
+html.dark [style*="background: #f8fafc"],
+html.dark [style*="background: #f1f5f9"],
+html.dark [style*="background: #fafbfc"],
+html.dark [style*="background-color: rgb(248, 250, 252)"],
+html.dark [style*="background-color: rgb(241, 245, 249)"],
+html.dark [style*="background-color: rgb(250, 251, 252)"],
+html.dark [style*="backgroundColor: '#f8fafc'"],
+html.dark [style*="backgroundColor: '#f1f5f9'"],
+html.dark [style*="backgroundColor: '#fafbfc'"] {
+  background-color: #18181b !important;
+  color: #f8fafc;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Bordes y divisores */
+html.dark .border-slate-200,
+html.dark .border-slate-100,
+html.dark .border-gray-200,
+html.dark [style*="border: 1px solid #e8edf2"],
+html.dark [style*="border: '1px solid #e8edf2'"],
+html.dark [style*="border: 1px solid #e2e8f0"],
+html.dark [style*="border: '1px solid #e2e8f0'"],
+html.dark [style*="border: 1px solid #f1f5f9"],
+html.dark [style*="border-top"],
+html.dark [style*="borderTop"],
+html.dark [style*="border-bottom"],
+html.dark [style*="borderBottom"],
+html.dark [style*="border-right"],
+html.dark [style*="borderRight"],
+html.dark [style*="border-left"],
+html.dark [style*="borderLeft"] {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Alertas informativas / Cajas de estado */
+html.dark [style*="rgb(239, 246, 255)"],
+html.dark [style*="background-color: rgb(239, 246, 255)"],
+html.dark [style*="background-color: #eff6ff"],
+html.dark [style*="background: #eff6ff"] {
+  background-color: rgba(30, 58, 138, 0.22) !important;
+  border-color: rgba(59, 130, 246, 0.3) !important;
+  color: #93c5fd !important;
+}
+
+html.dark [style*="rgb(220, 252, 231)"],
+html.dark [style*="background-color: rgb(220, 252, 231)"],
+html.dark [style*="background-color: #dcfce7"],
+html.dark [style*="background: #dcfce7"] {
+  background-color: rgba(22, 163, 74, 0.2) !important;
+  border-color: rgba(34, 197, 94, 0.3) !important;
+  color: #86efac !important;
+}
+
+html.dark [style*="rgb(254, 242, 242)"],
+html.dark [style*="background-color: rgb(254, 242, 242)"],
+html.dark [style*="background-color: #fef2f2"],
+html.dark [style*="background: #fef2f2"] {
+  background-color: rgba(220, 38, 38, 0.2) !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+  color: #fca5a5 !important;
+}
+
+/* Inputs, selects y textareas */
+html.dark input:not([type="checkbox"]):not([type="radio"]),
+html.dark select,
+html.dark textarea {
+  background-color: #18181b !important;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #71717a !important;
+}
+
+html.dark select option {
+  background-color: #18181b !important;
+  color: #f8fafc !important;
+}
+
+/* Botones secundarios e iconos en tablas/formularios */
+html.dark button[style*="rgb(248, 250, 252)"],
+html.dark button[style*="rgb(241, 245, 249)"],
+html.dark button[style*="background: #f8fafc"],
+html.dark button[style*="background: #f1f5f9"],
+html.dark button[style*="background: white"],
+html.dark button[style*="backgroundColor: 'white'"],
+html.dark button[style*="background-color: white"],
+html.dark button[style*="background-color: rgb(255, 255, 255)"] {
+  background-color: #1e1e24 !important;
+  color: #cbd5e1 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Tablas Completas */
+html.dark table {
+  background-color: transparent !important;
+  color: #f8fafc !important;
+}
+
+html.dark thead,
+html.dark thead tr,
+html.dark th {
+  background-color: #18181b !important;
+  color: #94a3b8 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+html.dark tbody tr {
+  background-color: #121215 !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+html.dark tbody tr:nth-child(even) {
+  background-color: #151519 !important;
+}
+
+html.dark tbody tr:hover {
+  background-color: #1e1e24 !important;
+}
+
+html.dark td {
+  border-color: rgba(255, 255, 255, 0.06) !important;
+  color: #f8fafc;
+}
+
+/* Carrocería del Diseñador de Asientos (Paso 3) */
+html.dark [style*="border: 8px solid rgb(241, 245, 249)"],
+html.dark [style*="border: 8px solid #f1f5f9"] {
+  background-color: #121215 !important;
+  border-color: #27272a !important;
+}
+
+/* Modales y Dialogs */
+html.dark .modal-content,
+html.dark [role="dialog"] > div {
+  background-color: #121215 !important;
+  color: #f8fafc;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* ==========================================================================
+   SISTEMA RESPONSIVE GLOBAL (Móvil, Tablet, Desktop)
+   ========================================================================== */
+
+/* Contenedor de Tablas con Scroll Horizontal Suave */
+.table-responsive,
+table {
+  max-width: 100%;
+}
+
+div:has(> table) {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Reglas para Pantallas Medianas y Móviles (<= 992px) */
+@media (max-width: 992px) {
+  /* Buscador de Taquilla Grid Adaptable */
+  .taquilla-form-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+
+  .taquilla-form-grid > div {
+    width: 100% !important;
+    grid-column: auto !important;
+  }
+
+  .taquilla-buscador-card {
+    padding: 20px !important;
+  }
+
+  /* Ajustes en Diseñador y Formularios */
+  .grid-responsive-2col,
+  .gestion-tiquetes-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Reglas para Pantallas Pequeñas / Smartphones (<= 768px) */
+@media (max-width: 768px) {
+  /* Pasos de Taquilla */
+  .taquilla-steps-container {
+    justify-content: flex-start !important;
+    padding: 8px 4px 12px !important;
+  }
+
+  /* Estadísticas y Métricas en fila/columna */
+  .stats-grid,
+  div[style*="grid-template-columns: repeat(3, 1fr)"],
+  div[style*="gridTemplateColumns: 'repeat(3, 1fr)'"] {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* Botones de acción en encabezados */
+  .header-actions {
+    flex-wrap: wrap !important;
+  }
+
+  /* Configuración / Perfil en 1 columna */
+  div[style*="grid-template-columns: 240px 1fr"],
+  div[style*="gridTemplateColumns: '240px 1fr'"] {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+
+  /* Formularios en 2 columnas se convierten a 1 */
+  div[style*="grid-template-columns: 1fr 1fr"],
+  div[style*="gridTemplateColumns: '1fr 1fr'"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Modales ocupan casi toda la pantalla */
+  [role="dialog"] > div,
+  .modal-dialog {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    margin: 10px auto !important;
+    padding: 16px !important;
+  }
+}
+
+/* Animaciones suaves */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+

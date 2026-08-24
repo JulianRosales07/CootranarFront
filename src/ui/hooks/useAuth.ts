@@ -16,12 +16,25 @@ interface AuthState {
 const authService = new ApiAuthService();
 
 export const useAuth = create<AuthState>((set) => ({
-  user: JSON.parse(localStorage.getItem('usuario') || 'null'),
+  user: (() => {
+    try {
+      const u = JSON.parse(localStorage.getItem('usuario') || 'null');
+      if (u && !u.fotoperfil && u.idusuario) {
+        u.fotoperfil = localStorage.getItem(`cootranar_foto_perfil_${u.idusuario}`) || null;
+      }
+      return u;
+    } catch {
+      return null;
+    }
+  })(),
   token: localStorage.getItem('authToken'),
   isAuthenticated: !!localStorage.getItem('authToken'),
 
   login: async (correo: string, password: string) => {
     const result = await loginUser(authService, { correo, password });
+    if (!result.user.fotoperfil && result.user.idusuario) {
+      result.user.fotoperfil = localStorage.getItem(`cootranar_foto_perfil_${result.user.idusuario}`) || null;
+    }
     localStorage.setItem('authToken', result.token);
     localStorage.setItem('usuario', JSON.stringify(result.user));
     set({ user: result.user, token: result.token, isAuthenticated: true });
@@ -35,5 +48,15 @@ export const useAuth = create<AuthState>((set) => ({
     set({ user: null, token: null, isAuthenticated: false });
   },
 
-  setUser: (user: User | null) => set({ user }),
+  setUser: (user: User | null) => {
+    if (user) {
+      localStorage.setItem('usuario', JSON.stringify(user));
+      if (user.fotoperfil && user.idusuario) {
+        localStorage.setItem(`cootranar_foto_perfil_${user.idusuario}`, user.fotoperfil);
+      }
+    } else {
+      localStorage.removeItem('usuario');
+    }
+    set({ user });
+  },
 }));

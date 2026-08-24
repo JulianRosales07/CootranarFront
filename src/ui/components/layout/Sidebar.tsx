@@ -1,202 +1,445 @@
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../../shared/constants';
 import { useAuth } from '../../hooks/useAuth';
 import { useSidebar } from '../../context/SidebarContext';
-import logoCootranar from  '../../../assets/LOGO-COOTRANAR.png';
+import logoCootranar from '../../../assets/LOGO-COOTRANAR.png';
 
-const SIDEBAR_BG = '#0b2454';
-const SIDEBAR_WIDTH = 256;
-const SIDEBAR_COLLAPSED_WIDTH = 64;
+interface NavItem {
+  path: string;
+  label: string;
+  icon: string;
+}
 
-interface NavItem { path: string; label: string; icon: string; }
-interface NavSection { title: string; items: NavItem[]; }
+interface NavSection {
+  title?: string;
+  items: NavItem[];
+}
 
 const sections: NavSection[] = [
-  { title: 'Análisis', items: [
-    { path: ROUTES.DASHBOARD, label: 'Dashboard', icon: 'analytics' },
-    { path: ROUTES.REPORTE_INGRESOS, label: 'Ingresos por Bus', icon: 'request_quote' },
-  ]},
-  { title: 'Taquilla', items: [
-    { path: ROUTES.TAQUILLA, label: 'Venta de Tiquetes', icon: 'point_of_sale' },
-    { path: ROUTES.GESTION_TIQUETES, label: 'Tiquetes por Viaje', icon: 'confirmation_number' },
-  ]},
-  { title: 'Gestión Base', items: [
-    { path: ROUTES.CIUDADES, label: 'Gestión de Ciudades', icon: 'location_city' },
-    { path: ROUTES.AGENCIAS, label: 'Gestión de Agencias', icon: 'store' },
-    { path: ROUTES.OFICINAS, label: 'Gestión de Oficinas', icon: 'corporate_fare' },
-  ]},
-  { title: 'Operaciones', items: [
-    { path: ROUTES.TIPOS_BUS, label: 'Gestión de Tipos de Bus', icon: 'directions_bus' },
-    { path: ROUTES.TIPOS_SERVICIO, label: 'Gestión de Tipos de Servicio', icon: 'service_toolbox' },
-    { path: ROUTES.VEHICULOS, label: 'Gestión de Vehículos', icon: 'airport_shuttle' },
-    { path: ROUTES.RUTAS, label: 'Gestión de Rutas', icon: 'map' },
-    { path: ROUTES.VIAJES, label: 'Gestión de Viajes', icon: 'departure_board' },
-  ]},
-  { title: 'Recursos y Legal', items: [
-    { path: ROUTES.CONDUCTORES, label: 'Gestión de Conductores', icon: 'person_pin' },
-    { path: ROUTES.ASEGURADORAS, label: 'Gestión de Aseguradoras', icon: 'health_and_safety' },
-    { path: ROUTES.POLIZAS, label: 'Gestión de Pólizas', icon: 'gavel' },
-    { path: ROUTES.USUARIOS, label: 'Gestión de Usuarios', icon: 'manage_accounts' },
-  ]},
-  { title: 'Encomiendas', items: [
-    { path: ROUTES.ENCOMIENDAS, label: 'Gestión de Encomiendas', icon: 'inventory_2' },
-    { path: ROUTES.DESPACHOS, label: 'Gestión de Despachos', icon: 'local_shipping' },
-    { path: ROUTES.OFICINAS_ENCOMIENDAS, label: 'Oficinas de Encomiendas', icon: 'store' },
-    { path: ROUTES.EMPLEADOS_ENCOMIENDAS, label: 'Empleados Encomiendas', icon: 'package_2' },
-  ]},
-  { title: 'Gestión de Empleados', items: [
-    { path: ROUTES.TAQUILLEROS, label: 'Taquilleros', icon: 'badge' },
-  ]},
+  {
+    title: 'Análisis',
+    items: [
+      { path: ROUTES.DASHBOARD, label: 'Dashboard', icon: 'dashboard' },
+      { path: ROUTES.REPORTE_INGRESOS, label: 'Ingresos por Bus', icon: 'bar_chart' },
+    ],
+  },
+  {
+    title: 'Taquilla',
+    items: [
+      { path: ROUTES.TAQUILLA, label: 'Venta de Tiquetes', icon: 'confirmation_number' },
+      { path: ROUTES.GESTION_TIQUETES, label: 'Tiquetes por Viaje', icon: 'receipt_long' },
+    ],
+  },
+  {
+    title: 'Gestión Base',
+    items: [
+      { path: ROUTES.CIUDADES, label: 'Ciudades', icon: 'location_city' },
+      { path: ROUTES.AGENCIAS, label: 'Agencias', icon: 'storefront' },
+      { path: ROUTES.OFICINAS, label: 'Oficinas', icon: 'apartment' },
+    ],
+  },
+  {
+    title: 'Operaciones',
+    items: [
+      { path: ROUTES.TIPOS_BUS, label: 'Tipos de Bus', icon: 'directions_bus' },
+      { path: ROUTES.TIPOS_SERVICIO, label: 'Tipos de Servicio', icon: 'tune' },
+      { path: ROUTES.VEHICULOS, label: 'Vehículos', icon: 'commute' },
+      { path: ROUTES.RUTAS, label: 'Rutas', icon: 'alt_route' },
+      { path: ROUTES.VIAJES, label: 'Viajes', icon: 'schedule' },
+    ],
+  },
+  {
+    title: 'Recursos y Legal',
+    items: [
+      { path: ROUTES.CONDUCTORES, label: 'Conductores', icon: 'badge' },
+      { path: ROUTES.ASEGURADORAS, label: 'Aseguradoras', icon: 'health_and_safety' },
+      { path: ROUTES.POLIZAS, label: 'Pólizas', icon: 'policy' },
+      { path: ROUTES.USUARIOS, label: 'Usuarios', icon: 'group' },
+    ],
+  },
+  {
+    title: 'Encomiendas',
+    items: [
+      { path: ROUTES.ENCOMIENDAS, label: 'Encomiendas', icon: 'inventory_2' },
+      { path: ROUTES.DESPACHOS, label: 'Despachos', icon: 'local_shipping' },
+      { path: ROUTES.OFICINAS_ENCOMIENDAS, label: 'Oficinas Encomiendas', icon: 'store' },
+      { path: ROUTES.EMPLEADOS_ENCOMIENDAS, label: 'Empleados Encomiendas', icon: 'person_pin' },
+    ],
+  },
+  {
+    title: 'Gestión Empleados',
+    items: [
+      { path: ROUTES.TAQUILLEROS, label: 'Taquilleros', icon: 'assignment_ind' },
+    ],
+  },
 ];
 
-export const Sidebar = () => {
+export const Sidebar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { collapsed, toggle } = useSidebar();
-  const isActive = (path: string) => location.pathname === path;
-  const w = collapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH;
+  const { collapsed, toggle, isMobile, mobileOpen, setMobileOpen, theme, setTheme } = useSidebar();
+  const [menuPerfilAbierto, setMenuPerfilAbierto] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
 
-  const handleLogout = async () => { await logout(); navigate(ROUTES.LOGIN); };
+  const isActive = (path: string) => location.pathname === path;
+  const isDark = theme === 'dark';
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setMenuPerfilAbierto(false);
+      }
+    };
+    if (menuPerfilAbierto) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [menuPerfilAbierto]);
+
+  const handleLogout = async () => {
+    await logout();
+    navigate(ROUTES.LOGIN);
+  };
 
   // Filtrar secciones según el rol del usuario
-  const filteredSections = sections.map(section => {
-    const items = section.items.filter(item => {
-      if (user?.nombrerol === 'TAQUILLERO') {
-        // El taquillero solo tiene acceso a Venta de Tiquetes (TAQUILLA), Gestión de Viajes (VIAJES) y Tiquetes por Viaje
-        return item.path === ROUTES.TAQUILLA || item.path === ROUTES.VIAJES || item.path === ROUTES.GESTION_TIQUETES;
-      }
-      if (user?.nombrerol === 'EMPLEADO_ENCOMIENDAS') {
-        // El empleado de encomiendas tiene acceso a todas las pantallas relacionadas con encomiendas
-        return item.path === ROUTES.ENCOMIENDAS || item.path === ROUTES.DESPACHOS || item.path === ROUTES.OFICINAS_ENCOMIENDAS || item.path === ROUTES.EMPLEADOS_ENCOMIENDAS;
-      }
-      return true;
-    });
-    return { ...section, items };
-  }).filter(section => section.items.length > 0);
+  const filteredSections = sections
+    .map((section) => {
+      const items = section.items.filter((item) => {
+        if (user?.nombrerol === 'TAQUILLERO') {
+          return (
+            item.path === ROUTES.TAQUILLA ||
+            item.path === ROUTES.VIAJES ||
+            item.path === ROUTES.GESTION_TIQUETES
+          );
+        }
+        if (user?.nombrerol === 'EMPLEADO_ENCOMIENDAS') {
+          return (
+            item.path === ROUTES.ENCOMIENDAS ||
+            item.path === ROUTES.DESPACHOS ||
+            item.path === ROUTES.OFICINAS_ENCOMIENDAS ||
+            item.path === ROUTES.EMPLEADOS_ENCOMIENDAS
+          );
+        }
+        return true;
+      });
+      return { ...section, items };
+    })
+    .filter((section) => section.items.length > 0);
 
-  /* ── Collapsed view: logo + nav icons + expand + logout ── */
-  if (collapsed) {
-    return (
-      <aside style={{
-        width: `${w}px`, backgroundColor: SIDEBAR_BG, color: 'white',
-        display: 'flex', flexDirection: 'column', alignItems: 'center',
-        position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 50,
-        transition: 'width 0.2s ease',
-      }}>
-        {/* Logo */}
-        <div style={{ padding: '20px 12px 12px', borderBottom: '1px solid rgba(255,255,255,0.05)', width: '100%', display: 'flex', justifyContent: 'center' }}>
-          <div style={{ width: '40px', height: '40px', backgroundColor: 'white', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '22px', color: '#0D3B8E' }}>directions_bus</span>
-          </div>
-        </div>
+  // Paleta de colores dinámica según el tema
+  const colors = isDark
+    ? {
+      bg: '#0f0f11',
+      border: 'rgba(255, 255, 255, 0.08)',
+      shadow: '0 20px 40px -8px rgba(0,0,0,0.7), 0 4px 12px rgba(0,0,0,0.5)',
+      text: '#ffffff',
+      textMuted: '#94a3b8',
+      divider: 'rgba(255, 255, 255, 0.07)',
+      itemActiveBg: '#27272a',
+      itemActiveText: '#ffffff',
+      itemHoverBg: 'rgba(255, 255, 255, 0.06)',
+      themeToggleBg: '#1e1e22',
+      themeTogglePill: '#2e2e33',
+      themeToggleActiveText: '#ffffff',
+      themeToggleInactiveText: '#71717a',
+      profileHoverBg: 'rgba(255, 255, 255, 0.06)',
+      dropdownBg: '#18181b',
+    }
+    : {
+      bg: '#ffffff',
+      border: 'rgba(0, 0, 0, 0.06)',
+      shadow: '0 12px 36px -4px rgba(0, 0, 0, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.03)',
+      text: '#0f172a',
+      textMuted: '#64748b',
+      divider: 'rgba(0, 0, 0, 0.06)',
+      itemActiveBg: '#f1f5f9',
+      itemActiveText: '#0f172a',
+      itemHoverBg: 'rgba(0, 0, 0, 0.03)',
+      themeToggleBg: '#f1f5f9',
+      themeTogglePill: '#ffffff',
+      themeToggleActiveText: '#0f172a',
+      themeToggleInactiveText: '#94a3b8',
+      profileHoverBg: 'rgba(0, 0, 0, 0.04)',
+      dropdownBg: '#ffffff',
+    };
 
-        {/* Expand button */}
-        <button onClick={toggle} title="Expandir menú" style={{
-          margin: '12px 0 4px', width: '40px', height: '36px', borderRadius: '8px',
-          background: 'rgba(255,255,255,0.08)', border: 'none', cursor: 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: 'rgba(255,255,255,0.6)', transition: 'all 0.15s', flexShrink: 0,
-        }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.15)'; e.currentTarget.style.color = 'white'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = 'rgba(255,255,255,0.6)'; }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>menu</span>
-        </button>
+  const ancho = isMobile ? 260 : (collapsed ? 74 : 260);
 
-        {/* Nav icons */}
-        <nav style={{ flex: 1, overflowY: 'auto', padding: '8px 0', width: '100%', scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.1) transparent' }}>
-          {filteredSections.map((section, si) => (
-            <div key={section.title}>
-              {si > 0 && <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', margin: '6px 12px' }} />}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', padding: '4px 0' }}>
-                {section.items.map(item => {
-                  const active = isActive(item.path);
-                  return (
-                    <Link key={item.path} to={item.path} title={item.label} style={{
-                      width: '40px', height: '36px', borderRadius: '8px', display: 'flex',
-                      alignItems: 'center', justifyContent: 'center', textDecoration: 'none',
-                      color: active ? 'white' : 'rgba(255,255,255,0.5)',
-                      backgroundColor: active ? 'rgba(255,255,255,0.12)' : 'transparent',
-                      transition: 'all 0.15s',
-                    }}
-                      onMouseEnter={e => { if (!active) { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'white'; }}}
-                      onMouseLeave={e => { if (!active) { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; }}}
-                    >
-                      <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>{item.icon}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </nav>
-
-        {/* Logout button at bottom */}
-        <div style={{ padding: '12px 0', borderTop: '1px solid rgba(255,255,255,0.05)', width: '100%', display: 'flex', justifyContent: 'center' }}>
-          <button onClick={handleLogout} title="Cerrar sesión" style={{
-            width: '40px', height: '40px', borderRadius: '8px',
-            background: 'none', border: 'none', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'rgba(255,255,255,0.4)', transition: 'all 0.15s',
-          }}
-            onMouseEnter={e => { e.currentTarget.style.color = '#ef4444'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.4)'; }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>logout</span>
-          </button>
-        </div>
-      </aside>
-    );
-  }
-
-  /* ── Expanded view ───────────────────────────── */
   return (
-    <aside style={{
-      width: `${w}px`, backgroundColor: SIDEBAR_BG, color: 'white',
-      display: 'flex', flexDirection: 'column',
-      position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 50,
-      transition: 'width 0.2s ease',
-    }}>
-      {/* Logo + collapse btn */}
-      <div style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', gap: '12px', borderBottom: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', backgroundColor: 'white', padding: '16px', borderRadius: '12px' }}>
-          <img src={logoCootranar} alt="Cootranar" style={{ height: '48px', objectFit: 'contain' }} />
-          <div style={{ fontSize: '9px', opacity: 0.6, fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.15em', color: '#0b2454' }}>Admin Panel</div>
-        </div>
-        <button onClick={toggle} title="Contraer menú" style={{
-          width: '28px', height: '28px', borderRadius: '6px', background: 'rgba(255,255,255,0.08)',
-          border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: 'rgba(255,255,255,0.5)', flexShrink: 0, transition: 'all 0.15s',
+    <>
+      {/* ── Backdrop para móvil ── */}
+      {isMobile && mobileOpen && (
+        <div
+          onClick={() => setMobileOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.55)',
+            backdropFilter: 'blur(3px)',
+            zIndex: 90,
+            transition: 'opacity 0.2s ease',
+          }}
+        />
+      )}
+
+      <aside
+        style={{
+          position: 'fixed',
+          top: '12px',
+          left: '12px',
+          bottom: '12px',
+          width: `${ancho}px`,
+          backgroundColor: colors.bg,
+          border: `1px solid ${colors.border}`,
+          borderRadius: '26px',
+          boxShadow: colors.shadow,
+          display: 'flex',
+          flexDirection: 'column',
+          zIndex: isMobile ? 100 : 50,
+          transform: isMobile ? (mobileOpen ? 'translateX(0)' : 'translateX(-130%)') : 'none',
+          transition: 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), width 0.25s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease, border-color 0.2s ease',
+          userSelect: 'none',
+          overflow: 'visible',
         }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.15)'; e.currentTarget.style.color = 'white'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>chevron_left</span>
-        </button>
+      >
+      {/* ── 1. Top Window Dots (macOS style) ── */}
+      <div
+        style={{
+          padding: collapsed ? '16px 0 10px' : '16px 20px 10px',
+          display: 'flex',
+          justifyContent: collapsed ? 'center' : 'flex-start',
+          alignItems: 'center',
+          gap: '6px',
+          flexShrink: 0,
+        }}
+      >
+        <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ef4444' }} />
+        <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#f59e0b' }} />
+        <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#22c55e' }} />
       </div>
 
-      {/* Nav */}
-      <nav style={{ flex: 1, overflowY: 'auto', padding: '20px 0', scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.1) transparent' }}>
-        {filteredSections.map(section => (
-          <div key={section.title} style={{ marginBottom: '24px', padding: '0 16px' }}>
-            <p style={{ fontSize: '9.5px', fontWeight: '700', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: '6px', paddingLeft: '12px' }}>{section.title}</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-              {section.items.map(item => {
+      {/* ── 2. Brand & Collapse Row ── */}
+      <div
+        style={{
+          padding: collapsed ? '4px 0 12px' : '6px 16px 14px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: collapsed ? 'center' : 'space-between',
+          flexShrink: 0,
+        }}
+      >
+        {!collapsed ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+            <button
+              onClick={toggle}
+              title="Contraer barra lateral"
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '10px',
+                border: 'none',
+                background: 'transparent',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: colors.text,
+                transition: 'background 0.15s',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.itemHoverBg)}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>
+                menu
+              </span>
+            </button>
+
+            <Link
+              to={ROUTES.DASHBOARD}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                textDecoration: 'none',
+                minWidth: 0,
+              }}
+            >
+              <img
+                src={logoCootranar}
+                alt="Cootranar"
+                style={{
+                  height: '55px',
+                  maxWidth: '175px',
+                  objectFit: 'contain',
+                  display: 'block',
+                  filter: isDark
+                    ? 'brightness(1.3) contrast(1.15) drop-shadow(0 0 2px rgba(255,255,255,0.6))'
+                    : 'none',
+                  transition: 'all 0.2s ease',
+                }}
+              />
+            </Link>
+          </div>
+        ) : (
+          <button
+            onClick={toggle}
+            title="Expandir barra lateral"
+            style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '12px',
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: colors.text,
+              transition: 'background 0.15s',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.itemHoverBg)}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>
+              menu
+            </span>
+          </button>
+        )}
+      </div>
+
+      {/* ── 3. Navigation List (Scrollable) ── */}
+      <nav
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          padding: collapsed ? '6px 8px' : '4px 10px',
+          scrollbarWidth: 'none',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '2px',
+        }}
+      >
+        {filteredSections.map((section, sIndex) => (
+          <div key={section.title || sIndex}>
+            {sIndex > 0 && (
+              <div
+                style={{
+                  height: '1px',
+                  backgroundColor: colors.divider,
+                  margin: collapsed ? '8px 6px' : '8px 8px',
+                }}
+              />
+            )}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+              {section.items.map((item) => {
                 const active = isActive(item.path);
+
+                if (collapsed && !isMobile) {
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      title={item.label}
+                      onClick={() => {
+                        if (isMobile) setMobileOpen(false);
+                      }}
+                      style={{
+                        width: '44px',
+                        height: '44px',
+                        margin: '0 auto',
+                        borderRadius: '14px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        textDecoration: 'none',
+                        color: active ? colors.itemActiveText : colors.textMuted,
+                        backgroundColor: active ? colors.itemActiveBg : 'transparent',
+                        transition: 'all 0.15s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!active) {
+                          e.currentTarget.style.backgroundColor = colors.itemHoverBg;
+                          e.currentTarget.style.color = colors.text;
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!active) {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                          e.currentTarget.style.color = colors.textMuted;
+                        }
+                      }}
+                    >
+                      <span
+                        className="material-symbols-outlined"
+                        style={{
+                          fontSize: '21px',
+                          fontVariationSettings: active ? "'FILL' 1" : "'FILL' 0",
+                        }}
+                      >
+                        {item.icon}
+                      </span>
+                    </Link>
+                  );
+                }
+
                 return (
-                  <Link key={item.path} to={item.path} style={{
-                    display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', borderRadius: '6px',
-                    textDecoration: 'none', fontSize: '13.5px', fontWeight: active ? '600' : '500',
-                    color: active ? 'white' : 'rgba(255,255,255,0.6)',
-                    backgroundColor: active ? 'rgba(255,255,255,0.09)' : 'transparent',
-                    borderLeft: active ? '3px solid white' : '3px solid transparent', transition: 'all 0.15s',
-                  }}
-                    onMouseEnter={e => { if (!active) { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = 'white'; }}}
-                    onMouseLeave={e => { if (!active) { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.6)'; }}}
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => {
+                      if (isMobile) setMobileOpen(false);
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '14px',
+                      padding: '9.5px 14px',
+                      borderRadius: '14px',
+                      textDecoration: 'none',
+                      fontSize: '13.5px',
+                      fontWeight: active ? 600 : 500,
+                      color: active ? colors.itemActiveText : colors.textMuted,
+                      backgroundColor: active ? colors.itemActiveBg : 'transparent',
+                      transition: 'all 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!active) {
+                        e.currentTarget.style.backgroundColor = colors.itemHoverBg;
+                        e.currentTarget.style.color = colors.text;
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!active) {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                        e.currentTarget.style.color = colors.textMuted;
+                      }
+                    }}
                   >
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px', flexShrink: 0 }}>{item.icon}</span>
-                    <span style={{ lineHeight: '1.3' }}>{item.label}</span>
+                    <span
+                      className="material-symbols-outlined"
+                      style={{
+                        fontSize: '20px',
+                        flexShrink: 0,
+                        fontVariationSettings: active ? "'FILL' 1" : "'FILL' 0",
+                      }}
+                    >
+                      {item.icon}
+                    </span>
+                    <span
+                      style={{
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      {item.label}
+                    </span>
                   </Link>
                 );
               })}
@@ -205,27 +448,414 @@ export const Sidebar = () => {
         ))}
       </nav>
 
-      {/* User profile */}
-      <div style={{ padding: '12px 16px', borderTop: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px', borderRadius: '8px' }}>
-          <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#c2844a', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'white' }}>person</span>
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ fontSize: '12px', fontWeight: '700', lineHeight: '1', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.nombre ?? 'Juan Pérez'}</p>
-            <p style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '3px' }}>{user?.nombrerol ?? 'Administrador'}</p>
-          </div>
-          <button onClick={handleLogout} title="Cerrar sesión" style={{
-            background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)',
-            display: 'flex', alignItems: 'center', padding: '4px', borderRadius: '4px', transition: 'color 0.15s',
-          }}
-            onMouseEnter={e => (e.currentTarget.style.color = 'white')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.3)')}
+      {/* ── 4. Theme Switcher (Light / Dark pill toggle) ── */}
+      <div
+        style={{
+          padding: collapsed ? '10px 0' : '10px 14px',
+          display: 'flex',
+          justifyContent: 'center',
+          flexShrink: 0,
+          borderTop: `1px solid ${colors.divider}`,
+        }}
+      >
+        {!collapsed ? (
+          <div
+            style={{
+              width: '100%',
+              backgroundColor: colors.themeToggleBg,
+              borderRadius: '999px',
+              padding: '3px',
+              display: 'flex',
+              alignItems: 'center',
+              position: 'relative',
+              gap: '2px',
+            }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>logout</span>
-          </button>
-        </div>
+            <button
+              onClick={() => setTheme('light')}
+              style={{
+                flex: 1,
+                border: 'none',
+                borderRadius: '999px',
+                padding: '6px 0',
+                background: !isDark ? colors.themeTogglePill : 'transparent',
+                color: !isDark ? colors.themeToggleActiveText : colors.themeToggleInactiveText,
+                boxShadow: !isDark ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s ease',
+              }}
+              title="Modo Claro"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+                light_mode
+              </span>
+            </button>
+            <button
+              onClick={() => setTheme('dark')}
+              style={{
+                flex: 1,
+                border: 'none',
+                borderRadius: '999px',
+                padding: '6px 0',
+                background: isDark ? colors.themeTogglePill : 'transparent',
+                color: isDark ? colors.themeToggleActiveText : colors.themeToggleInactiveText,
+                boxShadow: isDark ? '0 2px 6px rgba(0,0,0,0.3)' : 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s ease',
+              }}
+              title="Modo Oscuro"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+                dark_mode
+              </span>
+            </button>
+          </div>
+        ) : (
+          <div
+            style={{
+              backgroundColor: colors.themeToggleBg,
+              borderRadius: '999px',
+              padding: '3px 2px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '2px',
+            }}
+          >
+            <button
+              onClick={() => setTheme('light')}
+              style={{
+                width: '30px',
+                height: '30px',
+                border: 'none',
+                borderRadius: '50%',
+                background: !isDark ? colors.themeTogglePill : 'transparent',
+                color: !isDark ? colors.themeToggleActiveText : colors.themeToggleInactiveText,
+                boxShadow: !isDark ? '0 2px 6px rgba(0,0,0,0.08)' : 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s ease',
+              }}
+              title="Modo Claro"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+                light_mode
+              </span>
+            </button>
+            <button
+              onClick={() => setTheme('dark')}
+              style={{
+                width: '30px',
+                height: '30px',
+                border: 'none',
+                borderRadius: '50%',
+                background: isDark ? colors.themeTogglePill : 'transparent',
+                color: isDark ? colors.themeToggleActiveText : colors.themeToggleInactiveText,
+                boxShadow: isDark ? '0 2px 6px rgba(0,0,0,0.3)' : 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s ease',
+              }}
+              title="Modo Oscuro"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+                dark_mode
+              </span>
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* ── 5. User Profile Footer ── */}
+      <div
+        ref={profileRef}
+        style={{
+          padding: collapsed ? '10px 0 14px' : '10px 14px 14px',
+          borderTop: `1px solid ${colors.divider}`,
+          flexShrink: 0,
+          position: 'relative',
+        }}
+      >
+        {!collapsed ? (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              padding: '6px 8px',
+              borderRadius: '14px',
+              cursor: 'pointer',
+              transition: 'background 0.15s',
+            }}
+            onClick={() => setMenuPerfilAbierto((v) => !v)}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.profileHoverBg)}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+          >
+            {/* Avatar con burbuja indicadora */}
+            <div
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                backgroundColor: '#3b82f6',
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '13px',
+                fontWeight: 700,
+                flexShrink: 0,
+                boxShadow: '0 2px 6px rgba(59, 130, 246, 0.3)',
+                position: 'relative',
+                overflow: 'hidden',
+              }}
+            >
+              {user?.fotoperfil ? (
+                <img
+                  src={user.fotoperfil}
+                  alt={user.nombre || 'Avatar'}
+                  style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
+                />
+              ) : (
+                user?.nombre ? user.nombre.charAt(0).toUpperCase() : 'U'
+              )}
+              {/* Burbujita de estado */}
+              <span
+                style={{
+                  position: 'absolute',
+                  bottom: '-1px',
+                  right: '-1px',
+                  width: '10px',
+                  height: '10px',
+                  borderRadius: '50%',
+                  backgroundColor: '#22c55e',
+                  border: `2px solid ${colors.bg}`,
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
+                  zIndex: 2,
+                }}
+              />
+            </div>
+
+            {/* Name and Role */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p
+                style={{
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  color: colors.text,
+                  margin: 0,
+                  lineHeight: 1.2,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {user?.nombre || 'Usuario'}
+              </p>
+              <p
+                style={{
+                  fontSize: '10.5px',
+                  color: colors.textMuted,
+                  margin: '2px 0 0 0',
+                  lineHeight: 1,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {user?.nombrerol || 'Administrador'}
+              </p>
+            </div>
+
+            {/* 3 dots action icon */}
+            <button
+              style={{
+                background: 'none',
+                border: 'none',
+                padding: '4px',
+                display: 'flex',
+                color: colors.textMuted,
+                cursor: 'pointer',
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '19px' }}>
+                more_vert
+              </span>
+            </button>
+          </div>
+        ) : (
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              position: 'relative',
+            }}
+          >
+            <button
+              onClick={() => setMenuPerfilAbierto((v) => !v)}
+              title={`${user?.nombre || 'Usuario'} (${user?.nombrerol || 'Rol'}) - Opciones de perfil`}
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                backgroundColor: '#3b82f6',
+                color: 'white',
+                border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '14px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(59, 130, 246, 0.35)',
+                position: 'relative',
+                overflow: 'hidden',
+                transition: 'transform 0.15s ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.08)')}
+              onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+            >
+              {user?.fotoperfil ? (
+                <img
+                  src={user.fotoperfil}
+                  alt={user.nombre || 'Avatar'}
+                  style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
+                />
+              ) : (
+                user?.nombre ? user.nombre.charAt(0).toUpperCase() : 'U'
+              )}
+              {/* Burbujita indicadora en avatar contraído */}
+              <span
+                style={{
+                  position: 'absolute',
+                  bottom: '-1px',
+                  right: '-1px',
+                  width: '11px',
+                  height: '11px',
+                  borderRadius: '50%',
+                  backgroundColor: '#22c55e',
+                  border: `2px solid ${colors.bg}`,
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                  zIndex: 2,
+                }}
+              />
+            </button>
+          </div>
+        )}
+
+        {/* Profile popup menu for Logout */}
+        {menuPerfilAbierto && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: collapsed ? '4px' : '100%',
+              left: collapsed ? '76px' : '14px',
+              right: collapsed ? 'auto' : '14px',
+              marginBottom: collapsed ? '0px' : '8px',
+              backgroundColor: colors.dropdownBg,
+              border: `1px solid ${colors.border}`,
+              borderRadius: '16px',
+              boxShadow: colors.shadow,
+              padding: '8px',
+              zIndex: 100,
+              minWidth: '190px',
+              animation: 'fadeIn 0.15s ease-out',
+            }}
+          >
+            <div
+              style={{
+                padding: '8px 10px',
+                borderBottom: `1px solid ${colors.divider}`,
+                marginBottom: '6px',
+              }}
+            >
+              <p style={{ margin: 0, fontSize: '12.5px', fontWeight: 700, color: colors.text }}>
+                {user?.nombre || 'Usuario'}
+              </p>
+              <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: colors.textMuted }}>
+                {user?.nombrerol || 'Administrador'}
+              </p>
+            </div>
+            
+            {/* Opción Mi Perfil */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setMenuPerfilAbierto(false);
+                navigate(ROUTES.PERFIL);
+              }}
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 10px',
+                borderRadius: '10px',
+                border: 'none',
+                background: 'transparent',
+                color: colors.text,
+                fontSize: '13px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'background 0.15s',
+                marginBottom: '2px',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.itemHoverBg)}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#3b82f6' }}>
+                account_circle
+              </span>
+              Mi Perfil
+            </button>
+
+            {/* Opción Cerrar Sesión */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleLogout();
+              }}
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 10px',
+                borderRadius: '10px',
+                border: 'none',
+                background: 'transparent',
+                color: '#ef4444',
+                fontSize: '13px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'background 0.15s',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = isDark ? 'rgba(239, 68, 68, 0.15)' : '#fef2f2')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+                logout
+              </span>
+              Cerrar Sesión
+            </button>
+          </div>
+        )}
       </div>
     </aside>
+    </>
   );
 };
+

@@ -24,6 +24,7 @@ import { EmpleadosEncomiendasPage } from '../pages/empleados/EmpleadosEncomienda
 import { OficinasEncomiendasPage } from '../pages/oficinas-encomiendas/OficinasEncomiendasPage';
 import { UsuariosPage } from '../pages/usuarios/UsuariosPage';
 import { ReporteIngresosPage } from '../pages/reportes/ReporteIngresosPage';
+import { PerfilPage } from '../pages/perfil/PerfilPage';
 import { PrivateRoute } from './PrivateRoute';
 import { ErrorBoundary } from '../components/common/ErrorBoundary';
 import { ROUTES } from '../../shared/constants';
@@ -35,6 +36,11 @@ export const AppRouter = () => {
         <Routes>
           <Route path={ROUTES.LOGIN} element={<LoginPage />} />
           
+          {/* Ruta universal de Perfil para cualquier usuario autenticado */}
+          <Route element={<PrivateRoute allowedRoles={['ADMINISTRADOR', 'TAQUILLERO', 'EMPLEADO_ENCOMIENDAS', 'OPERADOR']} />}>
+            <Route path={ROUTES.PERFIL} element={<PerfilPage />} />
+          </Route>
+
           {/* Rutas compartidas (Administrador y Taquillero) */}
           <Route element={<PrivateRoute allowedRoles={['ADMINISTRADOR', 'TAQUILLERO']} />}>
             <Route path={ROUTES.TAQUILLA} element={<TaquillaPage />} />

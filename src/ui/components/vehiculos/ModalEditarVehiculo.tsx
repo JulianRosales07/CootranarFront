@@ -346,12 +346,12 @@ export default function ModalEditarVehiculo({ vehiculo, onCerrar, onActualizado 
         </div>
 
         {/* Stepper horizontal */}
-        <div className="px-6 py-3 border-b border-gray-100 bg-slate-50/50 overflow-x-auto flex items-center justify-between gap-4 select-none">
+        <div className="px-6 py-3 border-b border-gray-100 bg-slate-50/50 overflow-x-auto flex items-center gap-2 sm:gap-3 select-none">
           {PASOS.map((paso, idx) => (
             <button
               key={paso}
               onClick={() => setPasoActual(idx)}
-              className={`flex items-center gap-1.5 py-1 px-2.5 rounded-lg text-xs font-bold transition-all ${
+              className={`flex items-center gap-1.5 py-1 px-2.5 rounded-lg text-xs font-bold transition-all shrink-0 whitespace-nowrap ${
                 pasoActual === idx
                   ? 'bg-primary text-white shadow-sm'
                   : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'

@@ -1685,18 +1685,31 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
         </div>
 
         {/* Barra de pasos */}
-        <div style={{ display: 'flex', gap: '4px' }}>
+        <div style={{
+          display: 'flex',
+          gap: '6px',
+          overflowX: 'auto',
+          WebkitOverflowScrolling: 'touch',
+          paddingBottom: '4px',
+          width: '100%',
+        }}>
           {PASOS.map((paso, i) => (
             <button
               key={i}
               type="button"
               onClick={() => setPasoActual(i)}
               style={{
-                flex: 1, textAlign: 'center',
-                padding: '8px 6px',
-                fontSize: '11.5px', fontWeight: 600,
-                borderRadius: '8px', border: 'none',
-                cursor: 'pointer', fontFamily: 'inherit',
+                flex: '1 1 auto',
+                minWidth: '92px',
+                textAlign: 'center',
+                padding: '8px 10px',
+                fontSize: '11.5px',
+                fontWeight: 600,
+                borderRadius: '8px',
+                border: 'none',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                whiteSpace: 'nowrap',
                 transition: 'all 0.15s',
                 background: i === pasoActual
                   ? '#0D3B8E'

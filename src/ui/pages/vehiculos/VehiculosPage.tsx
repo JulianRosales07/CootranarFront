@@ -200,12 +200,12 @@ export const VehiculosPage = () => {
             marginBottom: '16px',
             boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '16px' }}>
               <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a', margin: 0 }}>
                 Vehículos Registrados
               </h3>
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                <div style={{ position: 'relative', width: '320px' }}>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', flex: 1, justifyContent: 'flex-end', minWidth: '220px' }}>
+                <div style={{ position: 'relative', flex: '1 1 180px', maxWidth: '320px', minWidth: '150px' }}>
                   <span className="material-symbols-outlined" style={{
                     position: 'absolute',
                     left: '12px',
@@ -232,26 +232,28 @@ export const VehiculosPage = () => {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px',
-                    padding: '10px 20px',
+                    padding: '10px 18px',
                     background: BLUE,
                     color: 'white',
                     border: 'none',
                     borderRadius: '8px',
-                    fontSize: '14px',
+                    fontSize: '13.5px',
                     fontWeight: 600,
                     cursor: 'pointer',
                     fontFamily: 'inherit',
                     transition: 'background 0.2s',
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0,
                   }}
                   onMouseEnter={e => (e.currentTarget.style.background = '#0a2f72')}
                   onMouseLeave={e => (e.currentTarget.style.background = BLUE)}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>add</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add</span>
                   Nuevo Vehículo
                 </button>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {['todos', 'activos', 'inactivos'].map((f) => (
                 <button
                   key={f}
@@ -292,7 +294,8 @@ export const VehiculosPage = () => {
           </div>
         ) : (
           <>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+              <table style={{ width: '100%', minWidth: '780px', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ background: '#f8fafc' }}>
                   {[
@@ -429,16 +432,19 @@ export const VehiculosPage = () => {
                 )}
               </tbody>
             </table>
+          </div>
 
-            {/* Pagination */}
-            {paginacionApi && (
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '13px 20px',
-                borderTop: '1px solid #f1f5f9',
-              }}>
+          {/* Pagination */}
+          {paginacionApi && (
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '12px',
+              padding: '13px 20px',
+              borderTop: '1px solid #f1f5f9',
+            }}>
                 <span style={{ fontSize: '12.5px', color: '#94a3b8' }}>
                   Mostrando{' '}
                   <strong style={{ color: '#475569' }}>{((Number(paginacionApi.paginaActual || 1) - 1) * Number(paginacionApi.limite || 10)) + 1}</strong>{' '}

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import gsap from 'gsap';
+import { useSidebar } from '../../context/SidebarContext';
 
 interface DisenadorAsientosProps {
   capacidad: number;
@@ -10,6 +11,8 @@ interface DisenadorAsientosProps {
 }
 
 export default function DisenadorAsientos({ capacidad, onChange, valorInicial, soloLectura = false }: DisenadorAsientosProps) {
+  const { theme } = useSidebar();
+  const isDark = theme === 'dark';
   // Función auxiliar para generar la distribución inicial basada en la capacidad
   const generarDistribucion = (cap: number) => {
     if (!cap || cap <= 0) return [];
@@ -312,19 +315,19 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial, s
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', backgroundColor: '#ffffff', borderRadius: '16px', overflow: 'hidden', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', backgroundColor: isDark ? '#121215' : '#ffffff', borderRadius: '16px', overflow: 'hidden', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
         
         {/* ENCABEZADO Y HERRAMIENTAS PREMIUM */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: soloLectura ? '0' : '20px', padding: '24px', borderBottom: '1px solid #f1f5f9', backgroundColor: '#f8fafc' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: soloLectura ? '0' : '20px', padding: '24px', borderBottom: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #f1f5f9', backgroundColor: isDark ? '#18181b' : '#f8fafc' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
                 <div>
-                  <h3 style={{ margin: 0, color: '#1e293b', fontWeight: 'bold', fontSize: '20px', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', backgroundColor: '#ffffff', border: '1px solid #e0e7ff', borderRadius: '8px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                  <h3 style={{ margin: 0, color: isDark ? '#f8fafc' : '#1e293b', fontWeight: 'bold', fontSize: '20px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', backgroundColor: isDark ? '#27272a' : '#ffffff', border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #e0e7ff', borderRadius: '8px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
                         <span className="material-symbols-outlined" style={{ color: '#4f46e5', fontSize: '24px' }}>airline_seat_recline_extra</span>
                     </div>
                     Distribución del Bus
                   </h3>
-                  <p style={{ margin: '8px 0 0 0', color: '#64748b', fontSize: '14px', lineHeight: '1.5' }}>
+                  <p style={{ margin: '8px 0 0 0', color: isDark ? '#94a3b8' : '#64748b', fontSize: '14px', lineHeight: '1.5' }}>
                     {soloLectura
                       ? 'Vista de solo lectura de la distribución registrada en el sistema.'
                       : modo === 'insertar'
@@ -337,69 +340,62 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial, s
             {!soloLectura && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
                 {/* GRUPO 1: Modificadores estructurales */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', backgroundColor: '#e2e8f0', padding: '6px', borderRadius: '12px', gap: '8px' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', backgroundColor: isDark ? '#27272a' : '#e2e8f0', padding: '6px', borderRadius: '12px', gap: '8px', border: isDark ? '1px solid rgba(255,255,255,0.1)' : 'none' }}>
                     <button
                         type="button"
                         onClick={() => setModo(modo === 'insertar' ? 'normal' : 'insertar')}
-                        className={modo === 'insertar' ? 'shadow-sm' : 'hover:bg-white hover:text-green-700 hover:shadow-sm'}
-                        style={{ cursor: 'pointer', display: 'flex', flex: '1 1 auto', alignItems: 'center', justifyContent: 'center', padding: '10px 16px', fontSize: '14px', fontWeight: 'bold', color: modo === 'insertar' ? '#15803d' : '#475569', backgroundColor: modo === 'insertar' ? '#f0fdf4' : 'transparent', border: modo === 'insertar' ? '1px solid #86efac' : 'none', borderRadius: '8px', transition: 'all 0.2s', minWidth: 'max-content' }}
+                        style={{ cursor: 'pointer', display: 'flex', flex: '1 1 auto', alignItems: 'center', justifyContent: 'center', padding: '10px 16px', fontSize: '14px', fontWeight: 'bold', color: modo === 'insertar' ? (isDark ? '#4ade80' : '#15803d') : (isDark ? '#f8fafc' : '#475569'), backgroundColor: modo === 'insertar' ? (isDark ? 'rgba(34, 197, 94, 0.25)' : '#f0fdf4') : 'transparent', border: modo === 'insertar' ? (isDark ? '1px solid #22c55e' : '1px solid #86efac') : 'none', borderRadius: '8px', transition: 'all 0.2s', minWidth: 'max-content' }}
                         title="Haz clic en una posición para insertar un asiento ahí">
                         <span className="material-symbols-outlined" style={{ fontSize: '20px', marginRight: '8px' }}>add_circle</span> Añadir
                     </button>
-                    <div style={{ width: '1px', height: '24px', backgroundColor: '#cbd5e1' }}></div>
+                    <div style={{ width: '1px', height: '24px', backgroundColor: isDark ? 'rgba(255,255,255,0.15)' : '#cbd5e1' }}></div>
                     <button
                         type="button"
                         onClick={eliminarUltimo}
-                        className="hover:bg-white hover:text-red-700 hover:shadow-sm"
-                        style={{ cursor: 'pointer', display: 'flex', flex: '1 1 auto', alignItems: 'center', justifyContent: 'center', padding: '10px 16px', fontSize: '14px', fontWeight: 'bold', color: '#475569', backgroundColor: 'transparent', border: 'none', borderRadius: '8px', transition: 'all 0.2s', minWidth: 'max-content' }}
+                        style={{ cursor: 'pointer', display: 'flex', flex: '1 1 auto', alignItems: 'center', justifyContent: 'center', padding: '10px 16px', fontSize: '14px', fontWeight: 'bold', color: isDark ? '#f8fafc' : '#475569', backgroundColor: 'transparent', border: 'none', borderRadius: '8px', transition: 'all 0.2s', minWidth: 'max-content' }}
                         title="Elimina el último asiento añadido">
                         <span className="material-symbols-outlined" style={{ fontSize: '20px', marginRight: '8px' }}>do_not_disturb_on</span> Quitar
                     </button>
-                    <div style={{ width: '1px', height: '24px', backgroundColor: '#cbd5e1' }}></div>
+                    <div style={{ width: '1px', height: '24px', backgroundColor: isDark ? 'rgba(255,255,255,0.15)' : '#cbd5e1' }}></div>
                     <button
                         type="button"
                         onClick={toggleAsientoCentralFondo}
-                        className="hover:bg-white hover:text-indigo-700 hover:shadow-sm"
-                        style={{ cursor: 'pointer', display: 'flex', flex: '1 1 auto', alignItems: 'center', justifyContent: 'center', padding: '10px 16px', fontSize: '14px', fontWeight: 'bold', color: '#475569', backgroundColor: 'transparent', border: 'none', borderRadius: '8px', transition: 'all 0.2s', minWidth: 'max-content' }}
+                        style={{ cursor: 'pointer', display: 'flex', flex: '1 1 auto', alignItems: 'center', justifyContent: 'center', padding: '10px 16px', fontSize: '14px', fontWeight: 'bold', color: isDark ? '#f8fafc' : '#475569', backgroundColor: 'transparent', border: 'none', borderRadius: '8px', transition: 'all 0.2s', minWidth: 'max-content' }}
                         title="Activa silla central exclusiva en la última fila">
                         <span className="material-symbols-outlined" style={{ fontSize: '20px', marginRight: '8px' }}>weekend</span> +Fondo
                     </button>
                 </div>
 
                 {/* GRUPO 2: Modos de Herramientas */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', backgroundColor: '#e2e8f0', padding: '6px', borderRadius: '12px', gap: '8px' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', backgroundColor: isDark ? '#27272a' : '#e2e8f0', padding: '6px', borderRadius: '12px', gap: '8px', border: isDark ? '1px solid rgba(255,255,255,0.1)' : 'none' }}>
                     <button
                         type="button"
                         onClick={() => setModo(modo === 'poltrona' ? 'normal' : 'poltrona')}
-                        className={modo === 'poltrona' ? 'shadow-sm' : 'hover:bg-white hover:text-amber-700'}
-                        style={{ cursor: 'pointer', display: 'flex', flex: '1 1 auto', alignItems: 'center', justifyContent: 'center', padding: '10px 16px', fontSize: '14px', fontWeight: 'bold', color: modo === 'poltrona' ? '#d97706' : '#475569', backgroundColor: modo === 'poltrona' ? '#fffbeb' : 'transparent', border: modo === 'poltrona' ? '1px solid #fde68a' : '1px solid transparent', borderRadius: '8px', transition: 'all 0.2s', minWidth: 'max-content' }}
+                        style={{ cursor: 'pointer', display: 'flex', flex: '1 1 auto', alignItems: 'center', justifyContent: 'center', padding: '10px 16px', fontSize: '14px', fontWeight: 'bold', color: modo === 'poltrona' ? (isDark ? '#fbbf24' : '#d97706') : (isDark ? '#f8fafc' : '#475569'), backgroundColor: modo === 'poltrona' ? (isDark ? 'rgba(245, 158, 11, 0.25)' : '#fffbeb') : 'transparent', border: modo === 'poltrona' ? (isDark ? '1px solid #f59e0b' : '1px solid #fde68a') : '1px solid transparent', borderRadius: '8px', transition: 'all 0.2s', minWidth: 'max-content' }}
                         title="Marca asientos como poltrona (asientos premium)">
                         <span className="material-symbols-outlined" style={{ fontSize: '20px', marginRight: '8px' }}>airline_seat_recline_extra</span> Poltrona
                     </button>
-                    <div style={{ width: '1px', height: '24px', backgroundColor: '#cbd5e1' }}></div>
+                    <div style={{ width: '1px', height: '24px', backgroundColor: isDark ? 'rgba(255,255,255,0.15)' : '#cbd5e1' }}></div>
                     <button
                         type="button"
                         onClick={() => setModo(modo === 'editar' ? 'normal' : 'editar')}
-                        className={modo === 'editar' ? 'shadow-sm' : 'hover:bg-white hover:text-blue-700'}
-                        style={{ cursor: 'pointer', display: 'flex', flex: '1 1 auto', alignItems: 'center', justifyContent: 'center', padding: '10px 16px', fontSize: '14px', fontWeight: 'bold', color: modo === 'editar' ? '#1d4ed8' : '#475569', backgroundColor: modo === 'editar' ? '#ffffff' : 'transparent', border: modo === 'editar' ? '1px solid #bfdbfe' : '1px solid transparent', borderRadius: '8px', transition: 'all 0.2s', minWidth: 'max-content' }}
+                        style={{ cursor: 'pointer', display: 'flex', flex: '1 1 auto', alignItems: 'center', justifyContent: 'center', padding: '10px 16px', fontSize: '14px', fontWeight: 'bold', color: modo === 'editar' ? (isDark ? '#60a5fa' : '#1d4ed8') : (isDark ? '#f8fafc' : '#475569'), backgroundColor: modo === 'editar' ? (isDark ? 'rgba(59, 130, 246, 0.25)' : '#ffffff') : 'transparent', border: modo === 'editar' ? (isDark ? '1px solid #3b82f6' : '1px solid #bfdbfe') : '1px solid transparent', borderRadius: '8px', transition: 'all 0.2s', minWidth: 'max-content' }}
                         title="Modifica numeración">
                         <span className="material-symbols-outlined" style={{ fontSize: '20px', marginRight: '8px' }}>edit_document</span> Editar
                     </button>
-                    <div style={{ width: '1px', height: '24px', backgroundColor: '#cbd5e1' }}></div>
+                    <div style={{ width: '1px', height: '24px', backgroundColor: isDark ? 'rgba(255,255,255,0.15)' : '#cbd5e1' }}></div>
                     <button
                         type="button"
                         onClick={() => setModo(modo === 'vaciar' ? 'normal' : 'vaciar')}
-                        className={modo === 'vaciar' ? 'shadow-sm' : 'hover:bg-white hover:text-red-700'}
-                        style={{ cursor: 'pointer', display: 'flex', flex: '1 1 auto', alignItems: 'center', justifyContent: 'center', padding: '10px 16px', fontSize: '14px', fontWeight: 'bold', color: modo === 'vaciar' ? '#b91c1c' : '#475569', backgroundColor: modo === 'vaciar' ? '#fef2f2' : 'transparent', border: modo === 'vaciar' ? '1px solid #fecaca' : '1px solid transparent', borderRadius: '8px', transition: 'all 0.2s', minWidth: 'max-content' }}
+                        style={{ cursor: 'pointer', display: 'flex', flex: '1 1 auto', alignItems: 'center', justifyContent: 'center', padding: '10px 16px', fontSize: '14px', fontWeight: 'bold', color: modo === 'vaciar' ? (isDark ? '#f87171' : '#b91c1c') : (isDark ? '#f8fafc' : '#475569'), backgroundColor: modo === 'vaciar' ? (isDark ? 'rgba(239, 68, 68, 0.25)' : '#fef2f2') : 'transparent', border: modo === 'vaciar' ? (isDark ? '1px solid #ef4444' : '1px solid #fecaca') : '1px solid transparent', borderRadius: '8px', transition: 'all 0.2s', minWidth: 'max-content' }}
                         title="Activa modo borrador de asientos">
                         <span className="material-symbols-outlined" style={{ fontSize: '20px', marginRight: '8px' }}>ink_eraser</span> Vaciar
                     </button>
-                    <div style={{ width: '1px', height: '24px', backgroundColor: '#cbd5e1' }}></div>
+                    <div style={{ width: '1px', height: '24px', backgroundColor: isDark ? 'rgba(255,255,255,0.15)' : '#cbd5e1' }}></div>
                     <button
                         type="button"
                         onClick={() => setModo(modo === 'baño' ? 'normal' : 'baño')}
-                        className={modo === 'baño' ? 'shadow-sm' : 'hover:bg-white hover:text-purple-700'}
-                        style={{ cursor: 'pointer', display: 'flex', flex: '1 1 auto', alignItems: 'center', justifyContent: 'center', padding: '10px 16px', fontSize: '14px', fontWeight: 'bold', color: modo === 'baño' ? '#7e22ce' : '#475569', backgroundColor: modo === 'baño' ? '#faf5ff' : 'transparent', border: modo === 'baño' ? '1px solid #e9d5ff' : '1px solid transparent', borderRadius: '8px', transition: 'all 0.2s', minWidth: 'max-content' }}
+                        style={{ cursor: 'pointer', display: 'flex', flex: '1 1 auto', alignItems: 'center', justifyContent: 'center', padding: '10px 16px', fontSize: '14px', fontWeight: 'bold', color: modo === 'baño' ? (isDark ? '#c084fc' : '#7e22ce') : (isDark ? '#f8fafc' : '#475569'), backgroundColor: modo === 'baño' ? (isDark ? 'rgba(168, 85, 247, 0.25)' : '#faf5ff') : 'transparent', border: modo === 'baño' ? (isDark ? '1px solid #a855f7' : '1px solid #e9d5ff') : '1px solid transparent', borderRadius: '8px', transition: 'all 0.2s', minWidth: 'max-content' }}
                         title="Asignar baño a una posición">
                         <span className="material-symbols-outlined" style={{ fontSize: '20px', marginRight: '8px' }}>wc</span> Baño
                     </button>
@@ -409,22 +405,22 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial, s
         </div>
 
         {/* ÁREA DE DISEÑO RESPONSIVA */}
-        <div style={{ flex: 1, position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', overflowY: 'auto', minHeight: '500px', padding: '40px 24px', backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)', backgroundSize: '24px 24px', backgroundColor: '#f8fafc' }}>
+        <div style={{ flex: 1, position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', overflowY: 'auto', minHeight: '500px', padding: '40px 24px', backgroundImage: isDark ? 'radial-gradient(#27272a 1px, transparent 1px)' : 'radial-gradient(#cbd5e1 1px, transparent 1px)', backgroundSize: '24px 24px', backgroundColor: isDark ? '#09090b' : '#f8fafc' }}>
             
             {/* CARROCERÍA DEL BUS */}
-            <div style={{ position: 'relative', width: '100%', maxWidth: '360px', backgroundColor: '#ffffff', borderRadius: '48px', padding: '24px 20px 28px 20px', boxShadow: '0 20px 50px -12px rgba(0,0,0,0.15)', border: '8px solid #f1f5f9' }}>
+            <div style={{ position: 'relative', width: '100%', maxWidth: '360px', backgroundColor: isDark ? '#121215' : '#ffffff', borderRadius: '48px', padding: '24px 20px 28px 20px', boxShadow: isDark ? '0 20px 50px -12px rgba(0,0,0,0.6)' : '0 20px 50px -12px rgba(0,0,0,0.15)', border: isDark ? '8px solid #27272a' : '8px solid #f1f5f9' }}>
                 
                 {/* Sombra de Toldo / Parabrisas */}
-                <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: '180px', height: '40px', background: 'linear-gradient(to bottom, rgba(226, 232, 240, 0.6), transparent)', borderBottomLeftRadius: '32px', borderBottomRightRadius: '32px' }}></div>
+                <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: '180px', height: '40px', background: isDark ? 'linear-gradient(to bottom, rgba(39, 39, 42, 0.8), transparent)' : 'linear-gradient(to bottom, rgba(226, 232, 240, 0.6), transparent)', borderBottomLeftRadius: '32px', borderBottomRightRadius: '32px' }}></div>
                 
                 {/* Zona de Cabina */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '32px', marginTop: '12px', paddingBottom: '20px', borderBottom: '2px dashed #e2e8f0', position: 'relative' }}>
-                    <div style={{ width: '56px', height: '56px', background: 'linear-gradient(135deg, #334155, #0f172a)', color: '#ffffff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', transform: 'rotate(-12deg)', border: '4px solid #f8fafc' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '32px', marginTop: '12px', paddingBottom: '20px', borderBottom: isDark ? '2px dashed #27272a' : '2px dashed #e2e8f0', position: 'relative' }}>
+                    <div style={{ width: '56px', height: '56px', background: 'linear-gradient(135deg, #334155, #0f172a)', color: '#ffffff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', transform: 'rotate(-12deg)', border: isDark ? '4px solid #18181b' : '4px solid #f8fafc' }}>
                         <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>steering_wheel_heat</span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', opacity: 0.6 }}>
-                        <span style={{ fontSize: '12px', fontWeight: 900, color: '#64748b', letterSpacing: '0.25em' }}>FRENTE</span>
-                        <div style={{ width: '40px', height: '6px', backgroundColor: '#cbd5e1', borderRadius: '9999px', marginTop: '6px' }}></div>
+                        <span style={{ fontSize: '12px', fontWeight: 900, color: isDark ? '#cbd5e1' : '#64748b', letterSpacing: '0.25em' }}>FRENTE</span>
+                        <div style={{ width: '40px', height: '6px', backgroundColor: isDark ? '#3f3f46' : '#cbd5e1', borderRadius: '9999px', marginTop: '6px' }}></div>
                     </div>
                 </div>
 
@@ -443,18 +439,18 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial, s
                         if (esParteDerecha) return null;
 
                         const bgColor = esBaño
-                           ? '#faf5ff'
+                           ? (isDark ? 'rgba(168, 85, 247, 0.25)' : '#faf5ff')
                            : asiento.esPasillo 
-                               ? (modo === 'vaciar' ? 'rgba(254, 226, 226, 0.8)' : 'transparent')
-                               : (asiento.vacio ? '#f8fafc' : (asiento.esPoltrona ? 'linear-gradient(to bottom, #fef3c7, #fde68a)' : 'linear-gradient(to bottom, #ffffff, #f1f5f9)'));
+                               ? (modo === 'vaciar' ? (isDark ? 'rgba(239, 68, 68, 0.3)' : 'rgba(254, 226, 226, 0.8)') : 'transparent')
+                                : (asiento.vacio ? (isDark ? '#18181b' : '#f8fafc') : (asiento.esPoltrona ? (isDark ? 'linear-gradient(to bottom, #78350f, #451a03)' : 'linear-gradient(to bottom, #fef3c7, #fde68a)') : (isDark ? 'linear-gradient(to bottom, #27272a, #18181b)' : 'linear-gradient(to bottom, #ffffff, #f1f5f9)')));
                         
                         const borderColor = esBaño
-                           ? '2px solid #d8b4fe'
+                           ? (isDark ? '2px solid #a855f7' : '2px solid #d8b4fe')
                            : asiento.esPasillo
-                               ? (modo === 'vaciar' ? '2px dashed #fca5a5' : '1px solid transparent')
-                               : (asiento.vacio ? '2px dashed #cbd5e1' : (asiento.esPoltrona ? '2px solid #f59e0b' : '1px solid #e2e8f0'));
+                               ? (modo === 'vaciar' ? (isDark ? '2px dashed #ef4444' : '2px dashed #fca5a5') : '1px solid transparent')
+                               : (asiento.vacio ? (isDark ? '2px dashed #3f3f46' : '2px dashed #cbd5e1') : (asiento.esPoltrona ? '2px solid #f59e0b' : (isDark ? '1px solid #3f3f46' : '1px solid #cbd5e1')));
 
-                        const colorTxt = esBaño ? '#7e22ce' : (asiento.esPasillo ? 'transparent' : (asiento.vacio ? '#94a3b8' : (asiento.esPoltrona ? '#92400e' : '#334155')));
+                        const colorTxt = esBaño ? (isDark ? '#d8b4fe' : '#7e22ce') : (asiento.esPasillo ? 'transparent' : (asiento.vacio ? (isDark ? '#71717a' : '#94a3b8') : (asiento.esPoltrona ? (isDark ? '#fef08a' : '#92400e') : (isDark ? '#ffffff' : '#0f172a'))));
 
                         return (
                             <div
@@ -500,20 +496,20 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial, s
                                     background: bgColor,
                                     border: borderColor,
                                     boxSizing: 'border-box',
-                                    color: colorTxt,
-                                    boxShadow: (esAsientoReal || esBaño) ? '0 2px 4px rgba(0,0,0,0.1), 0 1px 1px rgba(0,0,0,0.05)' : 'none',
+                                    color: `${colorTxt} !important`,
+                                    boxShadow: (esAsientoReal || esBaño) ? (isDark ? '0 2px 6px rgba(0,0,0,0.5)' : '0 2px 4px rgba(0,0,0,0.1), 0 1px 1px rgba(0,0,0,0.05)') : 'none',
                                     transform: 'translateY(0)',
                                     cursor: soloLectura ? 'default' : ((modo === 'editar' || modo === 'baño' || modo === 'vaciar' || modo === 'poltrona') ? 'pointer' : (modo === 'insertar' ? 'copy' : 'grab')),
                                     padding: '0 8px',
                                     minHeight: '40px',
                                     width: '100%',
                                     outline: 'none',
-                                    overflow: 'visible' // Para que no corte el borde de 2px
+                                    overflow: 'visible'
                                 }}
                             >
                                 {/* ICONO DE BAÑO */}
                                 {esBaño ? (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: isDark ? '#d8b4fe' : '#7e22ce' }}>
                                         <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>wc</span>
                                         {esParteIzquierda && <span style={{ fontSize: '12px', fontWeight: 'bold', letterSpacing: '1px' }}>BAÑO</span>}
                                     </div>
@@ -527,15 +523,17 @@ export default function DisenadorAsientos({ capacidad, onChange, valorInicial, s
                                             onClick={(e) => e.stopPropagation()}
                                             style={{ 
                                                 width: '85%', height: '85%', textAlign: 'center', 
-                                                background: '#e0e7ff', border: '1px solid #6366f1', 
+                                                background: isDark ? '#1e3a8a' : '#e0e7ff', border: '1px solid #6366f1', 
                                                 borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', 
-                                                color: '#1e3a8a', padding: '0', margin: 0, outline: 'none' 
+                                                color: isDark ? '#ffffff' : '#1e3a8a', padding: '0', margin: 0, outline: 'none' 
                                             }}
                                             autoFocus
                                         />
                                     ) : (
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                            {!asiento.esPasillo && (asiento.vacio ? 'X' : asiento.numero)}
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: colorTxt }}>
+                                            <span style={{ color: colorTxt, fontWeight: 900 }}>
+                                              {!asiento.esPasillo && (asiento.vacio ? 'X' : asiento.numero)}
+                                            </span>
                                             {asiento.esPoltrona && !asiento.vacio && !asiento.esPasillo && (
                                                 <span className="material-symbols-outlined" style={{ fontSize: '14px', color: '#f59e0b' }}>star</span>
                                             )}

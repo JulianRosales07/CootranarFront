@@ -26,6 +26,7 @@ export const ROUTES = {
   TARIFAS_RUTA: '/rutas/tarifas',
   REPORTE_INGRESOS: '/reportes/ingresos-por-bus',
   DEPARTAMENTOS: '/departamentos',
+  PERFIL: '/perfil',
 } as const;
 
 export const ESTADOS_TIQUETE = {

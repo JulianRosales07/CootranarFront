@@ -37,33 +37,26 @@ httpClient.interceptors.response.use(
 
     if (status === 401) {
       const msg = (data?.message || '').toLowerCase();
+      const esTokenExpirado = msg.includes('expirado') || msg.includes('expired') || msg.includes('malformed') || msg.includes('jwt') || msg.includes('token inválido') || msg.includes('token invalido');
       const esPermisos = msg.includes('permiso') || msg.includes('autorizado') || msg.includes('rol') || msg.includes('acceso') || msg.includes('no tiene');
 
       console.log('[401 Debug] Mensaje:', msg);
-      console.log('[401 Debug] Es permisos:', esPermisos);
-      console.log('[401 Debug] Token:', localStorage.getItem('authToken'));
-      console.log('[401 Debug] Path:', window.location.pathname);
-      console.log('[401 Debug] Has Authorization header:', !!error.config?.headers?.Authorization);
+      console.log('[401 Debug] Es token expirado:', esTokenExpirado);
 
       if (esPermisos) {
         console.warn('⚠️ Error 401: Sin permisos suficientes. No se cierra sesión.');
-      } else {
-        // Verificar si hay un token válido guardado; si no lo hay, no redirigir (evita loops)
+      } else if (esTokenExpirado) {
         const token = localStorage.getItem('authToken');
         const isLoginPage = window.location.pathname.includes('/login');
         
-        // Solo cerrar sesión si:
-        // 1. Hay un token guardado
-        // 2. No estamos en la página de login
-        // 3. El error viene de una petición autenticada (no de páginas públicas)
-        if (token && token !== 'cookie-based-auth' && !isLoginPage && error.config?.headers?.Authorization) {
-          console.warn('⚠️ Error 401: Token inválido o expirado. Redirigiendo a Login...');
+        if (token && token !== 'cookie-based-auth' && !isLoginPage) {
+          console.warn('⚠️ Error 401: Token expirado/inválido confirmado. Redirigiendo a Login...');
           localStorage.removeItem('authToken');
           localStorage.removeItem('usuario');
           window.location.href = '/login';
-        } else {
-          console.log('[401 Debug] No se cierra sesión porque no cumple condiciones');
         }
+      } else {
+        console.warn('⚠️ Error 401 puntual en petición. No se cierra sesión automáticamente:', url);
       }
     }
     return Promise.reject(error);

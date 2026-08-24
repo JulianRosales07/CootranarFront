@@ -100,19 +100,19 @@ export const TiposServicioPage = () => {
         <span style={{ fontWeight: 700, fontSize: '15px', color: '#0f172a', display: 'block', marginBottom: '18px' }}>
           {editingId ? 'Editar Tipo de Servicio' : 'Añadir Nuevo Tipo de Servicio'}
         </span>
-        <form onSubmit={handleGuardar} style={{ display: 'flex', alignItems: 'flex-end', gap: '14px' }}>
-          <div style={{ flex: 1 }}>
+        <form onSubmit={handleGuardar} style={{ display: 'flex', alignItems: 'flex-end', gap: '14px', flexWrap: 'wrap' }}>
+          <div style={{ flex: '1 1 200px', minWidth: '160px' }}>
             <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>Nombre</label>
             <div style={{ position: 'relative' }}>
               <span className="material-symbols-outlined" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '16px', color: '#cbd5e1' }}>label</span>
               <input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej: Corriente, Expresso, Directo" style={{ ...inputStyle, paddingLeft: '34px' }} onFocus={focusBorder} onBlur={blurBorder} />
             </div>
           </div>
-          <div style={{ flex: 1.5 }}>
+          <div style={{ flex: '2 1 260px', minWidth: '180px' }}>
             <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>Descripción</label>
             <input value={descripcion} onChange={e => setDescripcion(e.target.value)} placeholder="Detalles del servicio..." style={inputStyle} onFocus={focusBorder} onBlur={blurBorder} />
           </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ display: 'flex', gap: '8px', flexShrink: 0, marginTop: '8px' }}>
             <button type="submit" disabled={create.isPending || update.isPending || !nombre.trim()} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: (create.isPending || update.isPending || !nombre.trim()) ? '#6b7280' : BLUE, color: 'white', border: 'none', borderRadius: '7px', padding: '9px 18px', fontSize: '12.5px', fontWeight: 700, cursor: (create.isPending || update.isPending || !nombre.trim()) ? 'not-allowed' : 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}
               onMouseEnter={e => { if (!create.isPending && !update.isPending && nombre.trim()) e.currentTarget.style.background = '#0a2f72'; }} onMouseLeave={e => { if (!create.isPending && !update.isPending && nombre.trim()) e.currentTarget.style.background = BLUE; }}>
               <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>{(create.isPending || update.isPending) ? 'hourglass_empty' : editingId ? 'edit' : 'save'}</span>
@@ -136,9 +136,9 @@ export const TiposServicioPage = () => {
 
       {/* ── Listado de Tipos de Servicio ── */}
       <div style={{ background: 'white', borderRadius: '10px', border: '1px solid #e8edf2', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderBottom: '1px solid #f1f5f9' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', padding: '16px 24px', borderBottom: '1px solid #f1f5f9' }}>
           <span style={{ fontWeight: 700, fontSize: '15px', color: '#0f172a' }}>Listado de Tipos de Servicio</span>
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <button style={{ padding: '7px 14px', borderRadius: '7px', fontSize: '12px', fontWeight: 600, border: '1px solid #e2e8f0', background: 'white', color: '#475569', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '5px' }}>
               <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>filter_alt</span> Filtrar
             </button>
@@ -155,7 +155,8 @@ export const TiposServicioPage = () => {
           </div>
         ) : (
           <>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+              <table style={{ width: '100%', minWidth: '650px', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ background: '#f8fafc' }}>
                   {[{ l: 'ID', w: '100px' }, { l: 'Nombre', w: '160px' }, { l: 'Descripción', w: '350px' }, { l: 'Estado', w: '100px' }, { l: 'Acciones', w: '100px' }].map(({ l, w }) => (
@@ -199,7 +200,8 @@ export const TiposServicioPage = () => {
                 ))}
               </tbody>
             </table>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '13px 20px', borderTop: '1px solid #f1f5f9' }}>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', padding: '13px 20px', borderTop: '1px solid #f1f5f9' }}>
               <span style={{ fontSize: '12.5px', color: '#94a3b8' }}>
                 Mostrando <strong style={{ color: '#475569' }}>{list.length === 0 ? 0 : (page - 1) * ITEMS_PER_PAGE + 1}</strong> a{' '}
                 <strong style={{ color: '#475569' }}>{Math.min(page * ITEMS_PER_PAGE, list.length)}</strong> de{' '}

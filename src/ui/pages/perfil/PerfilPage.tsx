@@ -27,6 +27,7 @@ export const PerfilPage: React.FC = () => {
   const [cargo, setCargo] = useState(user?.nombrerol || 'Administrador');
   const [bio, setBio] = useState('Colaborador oficial del equipo de transporte y logística de COOTRANAR R.L.');
   const [fotoUrl, setFotoUrl] = useState<string | null>(user?.fotoperfil || null);
+  const [modalVisualizarFoto, setModalVisualizarFoto] = useState(false);
 
   // Estados del Formulario de Cambio de Contraseña
   const [currentPassword, setCurrentPassword] = useState('');

@@ -9,6 +9,7 @@ interface NavItem {
   path: string;
   label: string;
   icon: string;
+  descripcion?: string;
 }
 
 interface NavSection {
@@ -20,57 +21,57 @@ const sections: NavSection[] = [
   {
     title: 'Análisis',
     items: [
-      { path: ROUTES.DASHBOARD, label: 'Dashboard', icon: 'dashboard' },
-      { path: ROUTES.REPORTE_INGRESOS, label: 'Ingresos por Bus', icon: 'bar_chart' },
+      { path: ROUTES.DASHBOARD, label: 'Dashboard', icon: 'dashboard', descripcion: 'Resumen financiero, métricas clave y estadísticas operativas del día.' },
+      { path: ROUTES.REPORTE_INGRESOS, label: 'Ingresos por Bus', icon: 'bar_chart', descripcion: 'Consolidado de recaudo, ocupación y rendimiento por vehículo.' },
     ],
   },
   {
     title: 'Taquilla',
     items: [
-      { path: ROUTES.TAQUILLA, label: 'Venta de Tiquetes', icon: 'confirmation_number' },
-      { path: ROUTES.GESTION_TIQUETES, label: 'Tiquetes por Viaje', icon: 'receipt_long' },
+      { path: ROUTES.TAQUILLA, label: 'Venta de Tiquetes', icon: 'confirmation_number', descripcion: 'Punto de emisión, reserva y selección de asientos en tiempo real.' },
+      { path: ROUTES.GESTION_TIQUETES, label: 'Tiquetes por Viaje', icon: 'receipt_long', descripcion: 'Control detallado de pasajeros y pasajes emitidos por itinerario.' },
     ],
   },
   {
     title: 'Gestión Base',
     items: [
-      { path: ROUTES.CIUDADES, label: 'Ciudades', icon: 'location_city' },
-      { path: ROUTES.AGENCIAS, label: 'Agencias', icon: 'storefront' },
-      { path: ROUTES.OFICINAS, label: 'Oficinas', icon: 'apartment' },
+      { path: ROUTES.CIUDADES, label: 'Ciudades', icon: 'location_city', descripcion: 'Directorio de ciudades de origen y destino de la red vial.' },
+      { path: ROUTES.AGENCIAS, label: 'Agencias', icon: 'storefront', descripcion: 'Sedes y puntos de atención de la cooperativa en cada región.' },
+      { path: ROUTES.OFICINAS, label: 'Oficinas', icon: 'apartment', descripcion: 'Taquillas y oficinas administrativas de despacho autorizadas.' },
     ],
   },
   {
     title: 'Operaciones',
     items: [
-      { path: ROUTES.TIPOS_BUS, label: 'Tipos de Bus', icon: 'directions_bus' },
-      { path: ROUTES.TIPOS_SERVICIO, label: 'Tipos de Servicio', icon: 'tune' },
-      { path: ROUTES.VEHICULOS, label: 'Vehículos', icon: 'commute' },
-      { path: ROUTES.RUTAS, label: 'Rutas', icon: 'alt_route' },
-      { path: ROUTES.VIAJES, label: 'Viajes', icon: 'schedule' },
+      { path: ROUTES.TIPOS_BUS, label: 'Tipos de Bus', icon: 'directions_bus', descripcion: 'Modelos, carrocerías y distribución de silletería de la flota.' },
+      { path: ROUTES.TIPOS_SERVICIO, label: 'Tipos de Servicio', icon: 'tune', descripcion: 'Categorías de viaje: Directo, Preferencial y Corriente.' },
+      { path: ROUTES.VEHICULOS, label: 'Vehículos', icon: 'commute', descripcion: 'Expediente digital, SOAT, tecnomecánica y estado del parque automotor.' },
+      { path: ROUTES.RUTAS, label: 'Rutas', icon: 'alt_route', descripcion: 'Trazados intermunicipales, distancias y paradas intermedias.' },
+      { path: ROUTES.VIAJES, label: 'Viajes', icon: 'schedule', descripcion: 'Programación de itinerarios, horas de salida y asignación de buses.' },
     ],
   },
   {
     title: 'Recursos y Legal',
     items: [
-      { path: ROUTES.CONDUCTORES, label: 'Conductores', icon: 'badge' },
-      { path: ROUTES.ASEGURADORAS, label: 'Aseguradoras', icon: 'health_and_safety' },
-      { path: ROUTES.POLIZAS, label: 'Pólizas', icon: 'policy' },
-      { path: ROUTES.USUARIOS, label: 'Usuarios', icon: 'group' },
+      { path: ROUTES.CONDUCTORES, label: 'Conductores', icon: 'badge', descripcion: 'Hojas de vida, licencias de conducción y control de conductores.' },
+      { path: ROUTES.ASEGURADORAS, label: 'Aseguradoras', icon: 'health_and_safety', descripcion: 'Empresas aseguradoras y convenios de respaldo de la flota.' },
+      { path: ROUTES.POLIZAS, label: 'Pólizas', icon: 'policy', descripcion: 'Pólizas contractuales y extracontractuales vigentes.' },
+      { path: ROUTES.USUARIOS, label: 'Usuarios', icon: 'group', descripcion: 'Cuentas de usuario, roles y credenciales de acceso.' },
     ],
   },
   {
     title: 'Encomiendas',
     items: [
-      { path: ROUTES.ENCOMIENDAS, label: 'Encomiendas', icon: 'inventory_2' },
-      { path: ROUTES.DESPACHOS, label: 'Despachos', icon: 'local_shipping' },
-      { path: ROUTES.OFICINAS_ENCOMIENDAS, label: 'Oficinas Encomiendas', icon: 'store' },
-      { path: ROUTES.EMPLEADOS_ENCOMIENDAS, label: 'Empleados Encomiendas', icon: 'person_pin' },
+      { path: ROUTES.ENCOMIENDAS, label: 'Encomiendas', icon: 'inventory_2', descripcion: 'Registro, cotización, emisión de guías y rastreo de paquetería.' },
+      { path: ROUTES.DESPACHOS, label: 'Despachos', icon: 'local_shipping', descripcion: 'Manifiestos de carga y control de envíos entre agencias.' },
+      { path: ROUTES.OFICINAS_ENCOMIENDAS, label: 'Oficinas Encomiendas', icon: 'store', descripcion: 'Puntos autorizados de recepción y entrega de paquetes.' },
+      { path: ROUTES.EMPLEADOS_ENCOMIENDAS, label: 'Empleados Encomiendas', icon: 'person_pin', descripcion: 'Personal operativo a cargo de la gestión de carga.' },
     ],
   },
   {
     title: 'Gestión Empleados',
     items: [
-      { path: ROUTES.TAQUILLEROS, label: 'Taquilleros', icon: 'assignment_ind' },
+      { path: ROUTES.TAQUILLEROS, label: 'Taquilleros', icon: 'assignment_ind', descripcion: 'Asignación de turnos, apertura y arqueo de taquillas.' },
     ],
   },
 ];
@@ -81,6 +82,11 @@ export const Sidebar: React.FC = () => {
   const { user, logout } = useAuth();
   const { collapsed, toggle, isMobile, mobileOpen, setMobileOpen, theme, setTheme } = useSidebar();
   const [menuPerfilAbierto, setMenuPerfilAbierto] = useState(false);
+  const [previewItem, setPreviewItem] = useState<{
+    item: NavItem;
+    sectionTitle?: string;
+    top: number;
+  } | null>(null);
   const profileRef = useRef<HTMLDivElement>(null);
 
   const isActive = (path: string) => location.pathname === path;
@@ -344,9 +350,9 @@ export const Sidebar: React.FC = () => {
                     <Link
                       key={item.path}
                       to={item.path}
-                      title={item.label}
                       onClick={() => {
                         if (isMobile) setMobileOpen(false);
+                        setPreviewItem(null);
                       }}
                       style={{
                         width: '44px',
@@ -366,12 +372,19 @@ export const Sidebar: React.FC = () => {
                           e.currentTarget.style.backgroundColor = colors.itemHoverBg;
                           e.currentTarget.style.color = colors.text;
                         }
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        setPreviewItem({
+                          item,
+                          sectionTitle: section.title,
+                          top: rect.top,
+                        });
                       }}
                       onMouseLeave={(e) => {
                         if (!active) {
                           e.currentTarget.style.backgroundColor = 'transparent';
                           e.currentTarget.style.color = colors.textMuted;
                         }
+                        setPreviewItem(null);
                       }}
                     >
                       <span
@@ -855,6 +868,114 @@ export const Sidebar: React.FC = () => {
         )}
       </div>
     </aside>
+
+      {/* ── Tarjeta Flotante de Vista Previa al pasar el mouse en modo contraído ── */}
+      {collapsed && !isMobile && previewItem && (
+        <div
+          style={{
+            position: 'fixed',
+            left: '82px',
+            top: `${previewItem.top}px`,
+            transform: 'translateY(-12px)',
+            width: '260px',
+            backgroundColor: isDark ? '#141417' : '#ffffff',
+            border: isDark ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid #e2e8f0',
+            borderRadius: '16px',
+            boxShadow: isDark
+              ? '0 20px 40px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.06)'
+              : '0 16px 36px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.04)',
+            padding: '14px 16px',
+            zIndex: 99999,
+            pointerEvents: 'none',
+            animation: 'fadeIn 0.15s ease-out',
+          }}
+        >
+          {/* Indicador flechita */}
+          <div
+            style={{
+              position: 'absolute',
+              left: '-6px',
+              top: '20px',
+              width: '12px',
+              height: '12px',
+              backgroundColor: isDark ? '#141417' : '#ffffff',
+              borderLeft: isDark ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid #e2e8f0',
+              borderBottom: isDark ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid #e2e8f0',
+              transform: 'rotate(45deg)',
+            }}
+          />
+
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div
+                style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '8px',
+                  backgroundColor: isDark ? 'rgba(59, 130, 246, 0.18)' : '#eff6ff',
+                  color: '#3b82f6',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+                  {previewItem.item.icon}
+                </span>
+              </div>
+              <h4 style={{ margin: 0, fontSize: '13.5px', fontWeight: 800, color: colors.text }}>
+                {previewItem.item.label}
+              </h4>
+            </div>
+
+            {previewItem.sectionTitle && (
+              <span
+                style={{
+                  fontSize: '9.5px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                  padding: '2px 7px',
+                  borderRadius: '6px',
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9',
+                  color: colors.textMuted,
+                }}
+              >
+                {previewItem.sectionTitle}
+              </span>
+            )}
+          </div>
+
+          <p
+            style={{
+              margin: '0 0 10px 0',
+              fontSize: '11.5px',
+              lineHeight: 1.45,
+              color: colors.textMuted,
+            }}
+          >
+            {previewItem.item.descripcion || 'Accede al módulo de administración y control.'}
+          </p>
+
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              fontSize: '11px',
+              fontWeight: 700,
+              color: '#3b82f6',
+              borderTop: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid #f1f5f9',
+              paddingTop: '8px',
+            }}
+          >
+            <span>Ir a la página</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>
+              arrow_forward
+            </span>
+          </div>
+        </div>
+      )}
     </>
   );
 };

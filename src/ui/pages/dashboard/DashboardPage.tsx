@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Layout } from '../../components/layout/Layout';
 import { useResumenDashboard } from '../../hooks/useReportes';
+import { DashboardSkeleton } from '../../components/dashboard/DashboardSkeleton';
 import { FiltrosReporte } from '../../components/reportes/FiltrosReporte';
 import { TarjetasKpi } from '../../components/reportes/TarjetasKpi';
 import { GraficoIngresosDiarios } from '../../components/reportes/GraficoIngresosDiarios';
@@ -62,25 +63,9 @@ export const DashboardPage = () => {
 
   return (
     <Layout>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
-        <div>
-          <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#0f172a', margin: 0 }}>Dashboard</h2>
-          <p style={{ fontSize: '12.5px', color: '#64748b', margin: '4px 0 0' }}>
-            Resumen de ingresos por venta de tiquetes en el periodo seleccionado.
-          </p>
-        </div>
-        <Link
-          to={ROUTES.REPORTE_INGRESOS}
-          style={{ display: 'flex', alignItems: 'center', gap: '8px', background: BLUE, color: 'white', textDecoration: 'none', borderRadius: '7px', padding: '10px 18px', fontSize: '13px', fontWeight: 700 }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>request_quote</span>
-          Reporte de Ingresos por Bus
-        </Link>
-      </div>
-
-      <FiltrosReporte filtros={filtros} onChange={setFiltros} cargando={isFetching} />
-
-      {error ? (
+      {isLoading ? (
+        <DashboardSkeleton loading={true} />
+      ) : error ? (
         <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '10px', padding: '20px 24px', color: '#dc2626' }}>
           <p style={{ margin: 0, fontSize: '13px', fontWeight: 600 }}>
             No se pudo cargar el dashboard: {(error as any)?.response?.data?.message || (error as Error).message}
@@ -88,6 +73,24 @@ export const DashboardPage = () => {
         </div>
       ) : (
         <>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+            <div>
+              <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#0f172a', margin: 0 }}>Dashboard</h2>
+              <p style={{ fontSize: '12.5px', color: '#64748b', margin: '4px 0 0' }}>
+                Resumen de ingresos por venta de tiquetes en el periodo seleccionado.
+              </p>
+            </div>
+            <Link
+              to={ROUTES.REPORTE_INGRESOS}
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', background: BLUE, color: 'white', textDecoration: 'none', borderRadius: '7px', padding: '10px 18px', fontSize: '13px', fontWeight: 700 }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>request_quote</span>
+              Reporte de Ingresos por Bus
+            </Link>
+          </div>
+
+          <FiltrosReporte filtros={filtros} onChange={setFiltros} cargando={isFetching} />
+
           <TarjetasKpi totales={totales} isLoading={isLoading} />
 
           <GraficoIngresosDiarios datos={ingresosDiarios} isLoading={isLoading} />

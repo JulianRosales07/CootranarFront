@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { ROUTES } from '../../../shared/constants';
 import heroImg from '../../../assets/BusCootranar.jpg';
-import logoImg from '../../../assets/LOGO-COOTRANAR.png';
 
 /* ─────────────────────────────────────────────
    Inline styles & keyframe injection
@@ -233,7 +232,6 @@ export const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError]           = useState('');
   const [loading, setLoading]       = useState(false);
-  const [loginSuccess, setLoginSuccess] = useState(false);
   const [shakeKey, setShakeKey]     = useState(0); // re-triggers shake animation
   const [showForm, setShowForm]     = useState(false); // controls form visibility on mobile
 
@@ -291,17 +289,13 @@ export const LoginPage = () => {
     setLoading(true);
     try {
       const loggedUser = await login(email, password);
-      setLoginSuccess(true);
-      // Redirección condicional según el rol del usuario
-      setTimeout(() => {
-        if (loggedUser?.nombrerol === 'TAQUILLERO') {
-          navigate(ROUTES.TAQUILLA);
-        } else if (loggedUser?.nombrerol === 'EMPLEADO_ENCOMIENDAS') {
-          navigate(ROUTES.ENCOMIENDAS);
-        } else {
-          navigate(ROUTES.DASHBOARD);
-        }
-      }, 800);
+      if (loggedUser?.nombrerol === 'TAQUILLERO') {
+        navigate(ROUTES.TAQUILLA);
+      } else if (loggedUser?.nombrerol === 'EMPLEADO_ENCOMIENDAS') {
+        navigate(ROUTES.ENCOMIENDAS);
+      } else {
+        navigate(ROUTES.DASHBOARD);
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Error al iniciar sesión. Verifica tus credenciales.';
       setError(msg);
@@ -915,32 +909,6 @@ export const LoginPage = () => {
           </div>
         </div>
       </div>
-
-      {/* ── Success overlay ── */}
-      {loginSuccess && (
-        <div style={S.successOverlay}>
-          <img
-            src={logoImg}
-            alt="Logo COOTRANAR"
-            style={S.successLogo}
-          />
-          <h2 style={S.successTitle}>¡Bienvenido!</h2>
-          <p style={S.successSub}>Iniciando sesión...</p>
-          <div style={S.dots}>
-            {[0, 1, 2].map((i) => (
-              <div
-                key={i}
-                style={{
-                  width: 12, height: 12,
-                  background: '#fff',
-                  borderRadius: '50%',
-                  animation: `cui-dot 1.4s ${i * 0.16}s infinite ease-in-out both`,
-                }}
-              />
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

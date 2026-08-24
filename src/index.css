@@ -598,4 +598,14 @@ div:has(> table) {
   to { transform: rotate(360deg); }
 }
 
+@keyframes boneyardShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+
 

@@ -511,203 +511,239 @@ export const Header = () => {
             )}
           </button>
 
-          {/* Menú Desplegable de Notificaciones */}
+          {/* Menú Desplegable / Modal de Notificaciones */}
           {menuNotificacionesAbierto && (
-            <div
-              style={{
-                position: 'absolute',
-                top: '46px',
-                right: 0,
-                width: isMobile ? 'min(300px, calc(100vw - 24px))' : '340px',
-                maxWidth: 'calc(100vw - 24px)',
-                backgroundColor: isDark ? '#18181b' : '#ffffff',
-                border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #e2e8f0',
-                borderRadius: '16px',
-                boxShadow: isDark ? '0 12px 36px rgba(0,0,0,0.7)' : '0 12px 32px rgba(0,0,0,0.12)',
-                zIndex: 120,
-                overflow: 'hidden',
-                animation: 'fadeIn 0.15s ease-out',
-              }}
-            >
-              {/* Encabezado del Dropdown */}
+            <>
+              {/* Backdrop para móviles */}
+              {isMobile && (
+                <div
+                  onClick={() => setMenuNotificacionesAbierto(false)}
+                  style={{
+                    position: 'fixed',
+                    inset: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+                    backdropFilter: 'blur(2px)',
+                    zIndex: 140,
+                  }}
+                />
+              )}
+
               <div
                 style={{
-                  padding: '14px 16px',
-                  borderBottom: isDark ? '1px solid rgba(255,255,255,0.07)' : '1px solid #f1f5f9',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
+                  position: isMobile ? 'fixed' : 'absolute',
+                  top: isMobile ? '56px' : '46px',
+                  left: isMobile ? '12px' : 'auto',
+                  right: isMobile ? '12px' : 0,
+                  margin: isMobile ? '0 auto' : undefined,
+                  width: isMobile ? 'auto' : '340px',
+                  maxWidth: isMobile ? '400px' : '340px',
+                  backgroundColor: isDark ? '#18181b' : '#ffffff',
+                  border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #e2e8f0',
+                  borderRadius: '16px',
+                  boxShadow: isDark ? '0 12px 36px rgba(0,0,0,0.7)' : '0 12px 32px rgba(0,0,0,0.12)',
+                  zIndex: 150,
+                  overflow: 'hidden',
+                  animation: 'fadeIn 0.15s ease-out',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '14px', fontWeight: 800, color: isDark ? '#ffffff' : '#0f172a' }}>
-                    Notificaciones
-                  </span>
-                  {noLeidas > 0 && (
-                    <span
-                      style={{
-                        padding: '2px 7px',
-                        borderRadius: '10px',
-                        backgroundColor: '#ef4444',
-                        color: 'white',
-                        fontSize: '10.5px',
-                        fontWeight: 800,
-                      }}
-                    >
-                      {noLeidas} nuevas
+                {/* Encabezado del Dropdown */}
+                <div
+                  style={{
+                    padding: '14px 16px',
+                    borderBottom: isDark ? '1px solid rgba(255,255,255,0.07)' : '1px solid #f1f5f9',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '14px', fontWeight: 800, color: isDark ? '#ffffff' : '#0f172a' }}>
+                      Notificaciones
                     </span>
+                    {noLeidas > 0 && (
+                      <span
+                        style={{
+                          padding: '2px 7px',
+                          borderRadius: '10px',
+                          backgroundColor: '#ef4444',
+                          color: 'white',
+                          fontSize: '10.5px',
+                          fontWeight: 800,
+                        }}
+                      >
+                        {noLeidas} nuevas
+                      </span>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    {noLeidas > 0 && (
+                      <button
+                        onClick={handleMarcarTodoLeido}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: isDark ? '#60a5fa' : '#2563eb',
+                          fontSize: '11.5px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          padding: 0,
+                        }}
+                      >
+                        Marcar todo leído
+                      </button>
+                    )}
+                    {isMobile && (
+                      <button
+                        onClick={() => setMenuNotificacionesAbierto(false)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: isDark ? '#a1a1aa' : '#94a3b8',
+                          cursor: 'pointer',
+                          padding: 0,
+                          display: 'flex',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Lista de Notificaciones */}
+                <div style={{ maxHeight: '320px', overflowY: 'auto' }}>
+                  {notificaciones.length === 0 ? (
+                    <div style={{ padding: '32px 16px', textAlign: 'center', color: isDark ? '#64748b' : '#94a3b8' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: '28px', display: 'block', marginBottom: '6px' }}>
+                        notifications_off
+                      </span>
+                      <span style={{ fontSize: '13px' }}>No hay notificaciones</span>
+                    </div>
+                  ) : (
+                    notificaciones.map((item) => (
+                      <div
+                        key={item.id}
+                        onClick={() => handleToggleLeido(item.id)}
+                        style={{
+                          padding: '12px 16px',
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: '12px',
+                          borderBottom: isDark ? '1px solid rgba(255,255,255,0.04)' : '1px solid #f8fafc',
+                          backgroundColor: item.leido
+                            ? 'transparent'
+                            : (isDark ? 'rgba(59, 130, 246, 0.08)' : '#f0f7ff'),
+                          cursor: 'pointer',
+                          transition: 'background 0.15s',
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = isDark ? '#27272a' : '#f8fafc')}
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.backgroundColor = item.leido
+                            ? 'transparent'
+                            : (isDark ? 'rgba(59, 130, 246, 0.08)' : '#f0f7ff'))
+                        }
+                      >
+                        <div
+                          style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '10px',
+                            backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0',
+                            color: item.color,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                            marginTop: '2px',
+                          }}
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+                            {item.icono}
+                          </span>
+                        </div>
+
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p
+                            style={{
+                              margin: 0,
+                              fontSize: '13px',
+                              fontWeight: item.leido ? 600 : 800,
+                              color: isDark ? '#ffffff' : '#0f172a',
+                              lineHeight: 1.2,
+                            }}
+                          >
+                            {item.titulo}
+                          </p>
+                          <p
+                            style={{
+                              margin: '3px 0 0 0',
+                              fontSize: '11.5px',
+                              color: isDark ? '#94a3b8' : '#64748b',
+                              lineHeight: 1.3,
+                            }}
+                          >
+                            {item.descripcion}
+                          </p>
+                          <span
+                            style={{
+                              display: 'block',
+                              marginTop: '4px',
+                              fontSize: '10.5px',
+                              color: isDark ? '#64748b' : '#94a3b8',
+                              fontWeight: 500,
+                            }}
+                          >
+                            {item.tiempo}
+                          </span>
+                        </div>
+
+                        {!item.leido && (
+                          <span
+                            style={{
+                              width: '6px',
+                              height: '6px',
+                              borderRadius: '50%',
+                              backgroundColor: '#3b82f6',
+                              flexShrink: 0,
+                              marginTop: '6px',
+                            }}
+                          />
+                        )}
+                      </div>
+                    ))
                   )}
                 </div>
 
-                {noLeidas > 0 && (
+                {/* Pie del Dropdown */}
+                <div
+                  style={{
+                    padding: '10px 16px',
+                    borderTop: isDark ? '1px solid rgba(255,255,255,0.07)' : '1px solid #f1f5f9',
+                    backgroundColor: isDark ? '#141417' : '#f8fafc',
+                    textAlign: 'center',
+                  }}
+                >
                   <button
-                    onClick={handleMarcarTodoLeido}
+                    onClick={() => {
+                      setMenuNotificacionesAbierto(false);
+                      navigate(ROUTES.PERFIL);
+                    }}
                     style={{
                       background: 'none',
                       border: 'none',
-                      color: isDark ? '#60a5fa' : '#2563eb',
-                      fontSize: '11.5px',
+                      color: isDark ? '#94a3b8' : '#64748b',
+                      fontSize: '12px',
                       fontWeight: 600,
                       cursor: 'pointer',
-                      padding: 0,
                     }}
                   >
-                    Marcar todo leído
+                    Gestionar preferencias en Perfil
                   </button>
-                )}
+                </div>
               </div>
-
-              {/* Lista de Notificaciones */}
-              <div style={{ maxHeight: '320px', overflowY: 'auto' }}>
-                {notificaciones.length === 0 ? (
-                  <div style={{ padding: '32px 16px', textAlign: 'center', color: isDark ? '#64748b' : '#94a3b8' }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: '28px', display: 'block', marginBottom: '6px' }}>
-                      notifications_off
-                    </span>
-                    <span style={{ fontSize: '13px' }}>No hay notificaciones</span>
-                  </div>
-                ) : (
-                  notificaciones.map((item) => (
-                    <div
-                      key={item.id}
-                      onClick={() => handleToggleLeido(item.id)}
-                      style={{
-                        padding: '12px 16px',
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        gap: '12px',
-                        borderBottom: isDark ? '1px solid rgba(255,255,255,0.04)' : '1px solid #f8fafc',
-                        backgroundColor: item.leido
-                          ? 'transparent'
-                          : (isDark ? 'rgba(59, 130, 246, 0.08)' : '#f0f7ff'),
-                        cursor: 'pointer',
-                        transition: 'background 0.15s',
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = isDark ? '#27272a' : '#f8fafc')}
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.backgroundColor = item.leido
-                          ? 'transparent'
-                          : (isDark ? 'rgba(59, 130, 246, 0.08)' : '#f0f7ff'))
-                      }
-                    >
-                      <div
-                        style={{
-                          width: '32px',
-                          height: '32px',
-                          borderRadius: '10px',
-                          backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0',
-                          color: item.color,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0,
-                          marginTop: '2px',
-                        }}
-                      >
-                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
-                          {item.icono}
-                        </span>
-                      </div>
-
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <p
-                          style={{
-                            margin: 0,
-                            fontSize: '13px',
-                            fontWeight: item.leido ? 600 : 800,
-                            color: isDark ? '#ffffff' : '#0f172a',
-                            lineHeight: 1.2,
-                          }}
-                        >
-                          {item.titulo}
-                        </p>
-                        <p
-                          style={{
-                            margin: '3px 0 0 0',
-                            fontSize: '11.5px',
-                            color: isDark ? '#94a3b8' : '#64748b',
-                            lineHeight: 1.3,
-                          }}
-                        >
-                          {item.descripcion}
-                        </p>
-                        <span
-                          style={{
-                            display: 'block',
-                            marginTop: '4px',
-                            fontSize: '10.5px',
-                            color: isDark ? '#64748b' : '#94a3b8',
-                            fontWeight: 500,
-                          }}
-                        >
-                          {item.tiempo}
-                        </span>
-                      </div>
-
-                      {!item.leido && (
-                        <span
-                          style={{
-                            width: '6px',
-                            height: '6px',
-                            borderRadius: '50%',
-                            backgroundColor: '#3b82f6',
-                            flexShrink: 0,
-                            marginTop: '6px',
-                          }}
-                        />
-                      )}
-                    </div>
-                  ))
-                )}
-              </div>
-
-              {/* Pie del Dropdown */}
-              <div
-                style={{
-                  padding: '10px 16px',
-                  borderTop: isDark ? '1px solid rgba(255,255,255,0.07)' : '1px solid #f1f5f9',
-                  backgroundColor: isDark ? '#141417' : '#f8fafc',
-                  textAlign: 'center',
-                }}
-              >
-                <button
-                  onClick={() => {
-                    setMenuNotificacionesAbierto(false);
-                    navigate(ROUTES.PERFIL);
-                  }}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: isDark ? '#94a3b8' : '#64748b',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                  }}
-                >
-                  Gestionar preferencias en Perfil
-                </button>
-              </div>
-            </div>
+            </>
           )}
         </div>
 

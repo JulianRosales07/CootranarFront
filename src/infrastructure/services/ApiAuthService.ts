@@ -74,6 +74,7 @@ export class ApiAuthService implements AuthService {
           apellido: usuario?.apellido || '',
           nombrerol: mappedRol,
           activo: usuario?.activo !== undefined ? usuario?.activo : true,
+          fotoperfil: usuario?.fotoperfil || usuario?.fotoPerfil || usuario?.avatar || null,
         };
 
         console.log('[AUTH] Sesión iniciada para:', user.correo);

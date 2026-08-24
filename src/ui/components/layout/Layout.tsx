@@ -1,7 +1,10 @@
+import { useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { useSidebar } from '../../context/SidebarContext';
+import { useAuth } from '../../hooks/useAuth';
+import { perfilApi } from '../../../infrastructure/services/perfilApi';
 
 interface LayoutProps {
   children: ReactNode;
@@ -10,8 +13,25 @@ interface LayoutProps {
 
 export const Layout = ({ children, hideHeader }: LayoutProps) => {
   const { collapsed, isMobile, theme } = useSidebar();
+  const { user, setUser } = useAuth();
   const ml = isMobile ? 0 : (collapsed ? 98 : 284);
   const isDark = theme === 'dark';
+
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    if (token && user) {
+      perfilApi.obtenerPerfil().then((perfil) => {
+        if (perfil && (perfil.fotoperfil !== user.fotoperfil || perfil.nombre !== user.nombre)) {
+          setUser({
+            ...user,
+            fotoperfil: perfil.fotoperfil || user.fotoperfil,
+            nombre: perfil.nombre || user.nombre,
+            apellido: perfil.apellido !== undefined ? perfil.apellido : user.apellido,
+          });
+        }
+      }).catch(() => {});
+    }
+  }, []);
 
   return (
     <div

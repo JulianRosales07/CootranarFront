@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../../shared/constants';
 import { useSidebar } from '../../context/SidebarContext';
+import { useAuth } from '../../hooks/useAuth';
 
 interface NotificacionItem {
   id: string;
@@ -279,6 +280,7 @@ const getPageHeaderInfo = (pathname: string) => {
 export const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { title, breadcrumbs } = getPageHeaderInfo(location.pathname);
   const { theme, isMobile, toggleMobile } = useSidebar();
   const isDark = theme === 'dark';
@@ -674,6 +676,41 @@ export const Header = () => {
             settings
           </span>
         </button>
+
+        {/* Avatar rápido en cabecera para móvil */}
+        {isMobile && (
+          <button
+            onClick={() => navigate(ROUTES.PERFIL)}
+            title="Mi Perfil"
+            style={{
+              width: '38px',
+              height: '38px',
+              borderRadius: '50%',
+              backgroundColor: '#3b82f6',
+              color: 'white',
+              border: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid #e2e8f0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '13px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              overflow: 'hidden',
+              flexShrink: 0,
+              boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+            }}
+          >
+            {user?.fotoperfil ? (
+              <img
+                src={user.fotoperfil}
+                alt={user.nombre || 'Avatar'}
+                style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
+              />
+            ) : (
+              user?.nombre ? user.nombre.charAt(0).toUpperCase() : 'U'
+            )}
+          </button>
+        )}
       </div>
     </header>
   );

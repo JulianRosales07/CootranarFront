@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { ROUTES } from '../../../shared/constants';
+import { Layout } from '../../components/layout/Layout';
+import { DashboardSkeleton } from '../../components/dashboard/DashboardSkeleton';
 import heroImg from '../../../assets/BusCootranar.jpg';
 
 /* ─────────────────────────────────────────────
@@ -302,6 +304,15 @@ export const LoginPage = () => {
       setLoading(false);
     }
   };
+
+  /* ── Si está iniciando sesión, mostrar de inmediato el Dashboard con Skeleton animado ── */
+  if (loading) {
+    return (
+      <Layout>
+        <DashboardSkeleton loading={true} />
+      </Layout>
+    );
+  }
 
   /* ── Styles (inline objects) ── */
   const S = {

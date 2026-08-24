@@ -288,30 +288,35 @@ html.dark [style*="background: rgb(250, 251, 252)"],
 html.dark [style*="background: rgb(243, 244, 246)"],
 html.dark [style*="background: rgb(248, 249, 255)"],
 html.dark [style*="background: rgb(239, 244, 255)"],
+html.dark [style*="background: rgb(240, 244, 248)"],
 html.dark [style*="background: #f8fafc"],
 html.dark [style*="background: #f1f5f9"],
 html.dark [style*="background: #fafbfc"],
 html.dark [style*="background: #f3f4f6"],
 html.dark [style*="background: #f8f9ff"],
 html.dark [style*="background: #eff4ff"],
+html.dark [style*="background: #f0f4f8"],
 html.dark [style*="background-color: rgb(248, 250, 252)"],
 html.dark [style*="background-color: rgb(241, 245, 249)"],
 html.dark [style*="background-color: rgb(250, 251, 252)"],
 html.dark [style*="background-color: rgb(243, 244, 246)"],
 html.dark [style*="background-color: rgb(248, 249, 255)"],
 html.dark [style*="background-color: rgb(239, 244, 255)"],
+html.dark [style*="background-color: rgb(240, 244, 248)"],
 html.dark [style*="background-color: #f8fafc"],
 html.dark [style*="background-color: #f1f5f9"],
 html.dark [style*="background-color: #fafbfc"],
 html.dark [style*="background-color: #f3f4f6"],
 html.dark [style*="background-color: #f8f9ff"],
 html.dark [style*="background-color: #eff4ff"],
+html.dark [style*="background-color: #f0f4f8"],
 html.dark [style*="backgroundColor: '#f8fafc'"],
 html.dark [style*="backgroundColor: '#f1f5f9'"],
 html.dark [style*="backgroundColor: '#fafbfc'"],
 html.dark [style*="backgroundColor: '#f3f4f6'"],
 html.dark [style*="backgroundColor: '#f8f9ff'"],
-html.dark [style*="backgroundColor: '#eff4ff'"] {
+html.dark [style*="backgroundColor: '#eff4ff'"],
+html.dark [style*="backgroundColor: '#f0f4f8'"] {
   background-color: #18181b !important;
   color: #f8fafc;
   border-color: rgba(255, 255, 255, 0.08) !important;
@@ -431,13 +436,20 @@ html.dark button[style*="background-color: rgb(255, 255, 255)"] {
 }
 
 /* ── 11. Carrocería y Asientos en Bus (Visualizador) ── */
+.bus-phone-shape {
+  background: linear-gradient(180deg, #f7faff 0%, #eef3fb 100%);
+  border: 3.5px solid #d4e3f7;
+  box-shadow: inset 0 2px 12px rgba(0, 53, 95, 0.07);
+}
+
+html.dark .bus-phone-shape,
 html.dark [style*="linear-gradient(180deg, #f7faff 0%, #eef3fb 100%)"],
 html.dark [style*="linear-gradient(180deg, rgb(247, 250, 255) 0%, rgb(238, 243, 251) 100%)"],
 html.dark [style*="border: 8px solid rgb(241, 245, 249)"],
 html.dark [style*="border: 8px solid #f1f5f9"] {
   background: #141418 !important;
   border-color: #27272a !important;
-  box-shadow: inset 0 2px 14px rgba(0, 0, 0, 0.6) !important;
+  box-shadow: inset 0 2px 14px rgba(0, 0, 0, 0.7) !important;
 }
 
 /* Asientos estándar libres */

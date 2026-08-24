@@ -130,7 +130,7 @@ export const VisualizadorAsientos: React.FC<VisualizadorAsientosProps> = ({
   };
 
   return (
-    <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", background: '#f0f4f8', minHeight: '100vh', padding: '24px' }}>
+    <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", background: 'transparent', minHeight: 'auto', padding: '0 0 24px' }}>
 
       {/* ─── Header Card ─── */}
       <div style={{
@@ -234,16 +234,16 @@ export const VisualizadorAsientos: React.FC<VisualizadorAsientosProps> = ({
           </div>
 
           {/* The "phone" bus shape */}
-          <div style={{
-            margin: '0 auto',
-            maxWidth: 300,
-            background: 'linear-gradient(180deg, #f7faff 0%, #eef3fb 100%)',
-            borderRadius: 52,
-            padding: '28px 22px 24px',
-            border: '3.5px solid #d4e3f7',
-            boxShadow: 'inset 0 2px 12px rgba(0,53,95,0.07)',
-            position: 'relative',
-          }}>
+          <div
+            className="bus-phone-shape"
+            style={{
+              margin: '0 auto',
+              maxWidth: 300,
+              borderRadius: 52,
+              padding: '28px 22px 24px',
+              position: 'relative',
+            }}
+          >
             {/* FRENTE */}
             <div style={{ textAlign: 'right', marginBottom: 10 }}>
               <span style={{ fontSize: 10, fontWeight: 700, color: '#8a9ab0', letterSpacing: 2, textTransform: 'uppercase' }}>FRENTE</span>

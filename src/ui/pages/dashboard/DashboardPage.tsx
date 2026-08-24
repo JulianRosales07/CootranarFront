@@ -62,7 +62,7 @@ export const DashboardPage = () => {
   };
 
   return (
-    <Layout>
+    <Layout isLoading={isLoading}>
       {isLoading ? (
         <DashboardSkeleton loading={true} />
       ) : error ? (

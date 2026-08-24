@@ -9,9 +9,10 @@ import { perfilApi } from '../../../infrastructure/services/perfilApi';
 interface LayoutProps {
   children: ReactNode;
   hideHeader?: boolean;
+  isLoading?: boolean;
 }
 
-export const Layout = ({ children, hideHeader }: LayoutProps) => {
+export const Layout = ({ children, hideHeader, isLoading = false }: LayoutProps) => {
   const { collapsed, isMobile, theme } = useSidebar();
   const { user, setUser } = useAuth();
   const ml = isMobile ? 0 : (collapsed ? 98 : 284);
@@ -43,7 +44,7 @@ export const Layout = ({ children, hideHeader }: LayoutProps) => {
         transition: 'background-color 0.25s ease, color 0.25s ease',
       }}
     >
-      <Sidebar />
+      <Sidebar isLoading={isLoading} />
       {/* Main content area - scrollable */}
       <div
         className="flex-1 flex flex-col overflow-hidden"

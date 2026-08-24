@@ -308,7 +308,7 @@ export const LoginPage = () => {
   /* ── Si está iniciando sesión, mostrar de inmediato el Dashboard con Skeleton animado ── */
   if (loading) {
     return (
-      <Layout>
+      <Layout isLoading={true}>
         <DashboardSkeleton loading={true} />
       </Layout>
     );

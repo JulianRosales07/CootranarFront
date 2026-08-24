@@ -76,7 +76,11 @@ const sections: NavSection[] = [
   },
 ];
 
-export const Sidebar: React.FC = () => {
+interface SidebarProps {
+  isLoading?: boolean;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ isLoading = false }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
@@ -91,6 +95,16 @@ export const Sidebar: React.FC = () => {
 
   const isActive = (path: string) => location.pathname === path;
   const isDark = theme === 'dark';
+
+  const shimmerGradient = isDark
+    ? 'linear-gradient(90deg, #27272a 0%, #3f3f46 50%, #27272a 100%)'
+    : 'linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 50%, #f1f5f9 100%)';
+
+  const boneStyle: React.CSSProperties = {
+    background: shimmerGradient,
+    backgroundSize: '200% 100%',
+    animation: 'boneyardShimmer 1.5s infinite ease-in-out',
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -329,7 +343,63 @@ export const Sidebar: React.FC = () => {
           gap: '2px',
         }}
       >
-        {filteredSections.map((section, sIndex) => (
+        {isLoading ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', padding: collapsed ? '0 2px' : '0 4px' }}>
+            {/* Grupo 1: Análisis (2 items) */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '9.5px 14px', borderRadius: '14px' }}>
+              <div style={{ ...boneStyle, width: '20px', height: '20px', borderRadius: '6px', flexShrink: 0 }} />
+              {!collapsed && <div style={{ ...boneStyle, width: '100px', height: '14px', borderRadius: '4px' }} />}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '9.5px 14px', borderRadius: '14px' }}>
+              <div style={{ ...boneStyle, width: '20px', height: '20px', borderRadius: '6px', flexShrink: 0 }} />
+              {!collapsed && <div style={{ ...boneStyle, width: '125px', height: '14px', borderRadius: '4px' }} />}
+            </div>
+
+            {/* Separador */}
+            <div style={{ height: '1px', backgroundColor: colors.divider, margin: '6px 8px' }} />
+
+            {/* Grupo 2: Taquilla (2 items) */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '9.5px 14px', borderRadius: '14px' }}>
+              <div style={{ ...boneStyle, width: '20px', height: '20px', borderRadius: '6px', flexShrink: 0 }} />
+              {!collapsed && <div style={{ ...boneStyle, width: '135px', height: '14px', borderRadius: '4px' }} />}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '9.5px 14px', borderRadius: '14px' }}>
+              <div style={{ ...boneStyle, width: '20px', height: '20px', borderRadius: '6px', flexShrink: 0 }} />
+              {!collapsed && <div style={{ ...boneStyle, width: '130px', height: '14px', borderRadius: '4px' }} />}
+            </div>
+
+            {/* Separador */}
+            <div style={{ height: '1px', backgroundColor: colors.divider, margin: '6px 8px' }} />
+
+            {/* Grupo 3: Gestión Base (3 items) */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '9.5px 14px', borderRadius: '14px' }}>
+              <div style={{ ...boneStyle, width: '20px', height: '20px', borderRadius: '6px', flexShrink: 0 }} />
+              {!collapsed && <div style={{ ...boneStyle, width: '85px', height: '14px', borderRadius: '4px' }} />}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '9.5px 14px', borderRadius: '14px' }}>
+              <div style={{ ...boneStyle, width: '20px', height: '20px', borderRadius: '6px', flexShrink: 0 }} />
+              {!collapsed && <div style={{ ...boneStyle, width: '90px', height: '14px', borderRadius: '4px' }} />}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '9.5px 14px', borderRadius: '14px' }}>
+              <div style={{ ...boneStyle, width: '20px', height: '20px', borderRadius: '6px', flexShrink: 0 }} />
+              {!collapsed && <div style={{ ...boneStyle, width: '80px', height: '14px', borderRadius: '4px' }} />}
+            </div>
+
+            {/* Separador */}
+            <div style={{ height: '1px', backgroundColor: colors.divider, margin: '6px 8px' }} />
+
+            {/* Grupo 4: Operaciones (2 items) */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '9.5px 14px', borderRadius: '14px' }}>
+              <div style={{ ...boneStyle, width: '20px', height: '20px', borderRadius: '6px', flexShrink: 0 }} />
+              {!collapsed && <div style={{ ...boneStyle, width: '105px', height: '14px', borderRadius: '4px' }} />}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '9.5px 14px', borderRadius: '14px' }}>
+              <div style={{ ...boneStyle, width: '20px', height: '20px', borderRadius: '6px', flexShrink: 0 }} />
+              {!collapsed && <div style={{ ...boneStyle, width: '120px', height: '14px', borderRadius: '4px' }} />}
+            </div>
+          </div>
+        ) : (
+          filteredSections.map((section, sIndex) => (
           <div key={section.title || sIndex}>
             {sIndex > 0 && (
               <div
@@ -458,7 +528,7 @@ export const Sidebar: React.FC = () => {
               })}
             </div>
           </div>
-        ))}
+        )))}
       </nav>
 
       {/* ── 4. Theme Switcher (Light / Dark pill toggle) ── */}
@@ -599,7 +669,30 @@ export const Sidebar: React.FC = () => {
           position: 'relative',
         }}
       >
-        {!collapsed ? (
+        {isLoading ? (
+          !collapsed ? (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '6px 8px',
+                borderRadius: '14px',
+              }}
+            >
+              <div style={{ ...boneStyle, width: '36px', height: '36px', borderRadius: '50%', flexShrink: 0 }} />
+              <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ ...boneStyle, width: '75px', height: '13px', borderRadius: '3px' }} />
+                <div style={{ ...boneStyle, width: '60px', height: '10px', borderRadius: '3px' }} />
+              </div>
+              <div style={{ ...boneStyle, width: '16px', height: '16px', borderRadius: '4px' }} />
+            </div>
+          ) : (
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <div style={{ ...boneStyle, width: '40px', height: '40px', borderRadius: '50%' }} />
+            </div>
+          )
+        ) : !collapsed ? (
           <div
             style={{
               display: 'flex',

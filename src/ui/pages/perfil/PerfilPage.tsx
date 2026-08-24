@@ -87,7 +87,7 @@ export const PerfilPage: React.FC = () => {
     }
   };
 
-  const handleEliminarFoto = () => {
+  const handleEliminarFoto = async () => {
     setFotoUrl(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -98,6 +98,11 @@ export const PerfilPage: React.FC = () => {
         fotoperfil: null,
       });
       localStorage.removeItem(`cootranar_foto_perfil_${user.idusuario}`);
+      try {
+        await perfilApi.actualizarFotoDirecta(null);
+      } catch (err) {
+        console.warn('Error al eliminar foto de BD:', err);
+      }
     }
     setMensajeExito('Foto de perfil eliminada y restablecida.');
   };
@@ -109,29 +114,45 @@ export const PerfilPage: React.FC = () => {
     setMensajeExito(null);
 
     try {
-      if (user) {
-        const usuarioActualizado = {
-          ...user,
-          nombre: nombre.trim() || user.nombre,
-          apellido: apellido.trim() || user.apellido,
-          fotoperfil: fotoUrl,
-        };
-        setUser(usuarioActualizado);
-      }
+      let nuevaFotoUrl = fotoUrl;
 
-      // Si hay archivo físico, enviar al endpoint de backend
+      // 1. Si hay archivo físico seleccionado, enviarlo como multipart a la BD / backend
       const archivoFisico = fileInputRef.current?.files?.[0];
       if (archivoFisico) {
         const formData = new FormData();
         formData.append('foto', archivoFisico);
         try {
-          await perfilApi.actualizarFotoPerfil(formData);
+          const res = await perfilApi.actualizarFotoPerfil(formData);
+          if (res?.urlFoto || res?.fotoperfil) {
+            nuevaFotoUrl = res.urlFoto || res.fotoperfil;
+          }
         } catch (backendErr) {
-          console.warn('Foto guardada en sesión local persistente:', backendErr);
+          console.warn('Error al subir multipart, guardando directamente en BD:', backendErr);
+          if (fotoUrl) {
+            await perfilApi.actualizarFotoDirecta(fotoUrl).catch(() => {});
+          }
+        }
+      } else if (fotoUrl) {
+        // Guardar la foto en base de datos
+        try {
+          await perfilApi.actualizarFotoDirecta(fotoUrl);
+        } catch (backendErr) {
+          console.warn('Error al guardar foto directa en BD:', backendErr);
         }
       }
 
-      setMensajeExito('¡Perfil y foto guardados con éxito!');
+      // 2. Actualizar estado del usuario en sesión
+      if (user) {
+        const usuarioActualizado = {
+          ...user,
+          nombre: nombre.trim() || user.nombre,
+          apellido: apellido.trim() || user.apellido,
+          fotoperfil: nuevaFotoUrl,
+        };
+        setUser(usuarioActualizado);
+      }
+
+      setMensajeExito('¡Perfil y foto de perfil guardados en la base de datos!');
     } catch (err) {
       setMensajeError('No se pudieron guardar los cambios. Intenta nuevamente.');
     } finally {

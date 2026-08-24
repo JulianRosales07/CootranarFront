@@ -92,25 +92,70 @@ const KEYFRAMES = `
       padding: 0 !important;
       justify-content: center !important;
       min-height: 100vh !important;
+      width: 100% !important;
+      max-width: 100vw !important;
+      overflow-x: hidden !important;
     }
     .cootranar-branding {
       display: flex !important;
-      padding: 2rem 1.5rem !important;
+      padding: 2.5rem 1.25rem !important;
       flex: 1 !important;
       justify-content: center !important;
+      width: 100% !important;
+      max-width: 100vw !important;
+      box-sizing: border-box !important;
     }
     .cootranar-branding.hidden {
       display: none !important;
     }
+    .cootranar-logo-row {
+      margin-bottom: 1.5rem !important;
+      gap: 0.75rem !important;
+      flex-wrap: wrap !important;
+      justify-content: center !important;
+    }
+    .cootranar-logo-icon {
+      width: 52px !important;
+      height: 52px !important;
+      border-radius: 13px !important;
+    }
+    .cootranar-logo-letter {
+      font-size: 1.7rem !important;
+    }
+    .cootranar-logo-name {
+      font-size: clamp(1.7rem, 6.5vw, 2.3rem) !important;
+      letter-spacing: 0.02em !important;
+    }
+    .cootranar-tagline {
+      font-size: clamp(1.2rem, 5vw, 1.45rem) !important;
+      margin-bottom: 0.75rem !important;
+      padding: 0 0.5rem !important;
+    }
+    .cootranar-tagline-sub {
+      font-size: clamp(0.85rem, 3.5vw, 0.95rem) !important;
+      margin-bottom: 1.5rem !important;
+      padding: 0 0.75rem !important;
+      line-height: 1.5 !important;
+    }
+    .cootranar-features {
+      margin-bottom: 1.5rem !important;
+      gap: 0.75rem !important;
+      padding: 0 0.5rem !important;
+    }
     .cootranar-cta-button {
       display: inline-flex !important;
+      padding: 0.95rem 2.2rem !important;
+      font-size: 1.05rem !important;
+      min-width: 200px !important;
+      max-width: 85vw !important;
     }
     .cootranar-back-button {
       display: flex !important;
     }
     .cootranar-form-panel {
-      padding: 1rem !important;
+      padding: 1rem 0.85rem !important;
       width: 100% !important;
+      max-width: 100vw !important;
       flex: 1 !important;
       box-sizing: border-box !important;
     }
@@ -122,12 +167,12 @@ const KEYFRAMES = `
       animation: cui-slideInUp .5s ease-out forwards !important;
     }
     .cootranar-card {
-      padding: 2rem 1.25rem 1.5rem !important;
+      padding: 1.75rem 1.15rem 1.5rem !important;
       border-radius: 20px !important;
-      max-width: 100% !important;
+      max-width: 440px !important;
       width: 100% !important;
       box-sizing: border-box !important;
-      margin: 0 !important;
+      margin: 0 auto !important;
     }
   }
 `;
@@ -699,21 +744,21 @@ export const LoginPage = () => {
         <div style={S.branding} className={`cootranar-branding ${showForm ? 'hidden' : ''}`}>
 
           {/* Logo */}
-          <div style={S.logoRow}>
-            <div style={S.logoIcon}>
-              <span style={S.logoLetter}>C</span>
+          <div style={S.logoRow} className="cootranar-logo-row">
+            <div style={S.logoIcon} className="cootranar-logo-icon">
+              <span style={S.logoLetter} className="cootranar-logo-letter">C</span>
             </div>
-            <span style={S.logoName}>COOTRANAR</span>
+            <span style={S.logoName} className="cootranar-logo-name">COOTRANAR</span>
           </div>
 
           {/* Tagline */}
-          <p style={S.tagline}>Viaja con seguridad por Nariño</p>
-          <p style={S.taglineSub}>
+          <p style={S.tagline} className="cootranar-tagline">Viaja con seguridad por Nariño</p>
+          <p style={S.taglineSub} className="cootranar-tagline-sub">
             Conectamos los paisajes más hermosos del sur de Colombia con la comodidad que mereces.
           </p>
 
           {/* Features */}
-          <div style={S.features}>
+          <div style={S.features} className="cootranar-features">
             {features.map((f) => (
               <div key={f} style={S.featureItem}>
                 <div style={S.featureDot}><CheckIcon /></div>

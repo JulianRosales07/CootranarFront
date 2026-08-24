@@ -322,22 +322,24 @@ export const Header = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: isMobile ? '16px 14px 4px 14px' : '24px 32px 4px 32px',
+        padding: isMobile ? '14px 12px 4px 12px' : '24px 32px 4px 32px',
         flexShrink: 0,
-        gap: '12px',
+        gap: isMobile ? '8px' : '12px',
         position: 'relative',
+        width: '100%',
+        boxSizing: 'border-box',
       }}
     >
       {/* ── Left: Menu Button (Mobile) + Title and Breadcrumbs ─────────────────── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '12px', flex: '1 1 auto', minWidth: 0 }}>
         {isMobile && (
           <button
             onClick={toggleMobile}
             title="Abrir menú"
             style={{
-              width: '38px',
-              height: '38px',
-              borderRadius: '12px',
+              width: '34px',
+              height: '34px',
+              borderRadius: '10px',
               backgroundColor: isDark ? '#18181b' : '#ffffff',
               border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #e2e8f0',
               display: 'flex',
@@ -349,20 +351,20 @@ export const Header = () => {
               flexShrink: 0,
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
               menu
             </span>
           </button>
         )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0, flex: 1, overflow: 'hidden' }}>
           <h1
             style={{
-              fontSize: isMobile ? '18px' : '22px',
+              fontSize: isMobile ? 'clamp(14px, 4vw, 18px)' : '22px',
               fontWeight: 800,
               color: isDark ? '#f8fafc' : '#0f172a',
               margin: 0,
-              lineHeight: 1.1,
+              lineHeight: 1.2,
               letterSpacing: '-0.02em',
               fontFamily: "'Plus Jakarta Sans', sans-serif",
               transition: 'color 0.2s ease',
@@ -370,6 +372,7 @@ export const Header = () => {
               overflow: 'hidden',
               textOverflow: 'ellipsis',
             }}
+            title={title}
           >
             {title}
           </h1>
@@ -390,7 +393,7 @@ export const Header = () => {
       </div>
 
       {/* ── Right: Actions ───────────────────── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', position: 'relative' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '6px' : '10px', position: 'relative', flexShrink: 0 }}>
         
         {/* Contenedor Botón y Menú de Notificaciones */}
         <div ref={notifRef} style={{ position: 'relative' }}>
@@ -398,12 +401,12 @@ export const Header = () => {
             onClick={() => setMenuNotificacionesAbierto((v) => !v)}
             title="Ver notificaciones del sistema"
             style={{
-              width: '38px',
-              height: '38px',
+              width: isMobile ? '34px' : '38px',
+              height: isMobile ? '34px' : '38px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              borderRadius: '12px',
+              borderRadius: isMobile ? '10px' : '12px',
               border: isDark ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid rgba(0, 0, 0, 0.06)',
               background: menuNotificacionesAbierto ? (isDark ? '#27272a' : '#f1f5f9') : (isDark ? '#18181b' : 'white'),
               cursor: 'pointer',
@@ -411,6 +414,7 @@ export const Header = () => {
               position: 'relative',
               boxShadow: isDark ? '0 2px 8px rgba(0,0,0,0.4)' : '0 2px 6px rgba(0,0,0,0.03)',
               transition: 'all 0.15s ease',
+              flexShrink: 0,
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.background = isDark ? '#27272a' : '#ffffff';
@@ -451,7 +455,8 @@ export const Header = () => {
                 position: 'absolute',
                 top: '46px',
                 right: 0,
-                width: isMobile ? '290px' : '340px',
+                width: isMobile ? 'min(300px, calc(100vw - 24px))' : '340px',
+                maxWidth: 'calc(100vw - 24px)',
                 backgroundColor: isDark ? '#18181b' : '#ffffff',
                 border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #e2e8f0',
                 borderRadius: '16px',
@@ -648,18 +653,19 @@ export const Header = () => {
           onClick={() => navigate(ROUTES.PERFIL)}
           title="Ir a Configuración y Perfil"
           style={{
-            width: '38px',
-            height: '38px',
+            width: isMobile ? '34px' : '38px',
+            height: isMobile ? '34px' : '38px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            borderRadius: '12px',
+            borderRadius: isMobile ? '10px' : '12px',
             border: isDark ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid rgba(0, 0, 0, 0.06)',
             background: isDark ? '#18181b' : 'white',
             cursor: 'pointer',
             color: isDark ? '#cbd5e1' : '#64748b',
             boxShadow: isDark ? '0 2px 8px rgba(0,0,0,0.4)' : '0 2px 6px rgba(0,0,0,0.03)',
             transition: 'all 0.15s ease',
+            flexShrink: 0,
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.background = isDark ? '#27272a' : '#ffffff';
@@ -672,7 +678,7 @@ export const Header = () => {
             e.currentTarget.style.color = isDark ? '#cbd5e1' : '#64748b';
           }}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: isMobile ? '18px' : '20px' }}>
             settings
           </span>
         </button>
@@ -683,8 +689,8 @@ export const Header = () => {
             onClick={() => navigate(ROUTES.PERFIL)}
             title="Mi Perfil"
             style={{
-              width: '38px',
-              height: '38px',
+              width: '34px',
+              height: '34px',
               borderRadius: '50%',
               backgroundColor: '#3b82f6',
               color: 'white',
@@ -692,7 +698,7 @@ export const Header = () => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '13px',
+              fontSize: '12px',
               fontWeight: 700,
               cursor: 'pointer',
               overflow: 'hidden',

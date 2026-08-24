@@ -1007,19 +1007,19 @@ export default function ModalEditarVehiculo({ vehiculo, onCerrar, onActualizado 
         </div>
 
         {/* Modal Footer */}
-        <div className="px-6 py-4 bg-slate-50 border-t border-gray-150 flex items-center justify-between gap-4">
+        <div className="px-4 sm:px-6 py-3 sm:py-4 bg-slate-50 border-t border-gray-150 flex flex-wrap items-center justify-between gap-2 sm:gap-4">
           <button
             onClick={onCerrar}
-            className="px-5 py-2.5 border border-gray-250 bg-white hover:bg-gray-50 text-gray-600 rounded-xl text-xs font-bold transition-all cursor-pointer"
+            className="px-3.5 sm:px-5 py-2 sm:py-2.5 border border-gray-250 bg-white hover:bg-gray-50 text-gray-600 rounded-xl text-xs font-bold transition-all cursor-pointer"
           >
-            Cerrar sin guardar
+            Cerrar
           </button>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
             {pasoActual > 0 && (
               <button
                 onClick={() => setPasoActual(pasoActual - 1)}
-                className="px-4 py-2.5 border border-gray-200 bg-white hover:bg-gray-50 text-gray-600 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+                className="px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-200 bg-white hover:bg-gray-50 text-gray-600 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
               >
                 <span className="material-symbols-outlined text-sm">arrow_back</span>
                 <span>Anterior</span>
@@ -1029,7 +1029,7 @@ export default function ModalEditarVehiculo({ vehiculo, onCerrar, onActualizado 
             {pasoActual < PASOS.length - 1 ? (
               <button
                 onClick={() => setPasoActual(pasoActual + 1)}
-                className="px-5 py-2.5 bg-[#0D3B8E] hover:bg-[#0D3B8E]/95 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+                className="px-4 sm:px-5 py-2 sm:py-2.5 bg-[#0D3B8E] hover:bg-[#0D3B8E]/95 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
               >
                 <span>Siguiente</span>
                 <span className="material-symbols-outlined text-sm">arrow_forward</span>
@@ -1038,7 +1038,7 @@ export default function ModalEditarVehiculo({ vehiculo, onCerrar, onActualizado 
               <button
                 onClick={handleSubmit}
                 disabled={guardando}
-                className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-extrabold uppercase tracking-widest transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                className="px-4 sm:px-6 py-2 sm:py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-extrabold uppercase tracking-widest transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
                 style={{
                   boxShadow: '0 4px 12px rgba(22, 163, 74, 0.2)'
                 }}
@@ -1051,7 +1051,7 @@ export default function ModalEditarVehiculo({ vehiculo, onCerrar, onActualizado 
                 ) : (
                   <>
                     <span className="material-symbols-outlined text-sm font-black">save</span>
-                    <span>Guardar Cambios</span>
+                    <span>Guardar</span>
                   </>
                 )}
               </button>

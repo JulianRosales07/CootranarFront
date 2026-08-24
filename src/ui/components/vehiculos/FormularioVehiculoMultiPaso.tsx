@@ -971,7 +971,7 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
                 <span className="material-symbols-outlined" style={{ color: '#3b82f6', fontSize: '20px' }}>person_add</span>
                 <p style={{ margin: 0, fontSize: '13px', color: '#1e3a8a', fontWeight: 600 }}>No encontrado. Crear propietario: {nuevoProp.documento}</p>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '16px', marginBottom: '16px' }}>
                 <FLD>
                   <label style={LB}>Nombre <span style={REQ}>*</span></label>
                   <input type="text" style={IS} placeholder="Ej: Juan" value={nuevoProp.nombre} onChange={(e) => setNuevoProp(p => ({ ...p, nombre: e.target.value }))} onFocus={onFocus} onBlur={onBlur} />
@@ -981,7 +981,7 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
                   <input type="text" style={IS} placeholder="Ej: Pérez" value={nuevoProp.apellido} onChange={(e) => setNuevoProp(p => ({ ...p, apellido: e.target.value }))} onFocus={onFocus} onBlur={onBlur} />
                 </FLD>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '16px', marginBottom: '16px' }}>
                 <FLD>
                   <label style={LB}>Teléfono <span style={REQ}>*</span></label>
                   <input type="text" style={IS} placeholder="Ej: 3001234567" value={nuevoProp.telefono} onChange={(e) => setNuevoProp(p => ({ ...p, telefono: e.target.value }))} onFocus={onFocus} onBlur={onBlur} />
@@ -1014,7 +1014,7 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <FLD>
         <label style={LB}>Tipo de vehículo <span style={REQ}>*</span></label>
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }}>
           {(['BUS', 'FURGON'] as const).map(tipo => (
             <button
               key={tipo}
@@ -1022,7 +1022,7 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
               disabled={modoEdicion}
               onClick={() => setTipoVehiculo(tipo)}
               style={{
-                flex: 1, padding: '12px', borderRadius: '8px', fontSize: '13px', fontWeight: 700,
+                padding: '12px', borderRadius: '8px', fontSize: '13px', fontWeight: 700,
                 cursor: modoEdicion ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
                 border: tipoVehiculo === tipo ? '2px solid #0D3B8E' : '1.5px solid #e2e8f0',
                 background: tipoVehiculo === tipo ? '#eff6ff' : 'white',
@@ -1046,7 +1046,7 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
       </FLD>
 
       {tipoVehiculo === 'BUS' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
           <FLD>
             <label style={LB}>Tipo de Servicio <span style={REQ}>*</span></label>
             <select style={IS} value={vehiculo.idtiposervicio} onChange={(e) => setVehiculo(v => ({ ...v, idtiposervicio: e.target.value }))} onFocus={onFocus} onBlur={onBlur}>
@@ -1063,7 +1063,7 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
           </FLD>
         </div>
       )}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px' }}>
         <FLD>
           <label style={LB}>Placa <span style={REQ}>*</span></label>
           <input 
@@ -1125,7 +1125,7 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
           )}
         </FLD>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '16px' }}>
         <FLD>
           <label style={LB}>Marca</label>
           <input type="text" style={IS} value={vehiculo.marca} onChange={(e) => setVehiculo(v => ({ ...v, marca: e.target.value }))} placeholder="Ej: Mercedes Benz" onFocus={onFocus} onBlur={onBlur} />
@@ -1143,7 +1143,7 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
           </>
         )}
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '16px' }}>
         <FLD>
           <label style={LB}>Año</label>
           <input type="number" style={IS} value={vehiculo.anio} onChange={(e) => setVehiculo(v => ({ ...v, anio: Number(e.target.value) }))} placeholder="2024" onFocus={onFocus} onBlur={onBlur} />
@@ -1192,7 +1192,7 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
             <span className="material-symbols-outlined" style={{ color: '#0D3B8E', fontSize: '20px' }}>description</span>
             {tipo.replace('_', ' ')}
           </h4>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', marginBottom: '16px' }}>
             <FLD>
               <label style={LB}>Número documento</label>
               <input type="text" style={IS} value={documentos[tipo].numerodocumento} onChange={(e) => setDocumentos((d: any) => ({ ...d, [tipo]: { ...d[tipo], numerodocumento: e.target.value } }))} placeholder="Ej: 123456789" onFocus={onFocus} onBlur={onBlur} />
@@ -1235,7 +1235,7 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
               </span>
             </div>
           )}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', marginBottom: '16px' }}>
             <FLD>
               <label style={LB}>Aseguradora <span style={REQ}>*</span></label>
               <select style={IS} value={polizas[tipo].idaseguradora} onChange={(e) => setPolizas((p: any) => ({ ...p, [tipo]: { ...p[tipo], idaseguradora: e.target.value } }))} onFocus={onFocus} onBlur={onBlur}>
@@ -1438,7 +1438,7 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
           {/* Form Content */}
           <div style={{ padding: '24px' }}>
             {/* Datos Personales */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '16px', marginBottom: '20px' }}>
               <FLD>
                 <label style={LB}>Nombre <span style={REQ}>*</span></label>
                 <input 
@@ -1481,7 +1481,7 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
             </div>
 
             {/* Licencia de Conducción */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '16px', marginBottom: '20px' }}>
               <FLD>
                 <label style={LB}>Nº Licencia <span style={REQ}>*</span></label>
                 <input 
@@ -1685,25 +1685,28 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
         </div>
 
         {/* Barra de pasos */}
-        <div style={{
-          display: 'flex',
-          gap: '6px',
-          overflowX: 'auto',
-          WebkitOverflowScrolling: 'touch',
-          paddingBottom: '4px',
-          width: '100%',
-        }}>
+        <div 
+          className="no-scrollbar"
+          style={{
+            display: 'flex',
+            gap: '6px',
+            overflowX: 'auto',
+            WebkitOverflowScrolling: 'touch',
+            paddingBottom: '4px',
+            width: '100%',
+          }}
+        >
           {PASOS.map((paso, i) => (
             <button
               key={i}
               type="button"
               onClick={() => setPasoActual(i)}
               style={{
-                flex: '1 1 auto',
-                minWidth: '92px',
+                flex: '0 0 auto',
+                minWidth: '76px',
                 textAlign: 'center',
-                padding: '8px 10px',
-                fontSize: '11.5px',
+                padding: '7px 9px',
+                fontSize: '11px',
                 fontWeight: 600,
                 borderRadius: '8px',
                 border: 'none',
@@ -1724,7 +1727,7 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
               }}
             >
               {i < pasoActual && (
-                <span className="material-symbols-outlined" style={{ fontSize: '14px', marginRight: '4px' }}>check</span>
+                <span className="material-symbols-outlined" style={{ fontSize: '13px', marginRight: '3px' }}>check</span>
               )}
               {paso}
             </button>
@@ -1733,47 +1736,53 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
       </div>
 
       {/* Contenido del paso actual */}
-      <div style={{ padding: '32px', minHeight: '320px', backgroundColor: '#f8fafc' }}>
-        <div ref={contenidoPasoRef} style={{ maxWidth: '900px', margin: '0 auto' }}>
+      <div style={{ padding: 'clamp(14px, 3vw, 32px)', minHeight: '320px', backgroundColor: '#f8fafc' }}>
+        <div ref={contenidoPasoRef} style={{ maxWidth: '900px', margin: '0 auto', width: '100%' }}>
           {pasos[pasoActual]()}
         </div>
       </div>
 
       {/* Footer con botones de navegación */}
       <div style={{
-        padding: '16px 32px',
+        padding: '12px clamp(12px, 3vw, 28px)',
         borderTop: '1px solid #f1f5f9',
         backgroundColor: 'white',
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: '8px',
+        flexWrap: 'wrap',
+        width: '100%',
+        boxSizing: 'border-box',
       }}>
-        <div>
+        <div style={{ display: 'flex', flex: '1 1 auto', minWidth: 'fit-content' }}>
           {pasoActual > 0 && (
             <button
               type="button"
               onClick={anterior}
               style={{
-                padding: '9px 20px', border: '1px solid #e2e8f0',
+                padding: '8px 14px', border: '1px solid #e2e8f0',
                 borderRadius: '8px', background: 'white', color: '#475569',
-                fontSize: '13px', fontWeight: 500, cursor: 'pointer',
-                fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '6px',
+                fontSize: '12.5px', fontWeight: 600, cursor: 'pointer',
+                fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '4px',
                 transition: 'background 0.15s',
               }}
               onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')}
               onMouseLeave={e => (e.currentTarget.style.background = 'white')}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>chevron_left</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>chevron_left</span>
               Anterior
             </button>
           )}
         </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '8px', flex: '1 1 auto', justifyContent: 'flex-end', minWidth: 'fit-content' }}>
           <button
             type="button"
             onClick={onCancelar}
             style={{
-              padding: '9px 20px', border: '1px solid #e2e8f0',
+              padding: '8px 14px', border: '1px solid #e2e8f0',
               borderRadius: '8px', background: 'white', color: '#64748b',
-              fontSize: '13px', fontWeight: 500, cursor: 'pointer',
+              fontSize: '12.5px', fontWeight: 600, cursor: 'pointer',
               fontFamily: 'inherit', transition: 'background 0.15s',
             }}
             onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')}
@@ -1787,15 +1796,15 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
               type="button"
               onClick={siguiente}
               style={{
-                padding: '9px 22px', border: 'none',
+                padding: '8px 16px', border: 'none',
                 borderRadius: '8px', background: '#0D3B8E', color: 'white',
-                fontSize: '13px', fontWeight: 600, cursor: 'pointer',
-                fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '6px',
+                fontSize: '12.5px', fontWeight: 600, cursor: 'pointer',
+                fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '4px',
                 boxShadow: '0 1px 3px rgba(13,59,142,0.3)', transition: 'background 0.15s',
               }}
               onMouseEnter={e => {
                 e.currentTarget.style.background = '#0A2E70';
-                gsap.to(e.currentTarget, { scale: 1.05, duration: 0.2, ease: 'back.out(1.7)' });
+                gsap.to(e.currentTarget, { scale: 1.03, duration: 0.2, ease: 'back.out(1.7)' });
               }}
               onMouseLeave={e => {
                 e.currentTarget.style.background = '#0D3B8E';
@@ -1803,7 +1812,7 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
               }}
             >
               Siguiente
-              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>chevron_right</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>chevron_right</span>
             </button>
           ) : (
             <button
@@ -1812,16 +1821,16 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
               onClick={handleSubmit}
               disabled={guardando}
               style={{
-                padding: '9px 22px', border: 'none',
+                padding: '8px 16px', border: 'none',
                 borderRadius: '8px', background: '#16a34a', color: 'white',
-                fontSize: '13px', fontWeight: 600, cursor: guardando ? 'not-allowed' : 'pointer',
-                fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '6px',
+                fontSize: '12.5px', fontWeight: 600, cursor: guardando ? 'not-allowed' : 'pointer',
+                fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '4px',
                 opacity: guardando ? 0.6 : 1, transition: 'background 0.15s',
               }}
               onMouseEnter={e => { 
                 if (!guardando) {
                   e.currentTarget.style.background = '#15803d';
-                  gsap.to(e.currentTarget, { scale: 1.05, duration: 0.2, ease: 'back.out(1.7)' });
+                  gsap.to(e.currentTarget, { scale: 1.03, duration: 0.2, ease: 'back.out(1.7)' });
                 }
               }}
               onMouseLeave={e => {
@@ -1829,7 +1838,7 @@ export default function FormularioVehiculoMultiPaso({ onVehiculoCreado, onCancel
                 if (!guardando) gsap.to(e.currentTarget, { scale: 1, duration: 0.2 });
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>save</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>save</span>
               {guardando ? 'Guardando...' : modoEdicion ? 'Actualizar Vehículo' : 'Guardar Vehículo'}
             </button>
           )}

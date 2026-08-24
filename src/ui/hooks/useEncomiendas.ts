@@ -4,10 +4,12 @@ import type { EncomiendaDTO, EstadoEncomienda } from '../../application/dto/Enco
 
 export type { EstadoEncomienda };
 
-export const mapearEncomienda = (e: any): EncomiendaDTO => ({
-  id: String(e.idencomienda),
-  referencia: e.referenciaencomienda || '',
-  radicadoRndc:
+export const mapearEncomienda = (e: any): EncomiendaDTO => {
+  const radicado =
+    e.confirmacionrndc ||
+    e.confirmacionRNDC ||
+    e.confirmacion_rndc ||
+    e.confirmacion ||
     e.radicadorndc ||
     e.radicado_rndc ||
     e.radicadoRndc ||
@@ -17,8 +19,15 @@ export const mapearEncomienda = (e: any): EncomiendaDTO => ({
     e.numradicado ||
     e.consecutivorndc ||
     e.rndc ||
-    null,
-  idOficinaOrigen: e.idoficinaorigen ? String(e.idoficinaorigen) : '',
+    null;
+
+  return {
+    id: String(e.idencomienda),
+    referencia: e.referenciaencomienda || '',
+    radicadoRndc: radicado,
+    confirmacionRndc: radicado,
+    sincronizadoRndc: Boolean(e.sincronizadorndc ?? e.sincronizadoRNDC ?? false),
+    idOficinaOrigen: e.idoficinaorigen ? String(e.idoficinaorigen) : '',
   idOficinaDestino: e.idoficinadestino ? String(e.idoficinadestino) : '',
   oficinaOrigenNombre: e.nombreoficinaorigen || '',
   oficinaDestinoNombre: e.nombreoficinadestino || '',

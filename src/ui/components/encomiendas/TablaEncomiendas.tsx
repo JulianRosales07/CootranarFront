@@ -183,6 +183,11 @@ export const TablaEncomiendas: React.FC<TablaEncomiendasProps> = ({
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f0f9ff', color: '#0369a1', border: '1px solid #bae6fd', borderRadius: '4px', padding: '2px 8px', fontFamily: 'monospace', fontSize: '11.5px', fontWeight: 600 }}>
                             {enc.radicadoRndc}
                           </span>
+                        ) : enc.estado !== 'COTIZADA' ? (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#94a3b8', fontSize: '11px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '4px', padding: '2px 6px' }} title="En proceso de sincronización con RNDC MinTransporte">
+                            <span className="material-symbols-outlined" style={{ fontSize: '12px', color: '#f59e0b' }}>hourglass_top</span>
+                            Pendiente RNDC
+                          </span>
                         ) : (
                           <span style={{ color: '#94a3b8', fontSize: '12px' }}>—</span>
                         )}

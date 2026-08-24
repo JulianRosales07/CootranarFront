@@ -10,6 +10,8 @@ export interface EncomiendaDTO {
   id: string;
   referencia: string;
   radicadoRndc?: string | null;
+  confirmacionRndc?: string | null;
+  sincronizadoRndc?: boolean;
   idOficinaOrigen: string;
   idOficinaDestino: string;
   oficinaOrigenNombre: string;

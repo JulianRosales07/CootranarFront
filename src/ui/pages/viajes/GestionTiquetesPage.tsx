@@ -649,17 +649,9 @@ export const GestionTiquetesPage = () => {
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <Layout>
-      {/* Header */}
-      <div style={{ marginBottom: '24px', fontFamily: FONT }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: C.onSurfaceVariant, marginBottom: '4px' }}>
-          <span>Operaciones</span>
-          <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chevron_right</span>
-          <span style={{ color: C.primary, fontWeight: '700' }}>Gestión de Tiquetes</span>
-        </div>
-        <h1 style={{ fontSize: '38px', fontWeight: '800', color: C.primary, margin: 0, letterSpacing: '-0.02em' }}>
-          Gestión de Tiquetes
-        </h1>
-        <p style={{ fontSize: '15px', color: C.onSurfaceVariant, marginTop: '6px', fontWeight: '500' }}>
+      {/* Subtítulo descriptivo */}
+      <div style={{ marginBottom: '16px', fontFamily: FONT }}>
+        <p style={{ fontSize: '13.5px', color: C.onSurfaceVariant, margin: 0, fontWeight: '500' }}>
           Consulta los tiquetes vendidos por viaje y valida las reservas de los pasajeros.
         </p>
       </div>

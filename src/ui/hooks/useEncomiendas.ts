@@ -49,10 +49,10 @@ export const mapearEncomienda = (e: any): EncomiendaDTO => {
     esDomicilio: e.esdomicilio ?? false,
     valorDomicilio: e.valordomicilio != null ? Number(e.valordomicilio) : 0,
     estado: (e.estado || 'COTIZADA') as EstadoEncomienda,
-    fechaRegistro: e.fecharegistro || null,
-    fechaDespacho: e.fechadespacho || null,
-    fechaRecepcionDestino: e.fecharecepciondestino || null,
-    fechaEntrega: e.fechaentrega || null,
+    fechaRegistro: e.fecharegistro || e.fechaRegistro || e.fecha_registro || null,
+    fechaDespacho: e.fechadespacho || e.fechaDespacho || e.fecha_despacho || null,
+    fechaRecepcionDestino: e.fecharecepciondestino || e.fechaRecepcionDestino || e.fecha_recepcion_destino || null,
+    fechaEntrega: e.fechaentrega || e.fechaEntrega || e.fecha_entrega || null,
   };
 };
 

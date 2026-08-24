@@ -456,6 +456,10 @@ export const PerfilPage: React.FC = () => {
                 {/* Sección de Foto de Perfil */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '28px', marginBottom: '32px' }}>
                   <div
+                    onClick={() => {
+                      if (fotoUrl) setModalVisualizarFoto(true);
+                    }}
+                    title={fotoUrl ? 'Haz clic para ampliar la foto' : undefined}
                     style={{
                       width: '96px',
                       height: '96px',
@@ -471,14 +475,49 @@ export const PerfilPage: React.FC = () => {
                       boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
                       border: `3px solid ${colors.bgCard}`,
                       flexShrink: 0,
+                      cursor: fotoUrl ? 'pointer' : 'default',
+                      position: 'relative',
+                      transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (fotoUrl) {
+                        e.currentTarget.style.transform = 'scale(1.05)';
+                        e.currentTarget.style.boxShadow = '0 12px 28px rgba(0, 0, 0, 0.22)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (fotoUrl) {
+                        e.currentTarget.style.transform = 'scale(1)';
+                        e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.12)';
+                      }
                     }}
                   >
                     {fotoUrl ? (
-                      <img
-                        src={fotoUrl}
-                        alt="Perfil"
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
+                      <>
+                        <img
+                          src={fotoUrl}
+                          alt="Perfil"
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                        <div
+                          style={{
+                            position: 'absolute',
+                            inset: 0,
+                            backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            opacity: 0,
+                            transition: 'opacity 0.2s ease',
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
+                          onMouseLeave={(e) => (e.currentTarget.style.opacity = '0')}
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: '26px', color: 'white' }}>
+                            zoom_in
+                          </span>
+                        </div>
+                      </>
                     ) : (
                       nombre.charAt(0).toUpperCase() || 'U'
                     )}

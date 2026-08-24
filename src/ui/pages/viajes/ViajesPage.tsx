@@ -351,71 +351,70 @@ export const ViajesPage = () => {
           </form>
         </section>
 
-        {/* Filtros y Buscador */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-          {/* Botones de estado */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {(['todos', 'activos', 'inactivos'] as const).map((f) => (
-              <button 
-                key={f} 
-                onClick={() => { setFiltro(f); setPaginaActual(1); }}
-                style={{
-                  padding: '6px 16px',
-                  borderRadius: '999px',
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  border: '1px solid',
-                  borderColor: filtro === f ? BLUE : '#e2e8f0',
-                  background: filtro === f ? BLUE : 'white',
-                  color: filtro === f ? 'white' : '#64748b',
-                  cursor: 'pointer',
-                  textTransform: 'capitalize',
-                  fontFamily: 'inherit',
-                  transition: 'all 0.15s',
-                }}>
-                {f.charAt(0).toUpperCase() + f.slice(1)}
-              </button>
-            ))}
-          </div>
-
-          {/* Buscador de viajes */}
-          <div style={{ position: 'relative', width: '320px', maxWidth: '100%' }}>
-            <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', display: 'flex', alignItems: 'center' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#94a3b8' }}>search</span>
-            </span>
-            <input 
-              value={busqueda} 
-              onChange={(e) => setBusqueda(e.target.value)}
+        {/* Filtros */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {(['todos', 'activos', 'inactivos'] as const).map((f) => (
+            <button 
+              key={f} 
+              onClick={() => { setFiltro(f); setPaginaActual(1); }}
               style={{
-                width: '100%',
-                paddingLeft: '38px',
-                paddingRight: '14px',
-                paddingTop: '8px',
-                paddingBottom: '8px',
-                border: '1px solid #e2e8f0',
-                borderRadius: '8px',
-                fontSize: '13px',
-                background: 'white',
-                color: '#475569',
-                outline: 'none',
+                padding: '6px 16px',
+                borderRadius: '999px',
+                fontSize: '11px',
+                fontWeight: 700,
+                border: '1px solid',
+                borderColor: filtro === f ? BLUE : '#e2e8f0',
+                background: filtro === f ? BLUE : 'white',
+                color: filtro === f ? 'white' : '#64748b',
+                cursor: 'pointer',
+                textTransform: 'capitalize',
                 fontFamily: 'inherit',
-                boxSizing: 'border-box'
-              }}
-              placeholder="Buscar por ruta, móvil o conductor..." 
-              type="text" 
-            />
-          </div>
+                transition: 'all 0.15s',
+              }}>
+              {f.charAt(0).toUpperCase() + f.slice(1)}
+            </button>
+          ))}
         </div>
 
         {/* Tabla de viajes */}
         <section style={{ background: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', border: '1px solid #f1f5f9', overflow: 'hidden' }}>
-          <div style={{ padding: '20px 24px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ fontWeight: 700, color: '#1e293b', fontSize: '16px', margin: 0 }}>Viajes Programados</h3>
-            {paginacion && (
-              <span style={{ fontSize: '11px', color: '#94a3b8' }}>
-                Total: <span style={{ fontWeight: 700, color: '#475569' }}>{paginacion.total}</span> viajes
+          <div style={{ padding: '16px 24px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+              <h3 style={{ fontWeight: 700, color: '#1e293b', fontSize: '16px', margin: 0 }}>Viajes Programados</h3>
+              {paginacion && (
+                <span style={{ fontSize: '12px', color: '#94a3b8' }}>
+                  Total: <span style={{ fontWeight: 700, color: '#475569' }}>{paginacion.total}</span> viajes
+                </span>
+              )}
+            </div>
+
+            {/* Buscador de viaje */}
+            <div style={{ position: 'relative', width: '280px', maxWidth: '100%' }}>
+              <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', display: 'flex', alignItems: 'center' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#94a3b8' }}>search</span>
               </span>
-            )}
+              <input 
+                value={busqueda} 
+                onChange={(e) => setBusqueda(e.target.value)}
+                style={{
+                  width: '100%',
+                  paddingLeft: '38px',
+                  paddingRight: '14px',
+                  paddingTop: '8px',
+                  paddingBottom: '8px',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  fontSize: '13px',
+                  background: '#f8fafc',
+                  color: '#475569',
+                  outline: 'none',
+                  fontFamily: 'inherit',
+                  boxSizing: 'border-box'
+                }}
+                placeholder="Buscar viaje..." 
+                type="text" 
+              />
+            </div>
           </div>
 
           {isLoading ? (

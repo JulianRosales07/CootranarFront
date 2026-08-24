@@ -85,11 +85,8 @@ export const ResumenVenta: React.FC<ResumenVentaProps> = ({
   const iva = 0;
 
   const s: Record<string, React.CSSProperties> = {
-    page: { fontFamily: "'Inter','Segoe UI',sans-serif", background: '#f3f4f6', minHeight: '100vh', padding: '0 0 40px' },
-    topBar: { padding: '12px 24px', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#6b7280', background: '#fff', borderBottom: '1px solid #e5e7eb' },
-    sep: { color: '#d1d5db' },
-    pageTitle: { padding: '16px 24px 0', fontSize: 20, fontWeight: 800, color: '#111827' },
-    body: { display: 'grid', gridTemplateColumns: '1fr 280px', gap: 16, padding: '16px 24px', alignItems: 'start', maxWidth: 1000, margin: '0 auto' },
+    page: { fontFamily: "'Inter','Segoe UI',sans-serif", background: 'transparent', minHeight: 'auto', padding: '0 0 24px' },
+    body: { display: 'grid', gridTemplateColumns: '1fr 280px', gap: 16, padding: '8px 0', alignItems: 'start', maxWidth: 1000, margin: '0 auto' },
     card: { background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb', overflow: 'hidden', marginBottom: 12 },
     cardHead: { padding: '12px 18px', borderBottom: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
     cardBody: { padding: '16px 18px' },
@@ -101,23 +98,6 @@ export const ResumenVenta: React.FC<ResumenVentaProps> = ({
 
   return (
     <div style={s.page}>
-      {/* Breadcrumb */}
-      <div style={s.topBar}>
-        <span>Ventas</span><span style={s.sep}> › </span>
-        <span>Emisión de Tiquete</span><span style={s.sep}> › </span>
-        <span style={{ color: '#111827', fontWeight: 700 }}>Resumen de Pago</span>
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 12, fontWeight: 600, color: '#16a34a', background: '#dcfce7', border: '1px solid #bbf7d0', borderRadius: 20, padding: '3px 12px' }}>
-            COOTRANAR Operativo
-          </span>
-          <button type="button" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', display: 'flex' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>print</span>
-          </button>
-        </div>
-      </div>
-
-      <div style={s.pageTitle}>Resumen de Pago</div>
-
       <div style={s.body}>
         {/* ═══ LEFT ═══ */}
         <div>

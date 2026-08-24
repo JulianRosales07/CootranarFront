@@ -250,10 +250,10 @@ export const FormularioPasajeros: React.FC<FormularioPasajerosProps> = ({
   const progPct = asientos.length > 0 ? (completados / asientos.length) * 100 : 0;
 
   return (
-    <div style={{ fontFamily: "'Inter', 'Segoe UI', sans-serif", background: '#f3f4f6', minHeight: '100vh' }}>
+    <div style={{ fontFamily: "'Inter', 'Segoe UI', sans-serif", background: 'transparent', minHeight: 'auto' }}>
 
       {/* ── Two-column layout ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20, padding: 20, alignItems: 'start', maxWidth: 960, margin: '0 auto' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20, padding: '8px 0 24px', alignItems: 'start', maxWidth: 960, margin: '0 auto' }}>
 
         {/* ══════════ LEFT: Stepper + Accordion-style forms ══════════ */}
         <div>

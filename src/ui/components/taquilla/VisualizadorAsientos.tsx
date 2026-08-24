@@ -224,10 +224,10 @@ export const VisualizadorAsientos: React.FC<VisualizadorAsientosProps> = ({
               )}
 
               {/* Mini-legend */}
-              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
                 <LegendDot color="#ffffff" border="#cbd5e1" label="Disponible" />
-                <LegendDot color="#22c55e" border="#16a34a" label="Seleccionado" textColor="#fff" />
-                <LegendDot color="#0e3a8c" border="#0e3a8c" label="Vendido" textColor="#fff" />
+                <LegendDot color="#22c55e" border="#16a34a" label="Seleccionado" />
+                <LegendDot color="#0e3a8c" border="#0e3a8c" label="Vendido" />
                 <LegendDot color="#facc15" border="#eab308" label="Reservado" />
               </div>
             </div>
@@ -558,11 +558,11 @@ export const VisualizadorAsientos: React.FC<VisualizadorAsientosProps> = ({
 };
 
 // Helper component
-function LegendDot({ color, border, label, textColor = '#0b1c30' }: { color: string; border: string; label: string; textColor?: string }) {
+function LegendDot({ color, border, label }: { color: string; border: string; label: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-      <div style={{ width: 14, height: 14, borderRadius: 4, background: color, border: `2px solid ${border}` }} />
-      <span style={{ fontSize: 11, fontWeight: 600, color: textColor }}>{label}</span>
+      <div style={{ width: 14, height: 14, borderRadius: 4, background: color, border: `2px solid ${border}`, flexShrink: 0 }} />
+      <span style={{ fontSize: 11, fontWeight: 600 }}>{label}</span>
     </div>
   );
 }

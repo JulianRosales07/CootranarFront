@@ -149,71 +149,135 @@ html.dark h6 {
   color: #f8fafc !important;
 }
 
-/* Textos oscuros inline convertidos a claros */
+/* ── 1. Textos Oscuros Convertidos a Claros ── */
 html.dark [style*="color: rgb(15, 23, 42)"],
 html.dark [style*="color: rgb(30, 41, 59)"],
 html.dark [style*="color: rgb(11, 36, 84)"],
-html.dark [style*="color: rgb(51, 65, 85)"],
-html.dark [style*="color: rgb(71, 85, 105)"],
+html.dark [style*="color: rgb(11, 28, 48)"],
+html.dark [style*="color: rgb(17, 24, 39)"],
+html.dark [style*="color: rgb(31, 41, 55)"],
+html.dark [style*="color: rgb(0, 53, 95)"],
 html.dark [style*="color: #0f172a"],
 html.dark [style*="color: #1e293b"],
 html.dark [style*="color: #0b2454"],
-html.dark [style*="color: #334155"],
-html.dark [style*="color: #475569"],
+html.dark [style*="color: #0b1c30"],
+html.dark [style*="color: #111827"],
+html.dark [style*="color: #1f2937"],
+html.dark [style*="color: #00355f"],
 html.dark [style*="color: '#0f172a'"],
 html.dark [style*="color: '#1e293b'"],
 html.dark [style*="color: '#0b2454'"],
-html.dark [style*="color: '#334155'"],
-html.dark [style*="color: '#475569'"],
+html.dark [style*="color: '#0b1c30'"],
+html.dark [style*="color: '#111827'"],
+html.dark [style*="color: '#1f2937'"],
+html.dark [style*="color: '#00355f'"],
 html.dark .text-slate-900,
 html.dark .text-slate-800,
-html.dark .text-slate-700,
 html.dark .text-gray-900,
 html.dark .text-gray-800 {
   color: #f8fafc !important;
 }
 
-/* Textos secundarios / muted */
+/* ── 2. Textos Medios / Subtítulos ── */
+html.dark [style*="color: rgb(51, 65, 85)"],
+html.dark [style*="color: rgb(71, 85, 105)"],
+html.dark [style*="color: rgb(55, 65, 81)"],
+html.dark [style*="color: rgb(66, 71, 79)"],
+html.dark [style*="color: rgb(69, 70, 77)"],
+html.dark [style*="color: rgb(75, 85, 99)"],
+html.dark [style*="color: #334155"],
+html.dark [style*="color: #475569"],
+html.dark [style*="color: #374151"],
+html.dark [style*="color: #42474f"],
+html.dark [style*="color: #45464d"],
+html.dark [style*="color: #4b5563"],
+html.dark [style*="color: '#334155'"],
+html.dark [style*="color: '#475569'"],
+html.dark [style*="color: '#374151'"],
+html.dark [style*="color: '#42474f'"],
+html.dark [style*="color: '#45464d'"],
+html.dark [style*="color: '#4b5563'"],
+html.dark .text-slate-700,
+html.dark .text-gray-700 {
+  color: #e2e8f0 !important;
+}
+
+/* ── 3. Textos Secundarios / Muted ── */
 html.dark [style*="color: rgb(100, 116, 139)"],
 html.dark [style*="color: rgb(148, 163, 184)"],
+html.dark [style*="color: rgb(107, 114, 128)"],
+html.dark [style*="color: rgb(114, 119, 128)"],
+html.dark [style*="color: rgb(95, 112, 128)"],
+html.dark [style*="color: rgb(138, 154, 176)"],
+html.dark [style*="color: rgb(156, 163, 175)"],
 html.dark [style*="color: #64748b"],
 html.dark [style*="color: #94a3b8"],
+html.dark [style*="color: #6b7280"],
+html.dark [style*="color: #727780"],
+html.dark [style*="color: #5f7080"],
+html.dark [style*="color: #8a9ab0"],
+html.dark [style*="color: #9ca3af"],
 html.dark [style*="color: '#64748b'"],
 html.dark [style*="color: '#94a3b8'"],
+html.dark [style*="color: '#6b7280'"],
+html.dark [style*="color: '#727780'"],
+html.dark [style*="color: '#5f7080'"],
+html.dark [style*="color: '#8a9ab0'"],
+html.dark [style*="color: '#9ca3af'"],
 html.dark .text-slate-600,
 html.dark .text-slate-500,
 html.dark .text-slate-400,
 html.dark .text-gray-600,
-html.dark .text-gray-500 {
+html.dark .text-gray-500,
+html.dark .text-gray-400 {
   color: #94a3b8 !important;
 }
 
-/* Sufijos de KPI y textos azules (ej: COP, UNID, BUSES, enlaces) */
+/* ── 4. Enlaces, Iconos y Acentos Azules ── */
 html.dark [style*="color: rgb(13, 59, 142)"],
+html.dark [style*="color: rgb(0, 88, 190)"],
+html.dark [style*="color: rgb(26, 86, 219)"],
 html.dark [style*="color: #0D3B8E"],
-html.dark [style*="color: '#0D3B8E'"],
 html.dark [style*="color: #0d3b8e"],
-html.dark [style*="color: '#0d3b8e'"] {
+html.dark [style*="color: #0058be"],
+html.dark [style*="color: #1a56db"],
+html.dark [style*="color: '#0D3B8E'"],
+html.dark [style*="color: '#0d3b8e'"],
+html.dark [style*="color: '#0058be'"],
+html.dark [style*="color: '#1a56db'"] {
   color: #60a5fa !important;
 }
 
-/* Tarjetas, Contenedores y Wizards */
+/* Textos de advertencia / ámbar */
+html.dark [style*="color: #78350f"],
+html.dark [style*="color: #92400e"],
+html.dark [style*="color: #713f12"],
+html.dark [style*="color: '#78350f'"],
+html.dark [style*="color: '#92400e'"],
+html.dark [style*="color: '#713f12'"] {
+  color: #fde68a !important;
+}
+
+/* ── 5. Tarjetas, Contenedores y Superficies ── */
 html.dark .bg-white,
 html.dark [style*="background: white"],
 html.dark [style*="background: rgb(255, 255, 255)"],
 html.dark [style*="background: #ffffff"],
+html.dark [style*="background: #fff"],
 html.dark [style*="backgroundColor: 'white'"],
 html.dark [style*="backgroundColor: '#ffffff'"],
+html.dark [style*="backgroundColor: '#fff'"],
 html.dark [style*="backgroundColor: rgb(255, 255, 255)"],
 html.dark [style*="background-color: white"],
 html.dark [style*="background-color: #ffffff"],
+html.dark [style*="background-color: #fff"],
 html.dark [style*="background-color: rgb(255, 255, 255)"] {
   background-color: #121215 !important;
   color: #f8fafc;
   border-color: rgba(255, 255, 255, 0.08) !important;
 }
 
-/* Fondos secundarios, barras, wizard-steps y filtros */
+/* ── 6. Fondos Secundarios y Envolventes ── */
 html.dark .bg-slate-50,
 html.dark .bg-gray-50,
 html.dark .bg-slate-100,
@@ -221,29 +285,55 @@ html.dark .bg-gray-100,
 html.dark [style*="background: rgb(248, 250, 252)"],
 html.dark [style*="background: rgb(241, 245, 249)"],
 html.dark [style*="background: rgb(250, 251, 252)"],
+html.dark [style*="background: rgb(243, 244, 246)"],
+html.dark [style*="background: rgb(248, 249, 255)"],
+html.dark [style*="background: rgb(239, 244, 255)"],
 html.dark [style*="background: #f8fafc"],
 html.dark [style*="background: #f1f5f9"],
 html.dark [style*="background: #fafbfc"],
+html.dark [style*="background: #f3f4f6"],
+html.dark [style*="background: #f8f9ff"],
+html.dark [style*="background: #eff4ff"],
 html.dark [style*="background-color: rgb(248, 250, 252)"],
 html.dark [style*="background-color: rgb(241, 245, 249)"],
 html.dark [style*="background-color: rgb(250, 251, 252)"],
+html.dark [style*="background-color: rgb(243, 244, 246)"],
+html.dark [style*="background-color: rgb(248, 249, 255)"],
+html.dark [style*="background-color: rgb(239, 244, 255)"],
+html.dark [style*="background-color: #f8fafc"],
+html.dark [style*="background-color: #f1f5f9"],
+html.dark [style*="background-color: #fafbfc"],
+html.dark [style*="background-color: #f3f4f6"],
+html.dark [style*="background-color: #f8f9ff"],
+html.dark [style*="background-color: #eff4ff"],
 html.dark [style*="backgroundColor: '#f8fafc'"],
 html.dark [style*="backgroundColor: '#f1f5f9'"],
-html.dark [style*="backgroundColor: '#fafbfc'"] {
+html.dark [style*="backgroundColor: '#fafbfc'"],
+html.dark [style*="backgroundColor: '#f3f4f6'"],
+html.dark [style*="backgroundColor: '#f8f9ff'"],
+html.dark [style*="backgroundColor: '#eff4ff'"] {
   background-color: #18181b !important;
   color: #f8fafc;
   border-color: rgba(255, 255, 255, 0.08) !important;
 }
 
-/* Bordes y divisores */
+/* ── 7. Bordes y Divisores ── */
 html.dark .border-slate-200,
 html.dark .border-slate-100,
 html.dark .border-gray-200,
+html.dark .border-gray-100,
 html.dark [style*="border: 1px solid #e8edf2"],
 html.dark [style*="border: '1px solid #e8edf2'"],
 html.dark [style*="border: 1px solid #e2e8f0"],
 html.dark [style*="border: '1px solid #e2e8f0'"],
 html.dark [style*="border: 1px solid #f1f5f9"],
+html.dark [style*="border: 1px solid #e5e7eb"],
+html.dark [style*="border: 1px solid #d1d5db"],
+html.dark [style*="border: 1px solid #d4e3f7"],
+html.dark [style*="border: 1.5px solid #d4dde8"],
+html.dark [style*="border: 1px solid #d4dde8"],
+html.dark [style*="border: 1px solid #c2c7d1"],
+html.dark [style*="border: 1px solid #cbd5e1"],
 html.dark [style*="border-top"],
 html.dark [style*="borderTop"],
 html.dark [style*="border-bottom"],
@@ -255,41 +345,59 @@ html.dark [style*="borderLeft"] {
   border-color: rgba(255, 255, 255, 0.08) !important;
 }
 
-/* Alertas informativas / Cajas de estado */
+/* ── 8. Alertas Informativas / Chips / Cajas de Estado ── */
 html.dark [style*="rgb(239, 246, 255)"],
 html.dark [style*="background-color: rgb(239, 246, 255)"],
 html.dark [style*="background-color: #eff6ff"],
-html.dark [style*="background: #eff6ff"] {
-  background-color: rgba(30, 58, 138, 0.22) !important;
-  border-color: rgba(59, 130, 246, 0.3) !important;
+html.dark [style*="background: #eff6ff"],
+html.dark [style*="background: rgb(216, 226, 255)"],
+html.dark [style*="background-color: #d8e2ff"],
+html.dark [style*="background: #d8e2ff"] {
+  background-color: rgba(30, 58, 138, 0.25) !important;
+  border-color: rgba(59, 130, 246, 0.35) !important;
   color: #93c5fd !important;
 }
 
 html.dark [style*="rgb(220, 252, 231)"],
 html.dark [style*="background-color: rgb(220, 252, 231)"],
 html.dark [style*="background-color: #dcfce7"],
-html.dark [style*="background: #dcfce7"] {
+html.dark [style*="background: #dcfce7"],
+html.dark [style*="background-color: #f0fdf4"],
+html.dark [style*="background: #f0fdf4"] {
   background-color: rgba(22, 163, 74, 0.2) !important;
-  border-color: rgba(34, 197, 94, 0.3) !important;
+  border-color: rgba(34, 197, 94, 0.35) !important;
   color: #86efac !important;
 }
 
 html.dark [style*="rgb(254, 242, 242)"],
 html.dark [style*="background-color: rgb(254, 242, 242)"],
 html.dark [style*="background-color: #fef2f2"],
-html.dark [style*="background: #fef2f2"] {
+html.dark [style*="background: #fef2f2"],
+html.dark [style*="background-color: #fff1f2"],
+html.dark [style*="background: #fff1f2"] {
   background-color: rgba(220, 38, 38, 0.2) !important;
-  border-color: rgba(239, 68, 68, 0.3) !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
   color: #fca5a5 !important;
 }
 
-/* Inputs, selects y textareas */
+html.dark [style*="rgb(254, 243, 199)"],
+html.dark [style*="background-color: rgb(254, 243, 199)"],
+html.dark [style*="background-color: #fef3c7"],
+html.dark [style*="background: #fef3c7"],
+html.dark [style*="background-color: #fffbeb"],
+html.dark [style*="background: #fffbeb"] {
+  background-color: rgba(217, 119, 6, 0.2) !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+  color: #fde68a !important;
+}
+
+/* ── 9. Inputs, Selects y Textareas ── */
 html.dark input:not([type="checkbox"]):not([type="radio"]),
 html.dark select,
 html.dark textarea {
   background-color: #18181b !important;
   color: #f8fafc !important;
-  border-color: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
 }
 
 html.dark input::placeholder,
@@ -302,21 +410,48 @@ html.dark select option {
   color: #f8fafc !important;
 }
 
-/* Botones secundarios e iconos en tablas/formularios */
+/* ── 10. Botones Secundarios y Blancos ── */
 html.dark button[style*="rgb(248, 250, 252)"],
 html.dark button[style*="rgb(241, 245, 249)"],
 html.dark button[style*="background: #f8fafc"],
 html.dark button[style*="background: #f1f5f9"],
 html.dark button[style*="background: white"],
+html.dark button[style*="background: #ffffff"],
+html.dark button[style*="background: #fff"],
 html.dark button[style*="backgroundColor: 'white'"],
+html.dark button[style*="backgroundColor: '#ffffff'"],
+html.dark button[style*="backgroundColor: '#fff'"],
 html.dark button[style*="background-color: white"],
+html.dark button[style*="background-color: #ffffff"],
+html.dark button[style*="background-color: #fff"],
 html.dark button[style*="background-color: rgb(255, 255, 255)"] {
   background-color: #1e1e24 !important;
-  color: #cbd5e1 !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
-/* Tablas Completas */
+/* ── 11. Carrocería y Asientos en Bus (Visualizador) ── */
+html.dark [style*="linear-gradient(180deg, #f7faff 0%, #eef3fb 100%)"],
+html.dark [style*="linear-gradient(180deg, rgb(247, 250, 255) 0%, rgb(238, 243, 251) 100%)"],
+html.dark [style*="border: 8px solid rgb(241, 245, 249)"],
+html.dark [style*="border: 8px solid #f1f5f9"] {
+  background: #141418 !important;
+  border-color: #27272a !important;
+  box-shadow: inset 0 2px 14px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Asientos estándar libres */
+html.dark button[title*="LIBRE"][style*="background: rgb(255, 255, 255)"],
+html.dark button[title*="LIBRE"][style*="background: #ffffff"],
+html.dark button[title*="LIBRE"][style*="background: #fff"] {
+  background-color: #1e1e26 !important;
+  border-color: #3f3f46 !important;
+}
+html.dark button[title*="LIBRE"] span {
+  color: #f8fafc !important;
+}
+
+/* ── 12. Tablas Completas ── */
 html.dark table {
   background-color: transparent !important;
   color: #f8fafc !important;
@@ -348,14 +483,7 @@ html.dark td {
   color: #f8fafc;
 }
 
-/* Carrocería del Diseñador de Asientos (Paso 3) */
-html.dark [style*="border: 8px solid rgb(241, 245, 249)"],
-html.dark [style*="border: 8px solid #f1f5f9"] {
-  background-color: #121215 !important;
-  border-color: #27272a !important;
-}
-
-/* Modales y Dialogs */
+/* ── 13. Modales y Dialogs ── */
 html.dark .modal-content,
 html.dark [role="dialog"] > div {
   background-color: #121215 !important;

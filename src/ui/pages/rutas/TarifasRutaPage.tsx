@@ -190,12 +190,13 @@ export const TarifasRutaPage = () => {
               <div>
                 <div style={{ fontSize: '18px', fontWeight: 700, color: '#1e293b' }}>{ruta.nombre}</div>
                 <div style={{ display: 'flex', gap: '12px', marginTop: '4px', fontSize: '12px', color: '#94a3b8', flexWrap: 'wrap' }}>
-                <span>{ruta.tiporuta === 'INTERMUNICIPAL' ? 'Intermunicipal' : 'Municipal'}</span>
-                {ruta.via && <span>· {ruta.via}</span>}
-                {(ruta.duracionh || ruta.duracionm) && (
-                  <span>· {ruta.duracionh ? `${ruta.duracionh}h ` : ''}{ruta.duracionm ? `${ruta.duracionm}min` : ''}</span>
-                )}
-                {ruta.distanciakm && <span>· {ruta.distanciakm} km</span>}
+                  <span>{ruta.tiporuta === 'INTERMUNICIPAL' ? 'Intermunicipal' : 'Municipal'}</span>
+                  {ruta.via && <span>· {ruta.via}</span>}
+                  {(ruta.duracionh || ruta.duracionm) && (
+                    <span>· {ruta.duracionh ? `${ruta.duracionh}h ` : ''}{ruta.duracionm ? `${ruta.duracionm}min` : ''}</span>
+                  )}
+                  {ruta.distanciakm && <span>· {ruta.distanciakm} km</span>}
+                </div>
               </div>
             </div>
 

@@ -173,36 +173,23 @@ export const TarifasRutaPage = () => {
 
   return (
     <Layout>
-      {/* Header */}
-      <header style={{ background: 'white', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', height: '64px', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 20 }}>
-        <div>
-          <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#1e293b', margin: 0 }}>
-            Tarifas — {ruta?.nombre || 'Cargando...'}
-          </h2>
-          <div style={{ display: 'flex', alignItems: 'center', fontSize: '12px', color: '#94a3b8', marginTop: '2px', gap: '4px' }}>
-            <span>Inicio</span>
-            <span className="material-symbols-outlined" style={{ fontSize: '10px' }}>chevron_right</span>
-            <span style={{ cursor: 'pointer', color: BLUE }} onClick={() => navigate('/rutas')}>Rutas</span>
-            <span className="material-symbols-outlined" style={{ fontSize: '10px' }}>chevron_right</span>
-            <span style={{ color: BLUE, fontWeight: 600 }}>Tarifas</span>
-          </div>
-        </div>
-        <button
-          onClick={() => navigate('/rutas')}
-          style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', background: '#f1f5f9', border: 'none', borderRadius: '8px', color: '#475569', fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_back</span>
-          Volver
-        </button>
-      </header>
-
-      <div style={{ padding: '32px', maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <div style={{ padding: '0 0 32px', maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
         {/* Info ruta */}
         {ruta && (
           <div style={{ background: 'white', border: '1px solid #f1f5f9', borderRadius: '12px', padding: '20px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
-            <div>
-              <div style={{ fontSize: '18px', fontWeight: 700, color: '#1e293b' }}>{ruta.nombre}</div>
-              <div style={{ display: 'flex', gap: '12px', marginTop: '4px', fontSize: '12px', color: '#94a3b8', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <button
+                onClick={() => navigate('/rutas')}
+                style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', background: '#f1f5f9', border: 'none', borderRadius: '8px', color: '#475569', fontSize: '12.5px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s' }}
+                onMouseEnter={e => e.currentTarget.style.background = '#e2e8f0'}
+                onMouseLeave={e => e.currentTarget.style.background = '#f1f5f9'}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>arrow_back</span>
+                Volver a Rutas
+              </button>
+              <div>
+                <div style={{ fontSize: '18px', fontWeight: 700, color: '#1e293b' }}>{ruta.nombre}</div>
+                <div style={{ display: 'flex', gap: '12px', marginTop: '4px', fontSize: '12px', color: '#94a3b8', flexWrap: 'wrap' }}>
                 <span>{ruta.tiporuta === 'INTERMUNICIPAL' ? 'Intermunicipal' : 'Municipal'}</span>
                 {ruta.via && <span>· {ruta.via}</span>}
                 {(ruta.duracionh || ruta.duracionm) && (

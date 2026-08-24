@@ -207,35 +207,7 @@ export const ViajesPage = () => {
 
   return (
     <Layout>
-      {/* Header */}
-      <header style={{ background: 'white', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', height: '64px', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 20 }}>
-        <div>
-          <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#1e293b', margin: 0 }}>
-            Gestión de Viajes
-          </h2>
-          <div style={{ display: 'flex', alignItems: 'center', fontSize: '12px', color: '#94a3b8', marginTop: '2px', gap: '4px' }}>
-            <span>Inicio</span>
-            <span className="material-symbols-outlined" style={{ fontSize: '10px' }}>chevron_right</span>
-            <span>Operaciones</span>
-            <span className="material-symbols-outlined" style={{ fontSize: '10px' }}>chevron_right</span>
-            <span style={{ color: BLUE, fontWeight: 600 }}>Viajes</span>
-          </div>
-        </div>
-        <div style={{ position: 'relative' }}>
-          <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#94a3b8' }}>search</span>
-          </span>
-          <input 
-            value={busqueda} 
-            onChange={(e) => setBusqueda(e.target.value)}
-            style={{ width: '288px', paddingLeft: '40px', paddingRight: '16px', paddingTop: '8px', paddingBottom: '8px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '13px', background: '#f8fafc', color: '#475569', outline: 'none', fontFamily: 'inherit' }}
-            placeholder="Buscar viaje..." 
-            type="text" 
-          />
-        </div>
-      </header>
-
-      <div style={{ padding: '32px', maxWidth: '1600px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <div style={{ padding: '0 0 32px', maxWidth: '1600px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
         {/* Formulario para programar viaje */}
         <section style={{ background: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', border: '1px solid #f1f5f9', padding: '24px' }}>
           <h3 style={{ fontWeight: 700, color: '#1e293b', fontSize: '16px', marginBottom: '16px' }}>Programar Nuevo Viaje</h3>
@@ -379,28 +351,60 @@ export const ViajesPage = () => {
           </form>
         </section>
 
-        {/* Filtros */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {(['todos', 'activos', 'inactivos'] as const).map((f) => (
-            <button 
-              key={f} 
-              onClick={() => { setFiltro(f); setPaginaActual(1); }}
+        {/* Filtros y Buscador */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+          {/* Botones de estado */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {(['todos', 'activos', 'inactivos'] as const).map((f) => (
+              <button 
+                key={f} 
+                onClick={() => { setFiltro(f); setPaginaActual(1); }}
+                style={{
+                  padding: '6px 16px',
+                  borderRadius: '999px',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  border: '1px solid',
+                  borderColor: filtro === f ? BLUE : '#e2e8f0',
+                  background: filtro === f ? BLUE : 'white',
+                  color: filtro === f ? 'white' : '#64748b',
+                  cursor: 'pointer',
+                  textTransform: 'capitalize',
+                  fontFamily: 'inherit',
+                  transition: 'all 0.15s',
+                }}>
+                {f.charAt(0).toUpperCase() + f.slice(1)}
+              </button>
+            ))}
+          </div>
+
+          {/* Buscador de viajes */}
+          <div style={{ position: 'relative', width: '320px', maxWidth: '100%' }}>
+            <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', display: 'flex', alignItems: 'center' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#94a3b8' }}>search</span>
+            </span>
+            <input 
+              value={busqueda} 
+              onChange={(e) => setBusqueda(e.target.value)}
               style={{
-                padding: '6px 16px',
-                borderRadius: '999px',
-                fontSize: '11px',
-                fontWeight: 700,
-                border: '1px solid',
-                borderColor: filtro === f ? BLUE : '#e2e8f0',
-                background: filtro === f ? BLUE : 'white',
-                color: filtro === f ? 'white' : '#64748b',
-                cursor: 'pointer',
-                textTransform: 'capitalize',
+                width: '100%',
+                paddingLeft: '38px',
+                paddingRight: '14px',
+                paddingTop: '8px',
+                paddingBottom: '8px',
+                border: '1px solid #e2e8f0',
+                borderRadius: '8px',
+                fontSize: '13px',
+                background: 'white',
+                color: '#475569',
+                outline: 'none',
                 fontFamily: 'inherit',
-              }}>
-              {f.charAt(0).toUpperCase() + f.slice(1)}
-            </button>
-          ))}
+                boxSizing: 'border-box'
+              }}
+              placeholder="Buscar por ruta, móvil o conductor..." 
+              type="text" 
+            />
+          </div>
         </div>
 
         {/* Tabla de viajes */}

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import axios from 'axios';
+import { httpClient } from '../../../infrastructure/api/httpClient';
 import { Layout } from '../../components/layout/Layout';
 import { BuscadorViajes } from '../../components/taquilla/BuscadorViajes';
 import { ListaViajes } from '../../components/taquilla/ListaViajes';
@@ -13,6 +13,7 @@ import { useAsientosRealtime } from '../../hooks/useAsientosRealtime';
 import metodosPagoApiService from '../../../infrastructure/services/metodosPagoApi';
 import taquillaApiService from '../../../infrastructure/services/taquillaApi';
 import asientosApiService from '../../../infrastructure/services/asientosApi';
+
 
 // ── Paleta MD3 ────────────────────────────────────────────────────────────────
 const C = {
@@ -267,8 +268,8 @@ export const TaquillaPage = () => {
       // Obtener puntos de la ruta (origen y destino)
       let puntoDestinoCalculado: number | null = null;
       try {
-        const resPuntos = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/rutas/${viaje.idruta}/puntos`, { withCredentials: true });
-        const pts = resPuntos.data?.data?.puntos;
+        const resPuntos = await httpClient.get(`/rutas/${viaje.idruta}/puntos`);
+        const pts = resPuntos.data?.data?.puntos || resPuntos.data?.puntos;
         console.log('📍 Puntos de la ruta:', pts);
         
         if (pts && pts.length > 0) {
@@ -313,8 +314,8 @@ export const TaquillaPage = () => {
         console.error('❌ Error obteniendo punto origen taquillero:', error);
         // Si falla, usar el primer punto de la ruta como fallback
         try {
-          const resPuntos = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/rutas/${viaje.idruta}/puntos`, { withCredentials: true });
-          const pts = resPuntos.data?.data?.puntos;
+          const resPuntos = await httpClient.get(`/rutas/${viaje.idruta}/puntos`);
+          const pts = resPuntos.data?.data?.puntos || resPuntos.data?.puntos;
           if (pts && pts.length > 0) {
             origenTaquillero = pts[0].idpuntoruta;
             setPuntoOrigenTaquillero(origenTaquillero);
@@ -325,6 +326,7 @@ export const TaquillaPage = () => {
           setPuntoOrigenTaquillero(null);
         }
       }
+
 
       // Consultar tarifa del tramo para mostrar precio correcto en mapa de asientos
       const destinoParaTarifa = puntoDestinoCalculado;

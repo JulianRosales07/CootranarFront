@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import { httpClient } from '../../../infrastructure/api/httpClient';
 
 // ── Paleta Material You (extraída del HTML de referencia) ────────────────────
 const C = {
@@ -17,7 +17,6 @@ const C = {
   onSurfaceVariant: '#42474f',
 };
 
-const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3000/api';
 
 interface Ciudad {
   idciudad: number;
@@ -171,8 +170,8 @@ export const BuscadorViajes: React.FC<BuscadorViajesProps> = ({
     const cargarDatos = async () => {
       try {
         const [resCiudades, resDestinos] = await Promise.all([
-          axios.get(`${API_URL}/ciudades/activas`, { withCredentials: true, params: { limit: 1000 } }),
-          axios.get(`${API_URL}/plataforma-ecommerce/ciudades-destino`, { withCredentials: true }),
+          httpClient.get('/ciudades/activas', { params: { limit: 1000 } }),
+          httpClient.get('/plataforma-ecommerce/ciudades-destino'),
         ]);
         // Ciudades para origen (solo agencias)
         const dataCiudades = resCiudades.data?.data?.ciudades || resCiudades.data?.ciudades || [];
@@ -193,6 +192,7 @@ export const BuscadorViajes: React.FC<BuscadorViajesProps> = ({
     };
     cargarDatos();
   }, []);
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,26 +1,4 @@
-import axios from 'axios';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-
-const asientosApi = axios.create({
-  baseURL: `${API_URL}/asientos`,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  withCredentials: true, // Importante: permite enviar cookies
-});
-
-// Interceptor para agregar token (por si acaso se usa token en header)
-asientosApi.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-    if (token && token !== 'undefined' && token !== 'null' && token !== 'cookie-based-auth') {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+import { httpClient } from '../api/httpClient';
 
 export interface ReservarAsientosData {
   idviaje: number;
@@ -30,7 +8,7 @@ export interface ReservarAsientosData {
 export const asientosApiService = {
   // Obtener asientos de un viaje
   obtenerAsientosViaje: (idViaje: number) => {
-    return asientosApi.get(`/viaje/${idViaje}`);
+    return httpClient.get(`/asientos/viaje/${idViaje}`);
   },
 
   // Reservar asientos (múltiples)
@@ -38,7 +16,7 @@ export const asientosApiService = {
     // El backend solo tiene endpoint para reservar asientos individuales
     // Necesitamos llamar a cada uno por separado
     const promesas = data.asientos.map(idAsiento => 
-      asientosApi.post(`/${idAsiento}/reservar`)
+      httpClient.post(`/asientos/${idAsiento}/reservar`)
     );
     
     try {
@@ -58,7 +36,7 @@ export const asientosApiService = {
   // Liberar asientos reservados (múltiples)
   liberarAsientos: async (_idViaje: number, asientos: number[]) => {
     const promesas = asientos.map(idAsiento => 
-      asientosApi.post(`/${idAsiento}/liberar`)
+      httpClient.post(`/asientos/${idAsiento}/liberar`)
     );
     
     try {
@@ -76,3 +54,4 @@ export const asientosApiService = {
 };
 
 export default asientosApiService;
+

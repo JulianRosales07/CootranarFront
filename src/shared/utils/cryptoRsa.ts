@@ -116,9 +116,34 @@ async function getAesResponseKey(): Promise<CryptoKey> {
     hashBuffer,
     { name: 'AES-GCM' },
     false,
-    ['decrypt']
+    ['encrypt', 'decrypt']
   );
   return cachedAesKey;
+}
+
+/**
+ * Cifra un payload con AES-256-GCM para envío de alta seguridad al backend
+ * @param data Objeto o datos a cifrar
+ * @returns Cadena ivHex:ciphertextWithTagHex
+ */
+export async function cifrarPayloadAes(data: any): Promise<string> {
+  try {
+    const text = typeof data === 'object' && data !== null ? JSON.stringify(data) : String(data);
+    const iv = window.crypto.getRandomValues(new Uint8Array(12));
+    const key = await getAesResponseKey();
+    const encoded = new TextEncoder().encode(text);
+    const encryptedBuffer = await window.crypto.subtle.encrypt(
+      { name: 'AES-GCM', iv },
+      key,
+      encoded
+    );
+    const ivHex = Array.from(iv).map(b => b.toString(16).padStart(2, '0')).join('');
+    const cipherHex = Array.from(new Uint8Array(encryptedBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+    return `${ivHex}:${cipherHex}`;
+  } catch (error) {
+    console.error('Error al cifrar payload AES:', error);
+    return typeof data === 'string' ? data : JSON.stringify(data);
+  }
 }
 
 /**
@@ -152,3 +177,43 @@ export async function descifrarRespuesta<T = any>(encryptedString: string): Prom
     return encryptedString as any;
   }
 }
+
+/**
+ * Procesa automáticamente un cuerpo de respuesta JSON recibido del backend
+ * Descifrando el campo `data` o `encryptedData` de forma totalmente transparente
+ */
+export async function descifrarDataRecursivo(body: any): Promise<any> {
+  if (!body || typeof body !== 'object') return body;
+
+  // Si data viene cifrado bajo data.encryptedData
+  if (body.data && typeof body.data === 'object' && body.data.encryptedData && typeof body.data.encryptedData === 'string') {
+    const decrypted = await descifrarRespuesta(body.data.encryptedData);
+    return {
+      ...body,
+      data: decrypted,
+    };
+  }
+
+  // Si data es directamente un string con formato iv:cipher
+  if (body.data && typeof body.data === 'string' && body.data.includes(':')) {
+    const decrypted = await descifrarRespuesta(body.data);
+    return {
+      ...body,
+      data: decrypted,
+    };
+  }
+
+  // Si encryptedData está en la raíz
+  if (body.encryptedData && typeof body.encryptedData === 'string') {
+    const decrypted = await descifrarRespuesta(body.encryptedData);
+    if (decrypted && typeof decrypted === 'object' && !Array.isArray(decrypted)) {
+      const copy = { ...body, ...decrypted };
+      delete copy.encryptedData;
+      return copy;
+    }
+    return decrypted;
+  }
+
+  return body;
+}
+

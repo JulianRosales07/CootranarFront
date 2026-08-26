@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { descifrarDataRecursivo } from '../../shared/utils/cryptoRsa';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
@@ -21,8 +22,14 @@ httpClient.interceptors.request.use((config) => {
 });
 
 httpClient.interceptors.response.use(
-  (response) => response,
+  async (response) => {
+    if (response.data) {
+      response.data = await descifrarDataRecursivo(response.data);
+    }
+    return response;
+  },
   (error) => {
+
     const status = error.response?.status;
     const url = error.config?.url;
     const data = error.response?.data;

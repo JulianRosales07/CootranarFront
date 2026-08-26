@@ -21,47 +21,36 @@ interface LoginResponse {
   message: string;
   data: {
     usuario?: BackendUsuario;
-    encryptedData?: string;
     token?: string;
-  };
-  encryptedData?: string;
+  } | string;
 }
 
 export class ApiAuthService implements AuthService {
   async login(credentials: AuthCredentials): Promise<AuthResult> {
     try {
-      console.log('Cifrando y enviando login de forma segura...');
-      
       // Cifrado Asimétrico RSA-OAEP del payload para máxima seguridad E2EE
-      const encryptedData = await cifrarPayloadRsa({
+      const secureData = await cifrarPayloadRsa({
         correo: credentials.correo,
         password: credentials.password,
       });
 
+      // Se envía como campo estándar 'data'
       const response = await httpClient.post<LoginResponse>('/auth/login/empleado', {
-        encryptedData,
+        data: secureData,
       });
 
-      console.log('Respuesta del backend:', response.data);
-
-      if (response.data.success) {
-        console.log('--- LOGIN VERSION 2.3 (Super Detective) ---');
-        
+      if (response.data?.success) {
         const body = response.data as any;
         let data = body.data || {};
         const headers = response.headers as any;
 
-        // Si la respuesta viene cifrada (para no mostrar datos personales en Network), descifrarla
-        if (data.encryptedData || body.encryptedData) {
-          const enc = data.encryptedData || body.encryptedData;
-          const dec = await descifrarRespuesta<any>(enc);
+        // Si data es un objeto descifrado o si aún viniera cifrado
+        if (typeof data === 'string' && data.includes(':')) {
+          const dec = await descifrarRespuesta<any>(data);
           if (dec && typeof dec === 'object') {
-            data = { ...data, ...dec };
+            data = dec;
           }
         }
-        
-        console.log('[DEBUG] Llaves en response.data:', Object.keys(body));
-        console.log('[DEBUG] Llaves en response.data.data:', Object.keys(data));
 
         // Intento de encontrar el token en cualquier lugar
         let token = body.token || data.token || body.accessToken || data.accessToken || body.jwt || data.jwt || body.token_sesion;
@@ -71,12 +60,6 @@ export class ApiAuthService implements AuthService {
         }
 
         const usuario = data.usuario || body.usuario || data.user || body.user;
-        
-        if (!token) {
-          console.log('[AUTH] Token no encontrado en el body. Asumiendo autenticación por cookies HTTP-only.');
-        } else {
-          console.log('[AUTH] Token recibido en el body.');
-        }
 
         // Mapear el usuario del backend al formato del frontend
         let mappedRol = usuario?.nombrerol || usuario?.rol || 'ADMINISTRADOR';
@@ -94,19 +77,14 @@ export class ApiAuthService implements AuthService {
           fotoperfil: usuario?.fotoperfil || usuario?.fotoPerfil || usuario?.avatar || null,
         };
 
-        console.log('[AUTH] Sesión iniciada para:', user.correo);
-
         return {
           user,
           token: token || 'cookie-based-auth', // Marcador para indicar que usa cookies
         };
       }
 
-      throw new Error(response.data.message || 'Error al iniciar sesión');
+      throw new Error(response.data?.message || 'Error al iniciar sesión');
     } catch (error: any) {
-      console.error('Error en login:', error);
-      console.error('Respuesta del error:', error.response?.data);
-      
       if (error.response?.data?.message) {
         throw new Error(error.response.data.message);
       }
@@ -118,6 +96,7 @@ export class ApiAuthService implements AuthService {
       throw new Error('Error al conectar con el servidor. Verifica tu conexión.');
     }
   }
+
 
   async logout(): Promise<void> {
     return Promise.resolve();

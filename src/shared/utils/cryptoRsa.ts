@@ -93,3 +93,62 @@ export async function cifrarPayloadRsa(payload: Record<string, any> | string): P
     throw new Error('No se pudo cifrar la información de forma segura.');
   }
 }
+
+const RESPONSE_SECRET = 'cootranar_super_secure_cookie_key_2026_aes_gcm';
+
+function hexToUint8Array(hex: string): Uint8Array {
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < bytes.length; i++) {
+    bytes[i] = parseInt(hex.substring(i * 2, i * 2 + 2), 16);
+  }
+  return bytes;
+}
+
+let cachedAesKey: CryptoKey | null = null;
+
+async function getAesResponseKey(): Promise<CryptoKey> {
+  if (cachedAesKey) return cachedAesKey;
+  const encoder = new TextEncoder();
+  const secretBytes = encoder.encode(RESPONSE_SECRET);
+  const hashBuffer = await window.crypto.subtle.digest('SHA-256', secretBytes);
+  cachedAesKey = await window.crypto.subtle.importKey(
+    'raw',
+    hashBuffer,
+    { name: 'AES-GCM' },
+    false,
+    ['decrypt']
+  );
+  return cachedAesKey;
+}
+
+/**
+ * Descifra datos de respuesta cifrados con AES-256-GCM
+ * @param encryptedString Cadena en formato ivHex:ciphertextHex
+ */
+export async function descifrarRespuesta<T = any>(encryptedString: string): Promise<T> {
+  if (!encryptedString || typeof encryptedString !== 'string' || !encryptedString.includes(':')) {
+    return encryptedString as any;
+  }
+  try {
+    const [ivHex, ciphertextHex] = encryptedString.split(':');
+    const iv = hexToUint8Array(ivHex);
+    const ciphertext = hexToUint8Array(ciphertextHex);
+    const key = await getAesResponseKey();
+
+    const decryptedBuffer = await window.crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv: iv as unknown as BufferSource },
+      key,
+      ciphertext as unknown as BufferSource
+    );
+
+    const decryptedText = new TextDecoder().decode(decryptedBuffer);
+    try {
+      return JSON.parse(decryptedText);
+    } catch {
+      return decryptedText as any;
+    }
+  } catch (error) {
+    console.error('Error al descifrar respuesta segura:', error);
+    return encryptedString as any;
+  }
+}

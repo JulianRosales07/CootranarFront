@@ -1,7 +1,7 @@
 import type { AuthService, AuthCredentials, AuthResult } from '../../domain/services/AuthService';
 import type { User } from '../../domain/entities/User';
 import { httpClient } from '../api/httpClient';
-import { cifrarPayloadRsa } from '../../shared/utils/cryptoRsa';
+import { cifrarPayloadRsa, descifrarRespuesta } from '../../shared/utils/cryptoRsa';
 
 interface BackendUsuario {
   idusuario?: number;
@@ -20,9 +20,11 @@ interface LoginResponse {
   success: boolean;
   message: string;
   data: {
-    usuario: BackendUsuario;
-    token: string;
+    usuario?: BackendUsuario;
+    encryptedData?: string;
+    token?: string;
   };
+  encryptedData?: string;
 }
 
 export class ApiAuthService implements AuthService {
@@ -46,8 +48,17 @@ export class ApiAuthService implements AuthService {
         console.log('--- LOGIN VERSION 2.3 (Super Detective) ---');
         
         const body = response.data as any;
-        const data = body.data || {};
+        let data = body.data || {};
         const headers = response.headers as any;
+
+        // Si la respuesta viene cifrada (para no mostrar datos personales en Network), descifrarla
+        if (data.encryptedData || body.encryptedData) {
+          const enc = data.encryptedData || body.encryptedData;
+          const dec = await descifrarRespuesta<any>(enc);
+          if (dec && typeof dec === 'object') {
+            data = { ...data, ...dec };
+          }
+        }
         
         console.log('[DEBUG] Llaves en response.data:', Object.keys(body));
         console.log('[DEBUG] Llaves en response.data.data:', Object.keys(data));

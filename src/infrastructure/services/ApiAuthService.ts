@@ -1,6 +1,7 @@
 import type { AuthService, AuthCredentials, AuthResult } from '../../domain/services/AuthService';
 import type { User } from '../../domain/entities/User';
 import { httpClient } from '../api/httpClient';
+import { cifrarPayloadRsa } from '../../shared/utils/cryptoRsa';
 
 interface BackendUsuario {
   idusuario?: number;
@@ -27,11 +28,16 @@ interface LoginResponse {
 export class ApiAuthService implements AuthService {
   async login(credentials: AuthCredentials): Promise<AuthResult> {
     try {
-      console.log('Intentando login con:', { correo: credentials.correo });
+      console.log('Cifrando y enviando login de forma segura...');
       
-      const response = await httpClient.post<LoginResponse>('/auth/login/empleado', {
+      // Cifrado Asimétrico RSA-OAEP del payload para máxima seguridad E2EE
+      const encryptedData = await cifrarPayloadRsa({
         correo: credentials.correo,
         password: credentials.password,
+      });
+
+      const response = await httpClient.post<LoginResponse>('/auth/login/empleado', {
+        encryptedData,
       });
 
       console.log('Respuesta del backend:', response.data);

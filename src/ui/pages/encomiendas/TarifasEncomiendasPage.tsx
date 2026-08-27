@@ -427,8 +427,8 @@ export const TarifasEncomiendasPage = () => {
                 </span>
                 <input
                   type="number"
-                  min="1"
-                  step="500"
+                  min="0"
+                  step="any"
                   value={valorBase}
                   onChange={(e) => setValorBase(e.target.value)}
                   placeholder="Ej. 15000"

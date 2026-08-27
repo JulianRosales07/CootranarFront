@@ -148,6 +148,16 @@ const getPageHeaderInfo = (pathname: string) => {
           </>
         ),
       };
+    case ROUTES.TARIFAS_ENCOMIENDAS:
+      return {
+        title: 'Tarifas de Encomiendas',
+        breadcrumbs: (
+          <>
+            Inicio &rsaquo; Encomiendas &rsaquo;{' '}
+            <span style={{ color: '#0D3B8E', fontWeight: 600 }}>Tarifas Encomiendas</span>
+          </>
+        ),
+      };
     case ROUTES.OFICINAS_ENCOMIENDAS:
       return {
         title: 'Oficinas de Encomiendas',
@@ -393,8 +403,53 @@ export const Header = () => {
         boxSizing: 'border-box',
       }}
     >
-      {/* ── Left: Menu Button (Mobile) + Title and Breadcrumbs ─────────────────── */}
+      {/* ── Left: Back Button + Menu Button (Mobile) + Title and Breadcrumbs ─────────────────── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '12px', flex: '1 1 auto', minWidth: 0 }}>
+        {/* Botón Universal Ir Atrás */}
+        <button
+          onClick={() => {
+            if (window.history.length > 1) {
+              navigate(-1);
+            } else {
+              if (user?.nombrerol === 'TAQUILLERO') navigate(ROUTES.TAQUILLA);
+              else if (user?.nombrerol === 'EMPLEADO_ENCOMIENDAS') navigate(ROUTES.ENCOMIENDAS);
+              else navigate(ROUTES.DASHBOARD);
+            }
+          }}
+          title="Regresar a la página anterior"
+          style={{
+            width: isMobile ? '34px' : '38px',
+            height: isMobile ? '34px' : '38px',
+            borderRadius: isMobile ? '10px' : '12px',
+            backgroundColor: isDark ? '#18181b' : '#ffffff',
+            border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #e2e8f0',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: isDark ? '#cbd5e1' : '#475569',
+            cursor: 'pointer',
+            boxShadow: isDark ? '0 2px 8px rgba(0,0,0,0.3)' : '0 2px 6px rgba(0,0,0,0.04)',
+            transition: 'all 0.18s ease',
+            flexShrink: 0,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = isDark ? '#27272a' : '#eff6ff';
+            e.currentTarget.style.borderColor = isDark ? '#3b82f6' : '#bfdbfe';
+            e.currentTarget.style.color = '#0D3B8E';
+            e.currentTarget.style.transform = 'translateX(-2px)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = isDark ? '#18181b' : '#ffffff';
+            e.currentTarget.style.borderColor = isDark ? 'rgba(255, 255, 255, 0.1)' : '#e2e8f0';
+            e.currentTarget.style.color = isDark ? '#cbd5e1' : '#475569';
+            e.currentTarget.style.transform = 'none';
+          }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: isMobile ? '19px' : '21px', fontWeight: 600 }}>
+            arrow_back
+          </span>
+        </button>
+
         {isMobile && (
           <button
             onClick={toggleMobile}

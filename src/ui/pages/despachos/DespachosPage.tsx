@@ -133,9 +133,23 @@ export const DespachosPage = () => {
                       <tr key={d.id} style={{ borderBottom: '1px solid #f1f5f9' }} onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')} onMouseLeave={e => (e.currentTarget.style.background = 'white')}>
                         <td style={{ padding: '12px 16px', fontSize: '12.5px', fontFamily: 'monospace', fontWeight: 700, color: '#334155' }}>{d.codigoDespacho}</td>
                         <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{d.oficinaOrigenNombre || '-'}</td>
-                        <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{d.oficinaDestinoNombre || '-'}</td>
-                        <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{d.placa || '-'}</td>
-                        <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{d.nombreConductor || '-'}</td>
+                        <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span
+                              className="material-symbols-outlined"
+                              style={{
+                                fontSize: '16px',
+                                color: d.tipoVehiculo === 'FURGON' ? '#d97706' : '#2563eb',
+                              }}
+                            >
+                              {d.tipoVehiculo === 'FURGON' ? 'local_shipping' : 'directions_bus'}
+                            </span>
+                            <span style={{ fontWeight: 600, color: '#1e293b' }}>{d.placa || '-'}</span>
+                            {d.numeroMovil && (
+                              <span style={{ fontSize: '11px', color: '#64748b' }}>#{d.numeroMovil}</span>
+                            )}
+                          </div>
+                        </td>
                         <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', textAlign: 'center' }}>{d.totalEncomiendas}</td>
                         <td style={{ padding: '12px 16px' }}><EstadoBadge estado={d.estado} /></td>
                         <td style={{ padding: '12px 16px', fontSize: '12.5px', color: '#64748b', whiteSpace: 'nowrap' }}>{formatearFecha(d.fechaProgramada)}</td>

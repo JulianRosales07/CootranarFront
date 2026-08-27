@@ -28,6 +28,8 @@ interface Vehiculo {
   idvehiculo: number;
   placa: string;
   numeromovil: string;
+  tipovehiculo?: string;
+  nombretipobus?: string;
   idconductor1?: number | null;
   nombreconductor1?: string | null;
   apellidoconductor1?: string | null;
@@ -189,13 +191,17 @@ export const CrearDespachoModal: React.FC<CrearDespachoModalProps> = ({
             </Field>
           </div>
 
-          <Field label="Furgón asignado" required>
+          <Field label="Vehículo asignado (Bus o Furgón)" required>
             <div style={{ display: 'flex', gap: '8px' }}>
               <input
                 type="text"
-                value={furgonSeleccionado ? `${furgonSeleccionado.placa} - Móvil #${furgonSeleccionado.numeromovil}` : ''}
+                value={
+                  furgonSeleccionado
+                    ? `${furgonSeleccionado.placa} - Móvil #${furgonSeleccionado.numeromovil} (${furgonSeleccionado.tipovehiculo === 'FURGON' ? 'Furgón' : 'Bus'})`
+                    : ''
+                }
                 readOnly
-                placeholder="Seleccione un furgón"
+                placeholder="Seleccione un bus de terminal o furgón"
                 style={{ ...inputStyle, flex: 1, background: '#f8fafc' }}
               />
               <button
@@ -207,10 +213,24 @@ export const CrearDespachoModal: React.FC<CrearDespachoModalProps> = ({
               </button>
             </div>
             {furgonSeleccionado && (
-              <p style={{ fontSize: '11.5px', color: '#64748b', margin: '6px 0 0' }}>
-                Conductor principal: {furgonSeleccionado.nombreconductor1
-                  ? `${furgonSeleccionado.nombreconductor1} ${furgonSeleccionado.apellidoconductor1 ?? ''}`
-                  : 'Sin conductor asignado'}
+              <p style={{ fontSize: '11.5px', color: '#64748b', margin: '6px 0 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span
+                  style={{
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    padding: '2px 7px',
+                    borderRadius: '10px',
+                    background: furgonSeleccionado.tipovehiculo === 'FURGON' ? '#fef3c7' : '#eff6ff',
+                    color: furgonSeleccionado.tipovehiculo === 'FURGON' ? '#92400e' : '#1e40af',
+                  }}
+                >
+                  {furgonSeleccionado.tipovehiculo === 'FURGON' ? '🚚 FURGÓN DE CARGA' : '🚌 BUS DE LÍNEA / TERMINAL'}
+                </span>
+                <span>
+                  Conductor principal: {furgonSeleccionado.nombreconductor1
+                    ? `${furgonSeleccionado.nombreconductor1} ${furgonSeleccionado.apellidoconductor1 ?? ''}`
+                    : 'Sin conductor asignado'}
+                </span>
               </p>
             )}
           </Field>
@@ -234,7 +254,7 @@ export const CrearDespachoModal: React.FC<CrearDespachoModalProps> = ({
             </div>
             {conductorAutocompletado && (
               <p style={{ fontSize: '11.5px', color: '#0D3B8E', margin: '6px 0 0', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                Autocompletado con el conductor principal del furgón. Puedes cambiarlo si lo deseas.
+                Autocompletado con el conductor del vehículo seleccionado. Puedes cambiarlo si lo deseas.
               </p>
             )}
           </Field>

@@ -14,6 +14,8 @@ const mapearDespacho = (d: any): DespachoDTO => ({
   idVehiculo: d.idvehiculo ? String(d.idvehiculo) : '',
   idConductor: d.idconductor ? String(d.idconductor) : '',
   placa: d.placa || '',
+  tipoVehiculo: d.tipovehiculo || 'BUS',
+  numeroMovil: d.numeromovil || '',
   nombreConductor: d.nombreconductor || '',
   estado: (d.estado || 'PROGRAMADO') as EstadoDespacho,
   fechaProgramada: d.fechaprogramada || null,

@@ -10,6 +10,8 @@ export interface DespachoDTO {
   idVehiculo: string;
   idConductor: string;
   placa: string;
+  tipoVehiculo?: string;
+  numeroMovil?: string;
   nombreConductor: string;
   estado: EstadoDespacho;
   fechaProgramada: string | null;

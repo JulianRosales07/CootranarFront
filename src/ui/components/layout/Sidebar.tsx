@@ -64,6 +64,7 @@ const sections: NavSection[] = [
     items: [
       { path: ROUTES.ENCOMIENDAS, label: 'Encomiendas', icon: 'inventory_2', descripcion: 'Registro, cotización, emisión de guías y rastreo de paquetería.' },
       { path: ROUTES.DESPACHOS, label: 'Despachos', icon: 'local_shipping', descripcion: 'Manifiestos de carga y control de envíos entre agencias.' },
+      { path: ROUTES.TARIFAS_ENCOMIENDAS, label: 'Tarifas Encomiendas', icon: 'price_change', descripcion: 'Tarifas base por ruta entre oficinas de encomiendas.' },
       { path: ROUTES.OFICINAS_ENCOMIENDAS, label: 'Oficinas Encomiendas', icon: 'store', descripcion: 'Puntos autorizados de recepción y entrega de paquetes.' },
       { path: ROUTES.EMPLEADOS_ENCOMIENDAS, label: 'Empleados Encomiendas', icon: 'person_pin', descripcion: 'Personal operativo a cargo de la gestión de carga.' },
     ],
@@ -140,6 +141,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isLoading = false }) => {
           return (
             item.path === ROUTES.ENCOMIENDAS ||
             item.path === ROUTES.DESPACHOS ||
+            item.path === ROUTES.TARIFAS_ENCOMIENDAS ||
             item.path === ROUTES.OFICINAS_ENCOMIENDAS ||
             item.path === ROUTES.EMPLEADOS_ENCOMIENDAS
           );

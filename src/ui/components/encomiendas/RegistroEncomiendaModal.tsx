@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { cotizarEncomienda } from '../../hooks/useEncomiendas';
 import { useOficinasEncomiendas } from '../../hooks/useOficinasEncomiendas';
 import metodosPagoApiService from '../../../infrastructure/services/metodosPagoApi';
 import type { EncomiendaDTO } from '../../../application/dto/EncomiendaDTO';
+import { ROUTES } from '../../../shared/constants';
 
 const BLUE = '#0D3B8E';
 
@@ -392,11 +394,34 @@ export const RegistroEncomiendaModal: React.FC<RegistroEncomiendaModalProps> = (
             </Field>
           )}
 
-          <div style={{ background: errorPrecio ? '#fef2f2' : '#eff6ff', border: `1px solid ${errorPrecio ? '#fecaca' : '#dbeafe'}`, borderRadius: '8px', padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '13px', fontWeight: 700, color: errorPrecio ? '#b91c1c' : '#1e40af' }}>Precio estimado:</span>
-            <span style={{ fontSize: errorPrecio ? '12.5px' : '18px', fontWeight: errorPrecio ? 600 : 800, color: errorPrecio ? '#b91c1c' : '#1e40af', textAlign: 'right' }}>
-              {calculando ? 'Calculando...' : errorPrecio ? errorPrecio : precioEstimado != null ? formatPeso(precioEstimado) : '—'}
-            </span>
+          <div style={{ background: errorPrecio ? '#fef2f2' : '#eff6ff', border: `1px solid ${errorPrecio ? '#fecaca' : '#dbeafe'}`, borderRadius: '8px', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '13px', fontWeight: 700, color: errorPrecio ? '#b91c1c' : '#1e40af' }}>Precio estimado:</span>
+              <span style={{ fontSize: errorPrecio ? '12.5px' : '18px', fontWeight: errorPrecio ? 600 : 800, color: errorPrecio ? '#b91c1c' : '#1e40af', textAlign: 'right' }}>
+                {calculando ? 'Calculando...' : errorPrecio ? errorPrecio : precioEstimado != null ? formatPeso(precioEstimado) : '—'}
+              </span>
+            </div>
+            {errorPrecio && errorPrecio.toLowerCase().includes('tarifa') && (
+              <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '4px' }}>
+                <Link
+                  to={ROUTES.TARIFAS_ENCOMIENDAS}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    color: '#b91c1c',
+                    textDecoration: 'underline',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>open_in_new</span>
+                  <span>Establecer precio para esta ruta en Tarifas Encomiendas</span>
+                </Link>
+              </div>
+            )}
           </div>
 
           {error && <p style={{ fontSize: '12.5px', color: '#dc2626', fontWeight: 600, margin: 0 }}>{error}</p>}

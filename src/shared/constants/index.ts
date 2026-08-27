@@ -23,6 +23,7 @@ export const ROUTES = {
   TAQUILLEROS: '/empleados/taquilleros',
   EMPLEADOS_ENCOMIENDAS: '/empleados/encomiendas',
   OFICINAS_ENCOMIENDAS: '/oficinas-encomiendas',
+  TARIFAS_ENCOMIENDAS: '/encomiendas/tarifas',
   TARIFAS_RUTA: '/rutas/tarifas',
   REPORTE_INGRESOS: '/reportes/ingresos-por-bus',
   DEPARTAMENTOS: '/departamentos',

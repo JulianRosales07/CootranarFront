@@ -22,6 +22,7 @@ import { ConfiguracionMasivaTarifasPage } from '../pages/rutas/ConfiguracionMasi
 import { TaquillerosPage } from '../pages/empleados/TaquillerosPage';
 import { EmpleadosEncomiendasPage } from '../pages/empleados/EmpleadosEncomiendasPage';
 import { OficinasEncomiendasPage } from '../pages/oficinas-encomiendas/OficinasEncomiendasPage';
+import { TarifasEncomiendasPage } from '../pages/encomiendas/TarifasEncomiendasPage';
 import { UsuariosPage } from '../pages/usuarios/UsuariosPage';
 import { ReporteIngresosPage } from '../pages/reportes/ReporteIngresosPage';
 import { PerfilPage } from '../pages/perfil/PerfilPage';
@@ -52,6 +53,7 @@ export const AppRouter = () => {
           <Route element={<PrivateRoute allowedRoles={['ADMINISTRADOR', 'EMPLEADO_ENCOMIENDAS']} />}>
             <Route path={ROUTES.ENCOMIENDAS} element={<EncomiendaPage />} />
             <Route path={ROUTES.DESPACHOS} element={<DespachosPage />} />
+            <Route path={ROUTES.TARIFAS_ENCOMIENDAS} element={<TarifasEncomiendasPage />} />
             <Route path={ROUTES.EMPLEADOS_ENCOMIENDAS} element={<EmpleadosEncomiendasPage />} />
             <Route path={ROUTES.OFICINAS_ENCOMIENDAS} element={<OficinasEncomiendasPage />} />
           </Route>

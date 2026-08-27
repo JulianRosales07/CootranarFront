@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Layout } from '../../components/layout/Layout';
 import { useResumenDashboard } from '../../hooks/useReportes';
 import { DashboardSkeleton } from '../../components/dashboard/DashboardSkeleton';
+import { GaleriaCootranarBanner } from '../../components/dashboard/GaleriaCootranarBanner';
 import { FiltrosReporte } from '../../components/reportes/FiltrosReporte';
 import { TarjetasKpi } from '../../components/reportes/TarjetasKpi';
 import { GraficoIngresosDiarios } from '../../components/reportes/GraficoIngresosDiarios';
@@ -73,6 +74,9 @@ export const DashboardPage = () => {
         </div>
       ) : (
         <>
+          {/* Banner Fotográfico Panorámico de Cootranar */}
+          <GaleriaCootranarBanner />
+
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
             <div>
               <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#0f172a', margin: 0 }}>Dashboard</h2>

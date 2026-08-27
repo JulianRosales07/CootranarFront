@@ -238,8 +238,21 @@ export const LoginPage = () => {
   const [showForm, setShowForm]     = useState(false); // controls form visibility on mobile
 
   const errorRef = useRef<HTMLDivElement>(null);
-  const { login } = useAuth();
+  const { isAuthenticated, user, login } = useAuth();
   const navigate  = useNavigate();
+
+  /* Redirigir de inmediato si ya está autenticado para evitar que 'atrás' lleve al login */
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const targetRoute =
+        user.nombrerol === 'TAQUILLERO'
+          ? ROUTES.TAQUILLA
+          : user.nombrerol === 'EMPLEADO_ENCOMIENDAS'
+          ? ROUTES.ENCOMIENDAS
+          : ROUTES.DASHBOARD;
+      navigate(targetRoute, { replace: true });
+    }
+  }, [isAuthenticated, user, navigate]);
 
   /* Inject keyframes once */
   useEffect(() => {
@@ -291,13 +304,13 @@ export const LoginPage = () => {
     setLoading(true);
     try {
       const loggedUser = await login(email, password);
-      if (loggedUser?.nombrerol === 'TAQUILLERO') {
-        navigate(ROUTES.TAQUILLA);
-      } else if (loggedUser?.nombrerol === 'EMPLEADO_ENCOMIENDAS') {
-        navigate(ROUTES.ENCOMIENDAS);
-      } else {
-        navigate(ROUTES.DASHBOARD);
-      }
+      const targetRoute =
+        loggedUser?.nombrerol === 'TAQUILLERO'
+          ? ROUTES.TAQUILLA
+          : loggedUser?.nombrerol === 'EMPLEADO_ENCOMIENDAS'
+          ? ROUTES.ENCOMIENDAS
+          : ROUTES.DASHBOARD;
+      navigate(targetRoute, { replace: true });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Error al iniciar sesión. Verifica tus credenciales.';
       setError(msg);

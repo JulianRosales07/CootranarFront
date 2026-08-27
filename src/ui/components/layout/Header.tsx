@@ -362,6 +362,57 @@ export const Header = () => {
   const [menuNotificacionesAbierto, setMenuNotificacionesAbierto] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
 
+  const homeRoute =
+    user?.nombrerol === 'TAQUILLERO'
+      ? ROUTES.TAQUILLA
+      : user?.nombrerol === 'EMPLEADO_ENCOMIENDAS'
+      ? ROUTES.ENCOMIENDAS
+      : ROUTES.DASHBOARD;
+
+  const isAtHome = location.pathname === homeRoute;
+
+  // Registrar historial interno de navegación en la sesión activa
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem('cootranar_history_stack');
+      const stack: string[] = stored ? JSON.parse(stored) : [];
+      if (stack[stack.length - 1] !== location.pathname && location.pathname !== ROUTES.LOGIN) {
+        stack.push(location.pathname);
+        if (stack.length > 50) stack.shift();
+        sessionStorage.setItem('cootranar_history_stack', JSON.stringify(stack));
+      }
+    } catch {
+      // Ignorar errores de storage
+    }
+  }, [location.pathname]);
+
+  const handleGoBack = () => {
+    if (isAtHome) {
+      return;
+    }
+
+    try {
+      const stored = sessionStorage.getItem('cootranar_history_stack');
+      const stack: string[] = stored ? JSON.parse(stored) : [];
+      
+      // Eliminar ruta actual
+      if (stack[stack.length - 1] === location.pathname) {
+        stack.pop();
+      }
+      
+      const prevPath = stack.pop();
+      sessionStorage.setItem('cootranar_history_stack', JSON.stringify(stack));
+
+      if (prevPath && prevPath !== ROUTES.LOGIN && prevPath !== location.pathname) {
+        navigate(prevPath);
+      } else {
+        navigate(homeRoute);
+      }
+    } catch {
+      navigate(homeRoute);
+    }
+  };
+
   const noLeidas = notificaciones.filter((n) => !n.leido).length;
 
   useEffect(() => {
@@ -407,16 +458,9 @@ export const Header = () => {
       <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '12px', flex: '1 1 auto', minWidth: 0 }}>
         {/* Botón Universal Ir Atrás */}
         <button
-          onClick={() => {
-            if (window.history.length > 1) {
-              navigate(-1);
-            } else {
-              if (user?.nombrerol === 'TAQUILLERO') navigate(ROUTES.TAQUILLA);
-              else if (user?.nombrerol === 'EMPLEADO_ENCOMIENDAS') navigate(ROUTES.ENCOMIENDAS);
-              else navigate(ROUTES.DASHBOARD);
-            }
-          }}
-          title="Regresar a la página anterior"
+          onClick={handleGoBack}
+          disabled={isAtHome}
+          title={isAtHome ? 'Página principal' : 'Regresar a la página anterior'}
           style={{
             width: isMobile ? '34px' : '38px',
             height: isMobile ? '34px' : '38px',
@@ -426,23 +470,28 @@ export const Header = () => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: isDark ? '#cbd5e1' : '#475569',
-            cursor: 'pointer',
+            color: isAtHome ? (isDark ? '#52525b' : '#cbd5e1') : (isDark ? '#cbd5e1' : '#475569'),
+            cursor: isAtHome ? 'default' : 'pointer',
+            opacity: isAtHome ? 0.45 : 1,
             boxShadow: isDark ? '0 2px 8px rgba(0,0,0,0.3)' : '0 2px 6px rgba(0,0,0,0.04)',
             transition: 'all 0.18s ease',
             flexShrink: 0,
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = isDark ? '#27272a' : '#eff6ff';
-            e.currentTarget.style.borderColor = isDark ? '#3b82f6' : '#bfdbfe';
-            e.currentTarget.style.color = '#0D3B8E';
-            e.currentTarget.style.transform = 'translateX(-2px)';
+            if (!isAtHome) {
+              e.currentTarget.style.backgroundColor = isDark ? '#27272a' : '#eff6ff';
+              e.currentTarget.style.borderColor = isDark ? '#3b82f6' : '#bfdbfe';
+              e.currentTarget.style.color = '#0D3B8E';
+              e.currentTarget.style.transform = 'translateX(-2px)';
+            }
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = isDark ? '#18181b' : '#ffffff';
-            e.currentTarget.style.borderColor = isDark ? 'rgba(255, 255, 255, 0.1)' : '#e2e8f0';
-            e.currentTarget.style.color = isDark ? '#cbd5e1' : '#475569';
-            e.currentTarget.style.transform = 'none';
+            if (!isAtHome) {
+              e.currentTarget.style.backgroundColor = isDark ? '#18181b' : '#ffffff';
+              e.currentTarget.style.borderColor = isDark ? 'rgba(255, 255, 255, 0.1)' : '#e2e8f0';
+              e.currentTarget.style.color = isDark ? '#cbd5e1' : '#475569';
+              e.currentTarget.style.transform = 'none';
+            }
           }}
         >
           <span className="material-symbols-outlined" style={{ fontSize: isMobile ? '19px' : '21px', fontWeight: 600 }}>

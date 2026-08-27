@@ -177,12 +177,12 @@ export const GaleriaCootranarBanner: React.FC = () => {
       onMouseEnter={() => setAutoPlay(false)}
       onMouseLeave={() => setAutoPlay(true)}
     >
-      {/* Contenedor de la Imagen con Aspect Ratio Panorámico */}
+      {/* Contenedor de la Imagen con Aspect Ratio Amplio */}
       <div
         style={{
           position: 'relative',
           width: '100%',
-          height: '210px',
+          height: 'clamp(260px, 28vw, 350px)',
           overflow: 'hidden',
           display: 'flex',
           alignItems: 'center',
@@ -200,20 +200,20 @@ export const GaleriaCootranarBanner: React.FC = () => {
             width: '100%',
             height: '100%',
             objectFit: 'cover',
-            objectPosition: 'center 40%',
-            filter: 'brightness(0.85) contrast(1.08)',
-            transform: 'scale(1.02)',
+            objectPosition: 'center 55%',
+            filter: 'brightness(0.9) contrast(1.06)',
+            transform: 'scale(1.01)',
             transition: 'transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease',
           }}
         />
 
-        {/* Gradientes cinematográficos */}
+        {/* Gradientes cinematográficos más suaves para mayor visibilidad del bus */}
         <div
           style={{
             position: 'absolute',
             inset: 0,
             background:
-              'linear-gradient(90deg, rgba(13, 27, 62, 0.92) 0%, rgba(13, 59, 142, 0.62) 45%, rgba(0, 0, 0, 0.25) 100%)',
+              'linear-gradient(90deg, rgba(10, 22, 53, 0.88) 0%, rgba(13, 59, 142, 0.42) 45%, rgba(0, 0, 0, 0.1) 100%)',
           }}
         />
         <div
@@ -221,7 +221,7 @@ export const GaleriaCootranarBanner: React.FC = () => {
             position: 'absolute',
             inset: 0,
             background:
-              'linear-gradient(0deg, rgba(10, 15, 30, 0.75) 0%, transparent 60%)',
+              'linear-gradient(0deg, rgba(10, 15, 30, 0.72) 0%, transparent 65%)',
           }}
         />
 

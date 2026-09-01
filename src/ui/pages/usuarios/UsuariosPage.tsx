@@ -313,7 +313,8 @@ export const UsuariosPage = () => {
     setModalVehiculosOpen(true);
     try {
       const res: any = await usuariosApi.obtenerVehiculosPropietario(u.idusuario);
-      setVehiculosPropietario(res?.data || res || []);
+      const data = res?.data?.data || res?.data || res;
+      setVehiculosPropietario(Array.isArray(data) ? data : []);
     } catch {
       setVehiculosPropietario([]);
     } finally {

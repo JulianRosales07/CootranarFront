@@ -23,7 +23,7 @@ export const useUsuarios = (params: UseUsuariosParams = {}) => {
     queryKey: ['usuarios', params],
     queryFn: async () => {
       const res: any = await usuariosApi.obtenerTodos(params as Record<string, unknown>);
-      return res?.data || res;
+      return res?.data?.data || res?.data || res;
     },
   });
 
@@ -34,7 +34,8 @@ export const useUsuarios = (params: UseUsuariosParams = {}) => {
     queryKey: ['usuarios-roles'],
     queryFn: async () => {
       const res: any = await usuariosApi.obtenerRoles();
-      return (res?.data || res) as RolDTO[];
+      const rawRoles = res?.data?.data || res?.data || res;
+      return (Array.isArray(rawRoles) ? rawRoles : rawRoles?.roles || []) as RolDTO[];
     },
   });
 
@@ -84,18 +85,21 @@ export const useUsuarios = (params: UseUsuariosParams = {}) => {
     },
   });
 
-  const usuarios: UsuarioDTO[] = usuariosResponse?.usuarios || [];
+  const rawUsuarios = usuariosResponse?.usuarios || (Array.isArray(usuariosResponse) ? usuariosResponse : []);
+  const usuarios: UsuarioDTO[] = Array.isArray(rawUsuarios) ? rawUsuarios : [];
   const rawPaginacion = usuariosResponse?.paginacion;
   const paginacion = {
-    totalRegistros: rawPaginacion?.total ?? rawPaginacion?.totalRegistros ?? usuarios.length,
+    totalRegistros: rawPaginacion?.total ?? rawPaginacion?.totalRegistros ?? (Array.isArray(usuarios) ? usuarios.length : 0),
     totalPaginas: rawPaginacion?.totalPaginas ?? 1,
     paginaActual: rawPaginacion?.paginaActual ?? params.page ?? 1,
     limite: rawPaginacion?.porPagina ?? rawPaginacion?.limite ?? params.limit ?? 10,
   };
 
+  const rolesList: RolDTO[] = Array.isArray(roles) ? roles : [];
+
   return {
     usuarios,
-    roles: roles || [],
+    roles: rolesList,
     paginacion,
     isLoading: isLoadingUsuarios || isLoadingRoles,
     isFetching,

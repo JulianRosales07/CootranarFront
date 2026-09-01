@@ -152,7 +152,33 @@ const KEYFRAMES = `
       max-width: 85vw !important;
     }
     .cootranar-back-button {
-      display: flex !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      position: absolute !important;
+      top: 1.25rem !important;
+      left: 1.25rem !important;
+      width: 44px !important;
+      height: 44px !important;
+      border-radius: 14px !important;
+      background: rgba(17, 24, 39, 0.72) !important;
+      backdrop-filter: blur(14px) !important;
+      -webkit-backdrop-filter: blur(14px) !important;
+      border: 1px solid rgba(255, 255, 255, 0.18) !important;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.2) !important;
+      color: #ffffff !important;
+      cursor: pointer !important;
+      z-index: 20 !important;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+    .cootranar-back-button:hover {
+      background: rgba(37, 99, 235, 0.9) !important;
+      border-color: rgba(147, 197, 253, 0.6) !important;
+      transform: translateX(-3px) scale(1.05) !important;
+      box-shadow: 0 12px 28px rgba(37, 99, 235, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.35) !important;
+    }
+    .cootranar-back-button:active {
+      transform: translateX(-1px) scale(0.96) !important;
     }
     .cootranar-form-panel {
       padding: 1rem 0.85rem !important;
@@ -222,6 +248,15 @@ function ErrorIcon() {
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
       <circle cx="8" cy="8" r="7" stroke="#dc2626" strokeWidth="1.5"/>
       <path d="M8 5v3.2M8 10.5h.01" stroke="#dc2626" strokeWidth="1.6" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+function ArrowBackIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="19" y1="12" x2="5" y2="12" />
+      <polyline points="12 19 5 12 12 5" />
     </svg>
   );
 }
@@ -498,23 +533,23 @@ export const LoginPage = () => {
     /* Back button */
     backButton: {
       position: 'absolute' as const,
-      top: '1.5rem',
-      left: '1rem',
-      background: 'rgba(255, 255, 255, .15)',
-      backdropFilter: 'blur(10px)',
-      border: 'none',
-      borderRadius: '50%',
+      top: '1.25rem',
+      left: '1.25rem',
+      background: 'rgba(17, 24, 39, 0.72)',
+      backdropFilter: 'blur(14px)',
+      WebkitBackdropFilter: 'blur(14px)',
+      border: '1px solid rgba(255, 255, 255, 0.18)',
+      borderRadius: '14px',
       width: 44,
       height: 44,
-      display: 'flex',
+      display: 'inline-flex',
       alignItems: 'center',
       justifyContent: 'center',
       cursor: 'pointer',
       color: '#fff',
-      fontSize: '1.5rem',
-      transition: 'all .3s ease',
-      boxShadow: '0 4px 12px rgba(0, 0, 0, .2)',
-      zIndex: 10,
+      transition: 'all .25s cubic-bezier(0.4, 0, 0.2, 1)',
+      boxShadow: '0 8px 24px rgba(0, 0, 0, .35), inset 0 1px 1px rgba(255, 255, 255, 0.2)',
+      zIndex: 20,
     },
 
     /* form panel */
@@ -750,17 +785,10 @@ export const LoginPage = () => {
             style={S.backButton}
             className="cootranar-back-button"
             onClick={handleHideForm}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255, 255, 255, .25)';
-              (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.05)';
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255, 255, 255, .15)';
-              (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)';
-            }}
-            aria-label="Volver"
+            aria-label="Volver a la portada"
+            title="Volver"
           >
-            ←
+            <ArrowBackIcon />
           </button>
         )}
 

@@ -3,19 +3,35 @@ import type { EncomiendaDTO, EstadoEncomienda } from '../../../application/dto/E
 
 const BLUE = '#0D3B8E';
 
-const ESTADOS: { value: EstadoEncomienda; label: string; bg: string; color: string }[] = [
-  { value: 'COTIZADA', label: 'Cotizada', bg: '#f1f5f9', color: '#475569' },
-  { value: 'REGISTRADA', label: 'Registrada', bg: '#dbeafe', color: '#1d4ed8' },
-  { value: 'EN_TRANSITO', label: 'En Tránsito', bg: '#fef9c3', color: '#a16207' },
-  { value: 'EN_DESTINO', label: 'En Destino', bg: '#e0f2fe', color: '#0369a1' },
-  { value: 'ENTREGADA', label: 'Entregada', bg: '#dcfce7', color: '#15803d' },
-  { value: 'DEVUELTA', label: 'Devuelta', bg: '#fee2e2', color: '#dc2626' },
+const ESTADOS: { value: EstadoEncomienda; label: string; bg: string; color: string; border: string; dot: string }[] = [
+  { value: 'COTIZADA', label: 'Cotizada', bg: '#f8fafc', color: '#475569', border: '#e2e8f0', dot: '#94a3b8' },
+  { value: 'REGISTRADA', label: 'Registrada', bg: '#eff6ff', color: '#1d4ed8', border: '#dbeafe', dot: '#3b82f6' },
+  { value: 'EN_TRANSITO', label: 'En Tránsito', bg: '#fefce8', color: '#a16207', border: '#fef08a', dot: '#eab308' },
+  { value: 'EN_DESTINO', label: 'En Destino', bg: '#f0f9ff', color: '#0369a1', border: '#e0f2fe', dot: '#0ea5e9' },
+  { value: 'ENTREGADA', label: 'Entregada', bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0', dot: '#22c55e' },
+  { value: 'DEVUELTA', label: 'Devuelta', bg: '#fef2f2', color: '#dc2626', border: '#fecaca', dot: '#ef4444' },
 ];
 
 function EstadoBadge({ estado }: { estado: EstadoEncomienda }) {
   const cfg = ESTADOS.find(e => e.value === estado) || ESTADOS[0];
   return (
-    <span style={{ display: 'inline-block', padding: '3px 12px', borderRadius: '20px', background: cfg.bg, color: cfg.color, fontSize: '11.5px', fontWeight: 700 }}>
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '4px',
+        padding: '2.5px 8px',
+        borderRadius: '12px',
+        background: cfg.bg,
+        color: cfg.color,
+        border: `1px solid ${cfg.border}`,
+        fontSize: '11px',
+        fontWeight: 700,
+        letterSpacing: '0.01em',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: cfg.dot }} />
       {cfg.label}
     </span>
   );
@@ -28,6 +44,28 @@ function formatearFecha(fecha: string | null) {
   } catch {
     return '—';
   }
+}
+
+function formatNombre(nombre?: string | null) {
+  if (!nombre || nombre.trim() === '' || nombre === '-') return '—';
+  return nombre
+    .toLowerCase()
+    .split(' ')
+    .filter(Boolean)
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+}
+
+function formatOficina(nombre?: string) {
+  if (!nombre || nombre === '-') return { ciudad: '—', detalle: '' };
+  const parts = nombre.split(/\s*[-–—]\s*/);
+  if (parts.length > 1) {
+    return {
+      ciudad: parts[0].trim(),
+      detalle: parts.slice(1).join(' - ').trim(),
+    };
+  }
+  return { ciudad: nombre.trim(), detalle: '' };
 }
 
 function PagBtn({ label, active, onClick }: { label: string; active?: boolean; onClick: () => void }) {
@@ -50,18 +88,6 @@ function NavArrow({ icon, disabled, onClick }: { icon: string; disabled: boolean
       <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{icon}</span>
     </button>
   );
-}
-
-function formatOficina(nombre?: string) {
-  if (!nombre || nombre === '-') return { ciudad: '—', detalle: '' };
-  const parts = nombre.split(/\s*[-–—]\s*/);
-  if (parts.length > 1) {
-    return {
-      ciudad: parts[0].trim(),
-      detalle: parts.slice(1).join(' - ').trim(),
-    };
-  }
-  return { ciudad: nombre.trim(), detalle: '' };
 }
 
 interface AccionesEncomienda {
@@ -131,9 +157,14 @@ export const TablaEncomiendas: React.FC<TablaEncomiendasProps> = ({
   const columnas = ['Referencia', 'Radicado RNDC', 'Remitente', 'Destinatario', 'Origen', 'Destino', 'Peso', 'Estado', 'Fecha', 'Acciones'];
 
   return (
-    <div style={{ background: 'white', borderRadius: '10px', border: '1px solid #e8edf2', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', padding: '14px 20px', borderBottom: '1px solid #f1f5f9' }}>
-        <span style={{ fontWeight: 700, fontSize: '15px', color: '#0f172a' }}>Encomiendas</span>
+    <div style={{ background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', padding: '16px 20px', borderBottom: '1px solid #f1f5f9' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontWeight: 800, fontSize: '15px', color: '#0f172a' }}>Encomiendas</span>
+          <span style={{ fontSize: '11px', fontWeight: 700, color: '#0D3B8E', background: '#eff6ff', border: '1px solid #dbeafe', borderRadius: '12px', padding: '1px 8px' }}>
+            {totalRegistros}
+          </span>
+        </div>
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           <div style={{ position: 'relative' }}>
             <span className="material-symbols-outlined" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '16px', color: '#94a3b8' }}>search</span>
@@ -141,13 +172,13 @@ export const TablaEncomiendas: React.FC<TablaEncomiendasProps> = ({
               value={busqueda}
               onChange={e => onBusquedaChange(e.target.value)}
               placeholder="Buscar por referencia, radicado, remitente..."
-              style={{ padding: '7px 12px 7px 32px', border: '1px solid #e2e8f0', borderRadius: '7px', fontSize: '12.5px', color: '#334155', outline: 'none', fontFamily: 'inherit', minWidth: '230px' }}
+              style={{ padding: '7px 12px 7px 32px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '12.5px', color: '#334155', outline: 'none', fontFamily: 'inherit', minWidth: '230px', transition: 'border-color 0.15s' }}
             />
           </div>
           <select
             value={filtroEstado}
             onChange={e => onFiltroEstadoChange(e.target.value)}
-            style={{ padding: '7px 10px', border: '1px solid #e2e8f0', borderRadius: '7px', fontSize: '12.5px', color: '#334155', outline: 'none', fontFamily: 'inherit', background: 'white' }}
+            style={{ padding: '7px 10px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '12.5px', color: '#334155', outline: 'none', fontFamily: 'inherit', background: 'white', cursor: 'pointer' }}
           >
             <option value="">Todos los estados</option>
             {ESTADOS.map(es => <option key={es.value} value={es.value}>{es.label}</option>)}
@@ -157,7 +188,7 @@ export const TablaEncomiendas: React.FC<TablaEncomiendasProps> = ({
 
       {isLoading ? (
         <div style={{ padding: '60px', textAlign: 'center', color: '#94a3b8' }}>
-          <span className="material-symbols-outlined" style={{ fontSize: '32px', display: 'block', marginBottom: '8px' }}>hourglass_empty</span>
+          <span className="material-symbols-outlined" style={{ fontSize: '32px', display: 'block', marginBottom: '8px', animation: 'spin 1.5s linear infinite' }}>progress_activity</span>
           <span style={{ fontSize: '13px' }}>Cargando encomiendas...</span>
         </div>
       ) : (
@@ -166,19 +197,19 @@ export const TablaEncomiendas: React.FC<TablaEncomiendasProps> = ({
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
               <thead>
                 <tr style={{ background: '#f8fafc' }}>
-                  {mostrarSeleccion && <th style={{ padding: '10px 8px', width: '28px' }} />}
+                  {mostrarSeleccion && <th style={{ padding: '11px 8px', width: '28px' }} />}
                   {columnas.map(l => (
                     <th
                       key={l}
                       style={{
-                        padding: '10px 8px',
+                        padding: '11px 8px',
                         textAlign: l === 'Acciones' ? 'center' : 'left',
                         fontSize: '10px',
                         fontWeight: 700,
                         color: '#64748b',
                         textTransform: 'uppercase',
                         letterSpacing: '0.06em',
-                        borderBottom: '1px solid #e8edf2',
+                        borderBottom: '1px solid #e2e8f0',
                         whiteSpace: 'nowrap',
                       }}
                     >
@@ -194,11 +225,18 @@ export const TablaEncomiendas: React.FC<TablaEncomiendasProps> = ({
                   const destino = esOficinaDestino(enc);
                   const orig = formatOficina(enc.oficinaOrigenNombre);
                   const dest = formatOficina(enc.oficinaDestinoNombre);
+                  const remitenteNombre = formatNombre(enc.nombreRemitente);
+                  const destinatarioNombre = formatNombre(enc.nombreDestinatario);
 
                   return (
-                    <tr key={enc.id} style={{ borderBottom: '1px solid #f1f5f9' }} onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')} onMouseLeave={e => (e.currentTarget.style.background = 'white')}>
+                    <tr
+                      key={enc.id}
+                      style={{ borderBottom: '1px solid #f1f5f9', transition: 'background-color 0.15s ease' }}
+                      onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'white')}
+                    >
                       {mostrarSeleccion && (
-                        <td style={{ padding: '8px 8px' }}>
+                        <td style={{ padding: '9px 8px' }}>
                           <input
                             type="checkbox"
                             checked={seleccionadas?.has(enc.id) ?? false}
@@ -208,18 +246,32 @@ export const TablaEncomiendas: React.FC<TablaEncomiendasProps> = ({
                         </td>
                       )}
                       {/* Referencia */}
-                      <td style={{ padding: '8px 8px', fontSize: '11.5px', fontFamily: 'monospace', color: '#1e293b', fontWeight: 700, whiteSpace: 'nowrap' }}>
-                        {enc.referencia}
+                      <td style={{ padding: '9px 8px', whiteSpace: 'nowrap' }}>
+                        <span
+                          style={{
+                            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+                            fontSize: '11.5px',
+                            fontWeight: 700,
+                            color: '#0f172a',
+                            background: '#f8fafc',
+                            border: '1px solid #e2e8f0',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            letterSpacing: '0.03em'
+                          }}
+                        >
+                          {enc.referencia}
+                        </span>
                       </td>
 
                       {/* Radicado RNDC */}
-                      <td style={{ padding: '8px 8px', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '9px 8px', whiteSpace: 'nowrap' }}>
                         {enc.radicadoRndc ? (
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', background: '#f0f9ff', color: '#0369a1', border: '1px solid #bae6fd', borderRadius: '4px', padding: '2px 6px', fontFamily: 'monospace', fontSize: '11px', fontWeight: 600 }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', borderRadius: '5px', padding: '2px 6px', fontFamily: 'monospace', fontSize: '11px', fontWeight: 700 }}>
                             {enc.radicadoRndc}
                           </span>
                         ) : enc.estado !== 'COTIZADA' ? (
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', color: '#94a3b8', fontSize: '10.5px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '4px', padding: '2px 5px' }} title="En proceso de sincronización con RNDC MinTransporte">
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', color: '#b45309', fontSize: '10.5px', fontWeight: 600, background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '5px', padding: '2px 6px' }} title="En proceso de sincronización con RNDC MinTransporte">
                             <span className="material-symbols-outlined" style={{ fontSize: '11px', color: '#f59e0b' }}>hourglass_top</span>
                             Pendiente
                           </span>
@@ -229,65 +281,71 @@ export const TablaEncomiendas: React.FC<TablaEncomiendasProps> = ({
                       </td>
 
                       {/* Remitente */}
-                      <td style={{ padding: '8px 8px', fontSize: '12px' }}>
-                        <div style={{ fontWeight: 600, color: '#1e293b', maxWidth: '110px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={enc.nombreRemitente || '—'}>
-                          {enc.nombreRemitente || '—'}
+                      <td style={{ padding: '9px 8px', fontSize: '12px' }}>
+                        <div style={{ fontWeight: 600, color: '#1e293b', maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={enc.nombreRemitente || '—'}>
+                          {remitenteNombre}
                         </div>
                       </td>
 
                       {/* Destinatario */}
-                      <td style={{ padding: '8px 8px', fontSize: '12px' }}>
-                        <div style={{ fontWeight: 600, color: '#1e293b', maxWidth: '110px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={enc.nombreDestinatario}>
-                          {enc.nombreDestinatario}
+                      <td style={{ padding: '9px 8px', fontSize: '12px' }}>
+                        <div style={{ fontWeight: 600, color: '#1e293b', maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={enc.nombreDestinatario}>
+                          {destinatarioNombre}
                         </div>
                         <div style={{ fontSize: '10.5px', color: '#94a3b8', fontWeight: 500 }}>{enc.documentoDestinatario}</div>
                       </td>
 
                       {/* Origen */}
-                      <td style={{ padding: '8px 8px', fontSize: '12px' }}>
-                        <div style={{ fontWeight: 600, color: '#334155', whiteSpace: 'nowrap' }}>{orig.ciudad}</div>
+                      <td style={{ padding: '9px 8px', fontSize: '12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#0D3B8E', flexShrink: 0 }} />
+                          <span style={{ fontWeight: 700, color: '#334155', whiteSpace: 'nowrap' }}>{orig.ciudad}</span>
+                        </div>
                         {orig.detalle && (
-                          <div style={{ fontSize: '10px', color: '#94a3b8', maxWidth: '95px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={orig.detalle}>
+                          <div style={{ fontSize: '10px', color: '#94a3b8', paddingLeft: '9px', maxWidth: '95px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={orig.detalle}>
                             {orig.detalle}
                           </div>
                         )}
                       </td>
 
                       {/* Destino */}
-                      <td style={{ padding: '8px 8px', fontSize: '12px' }}>
-                        <div style={{ fontWeight: 600, color: '#334155', whiteSpace: 'nowrap' }}>{dest.ciudad}</div>
+                      <td style={{ padding: '9px 8px', fontSize: '12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#10b981', flexShrink: 0 }} />
+                          <span style={{ fontWeight: 700, color: '#334155', whiteSpace: 'nowrap' }}>{dest.ciudad}</span>
+                        </div>
                         {dest.detalle && (
-                          <div style={{ fontSize: '10px', color: '#94a3b8', maxWidth: '95px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={dest.detalle}>
+                          <div style={{ fontSize: '10px', color: '#94a3b8', paddingLeft: '9px', maxWidth: '95px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={dest.detalle}>
                             {dest.detalle}
                           </div>
                         )}
                       </td>
 
                       {/* Peso */}
-                      <td style={{ padding: '8px 8px', fontSize: '11.5px', color: '#475569', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '9px 8px', fontSize: '11.5px', fontWeight: 600, color: '#475569', whiteSpace: 'nowrap' }}>
                         {enc.pesoReal ?? enc.pesoEstimado ?? '-'} kg
                       </td>
 
                       {/* Estado */}
-                      <td style={{ padding: '8px 8px', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '9px 8px', whiteSpace: 'nowrap' }}>
                         <EstadoBadge estado={enc.estado} />
                       </td>
 
                       {/* Fecha */}
-                      <td style={{ padding: '8px 8px', fontSize: '11.5px', color: '#64748b', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '9px 8px', fontSize: '11.5px', color: '#64748b', whiteSpace: 'nowrap' }}>
                         {formatearFecha(enc.fechaRegistro)}
                       </td>
 
                       {/* Acciones */}
-                      <td style={{ padding: '8px 8px', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '9px 8px', whiteSpace: 'nowrap' }}>
                         <div style={{ display: 'flex', gap: '5px', flexWrap: 'nowrap', alignItems: 'center', justifyContent: 'center' }}>
                           {onVer && (
                             <button
                               onClick={() => onVer(enc)}
                               title="Ver detalle completo"
-                              style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '5px', padding: '4px 6px', cursor: 'pointer', color: '#0D3B8E', display: 'flex', alignItems: 'center', transition: 'all 0.15s' }}
-                              onMouseEnter={e => (e.currentTarget.style.background = '#e2e8f0')}
-                              onMouseLeave={e => (e.currentTarget.style.background = '#f1f5f9')}
+                              style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '4px 6px', cursor: 'pointer', color: '#0D3B8E', display: 'flex', alignItems: 'center', transition: 'all 0.15s' }}
+                              onMouseEnter={e => { e.currentTarget.style.background = '#e2e8f0'; e.currentTarget.style.color = '#0a2862'; }}
+                              onMouseLeave={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.color = '#0D3B8E'; }}
                             >
                               <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>visibility</span>
                             </button>
@@ -296,7 +354,7 @@ export const TablaEncomiendas: React.FC<TablaEncomiendasProps> = ({
                             <button
                               onClick={() => onEliminar(enc)}
                               title="Eliminar preinscripción"
-                              style={{ background: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '5px', padding: '4px 6px', cursor: 'pointer', color: '#dc2626', display: 'flex', alignItems: 'center', transition: 'all 0.15s' }}
+                              style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px', padding: '4px 6px', cursor: 'pointer', color: '#dc2626', display: 'flex', alignItems: 'center', transition: 'all 0.15s' }}
                               onMouseEnter={e => (e.currentTarget.style.background = '#fee2e2')}
                               onMouseLeave={e => (e.currentTarget.style.background = '#fef2f2')}
                             >
@@ -307,7 +365,9 @@ export const TablaEncomiendas: React.FC<TablaEncomiendasProps> = ({
                             <button
                               onClick={() => onConfirmarRecepcion(enc)}
                               title="Confirmar Recepción en Destino"
-                              style={{ background: '#e0f2fe', color: '#0369a1', border: '1px solid #bae6fd', borderRadius: '5px', padding: '4px 8px', fontSize: '11px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
+                              style={{ background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', borderRadius: '6px', padding: '4px 8px', fontSize: '11px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: '3px', transition: 'all 0.15s' }}
+                              onMouseEnter={e => (e.currentTarget.style.background = '#dbeafe')}
+                              onMouseLeave={e => (e.currentTarget.style.background = '#eff6ff')}
                             >
                               <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>check_circle</span>
                               Recibir
@@ -317,7 +377,9 @@ export const TablaEncomiendas: React.FC<TablaEncomiendasProps> = ({
                             <button
                               onClick={() => onEntregar(enc)}
                               title="Entregar al Destinatario"
-                              style={{ background: '#dcfce7', color: '#15803d', border: '1px solid #bbf7d0', borderRadius: '5px', padding: '4px 8px', fontSize: '11px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
+                              style={{ background: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0', borderRadius: '6px', padding: '4px 8px', fontSize: '11px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: '3px', transition: 'all 0.15s' }}
+                              onMouseEnter={e => (e.currentTarget.style.background = '#d1fae5')}
+                              onMouseLeave={e => (e.currentTarget.style.background = '#ecfdf5')}
                             >
                               <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>inventory</span>
                               Entregar
@@ -327,7 +389,9 @@ export const TablaEncomiendas: React.FC<TablaEncomiendasProps> = ({
                             <button
                               onClick={() => onDevolver(enc)}
                               title="Marcar Devuelta"
-                              style={{ background: '#fee2e2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '5px', padding: '4px 8px', fontSize: '11px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
+                              style={{ background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '6px', padding: '4px 8px', fontSize: '11px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: '3px', transition: 'all 0.15s' }}
+                              onMouseEnter={e => (e.currentTarget.style.background = '#fee2e2')}
+                              onMouseLeave={e => (e.currentTarget.style.background = '#fef2f2')}
                             >
                               <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>assignment_return</span>
                               Devolver
@@ -360,3 +424,4 @@ export const TablaEncomiendas: React.FC<TablaEncomiendasProps> = ({
     </div>
   );
 };
+

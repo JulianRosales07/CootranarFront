@@ -115,11 +115,27 @@ export const DespachosPage = () => {
         ) : (
           <>
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <table style={{ width: '100%', minWidth: '1050px', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ background: '#f8fafc' }}>
                     {['Código', 'Origen', 'Destino', 'Vehículo', 'Conductor', 'Encomiendas', 'Estado', 'Programado', 'Acciones'].map(l => (
-                      <th key={l} style={{ padding: '11px 16px', textAlign: 'left', fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', borderBottom: '1px solid #e8edf2', whiteSpace: 'nowrap' }}>{l}</th>
+                      <th
+                        key={l}
+                        style={{
+                          padding: '11px 16px',
+                          textAlign: 'left',
+                          fontSize: '10.5px',
+                          fontWeight: 700,
+                          color: '#64748b',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.08em',
+                          borderBottom: '1px solid #e8edf2',
+                          whiteSpace: 'nowrap',
+                          ...(l === 'Acciones' ? { minWidth: '150px' } : {})
+                        }}
+                      >
+                        {l}
+                      </th>
                     ))}
                   </tr>
                 </thead>
@@ -131,7 +147,7 @@ export const DespachosPage = () => {
                     const esDestino = idOficinaOrigen && d.idOficinaDestino === idOficinaOrigen;
                     return (
                       <tr key={d.id} style={{ borderBottom: '1px solid #f1f5f9' }} onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')} onMouseLeave={e => (e.currentTarget.style.background = 'white')}>
-                        <td style={{ padding: '12px 16px', fontSize: '12.5px', fontFamily: 'monospace', fontWeight: 700, color: '#334155' }}>{d.codigoDespacho}</td>
+                        <td style={{ padding: '12px 16px', fontSize: '12.5px', fontFamily: 'monospace', fontWeight: 700, color: '#334155', whiteSpace: 'nowrap' }}>{d.codigoDespacho}</td>
                         <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{d.oficinaOrigenNombre || '-'}</td>
                         <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -151,17 +167,17 @@ export const DespachosPage = () => {
                           </div>
                         </td>
                         <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', textAlign: 'center' }}>{d.totalEncomiendas}</td>
-                        <td style={{ padding: '12px 16px' }}><EstadoBadge estado={d.estado} /></td>
+                        <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}><EstadoBadge estado={d.estado} /></td>
                         <td style={{ padding: '12px 16px', fontSize: '12.5px', color: '#64748b', whiteSpace: 'nowrap' }}>{formatearFecha(d.fechaProgramada)}</td>
-                        <td style={{ padding: '12px 16px' }}>
-                          <div style={{ display: 'flex', gap: '8px' }}>
+                        <td style={{ padding: '12px 16px', minWidth: '150px', whiteSpace: 'nowrap' }}>
+                          <div style={{ display: 'flex', gap: '8px', flexWrap: 'nowrap', alignItems: 'center' }}>
                             {d.estado === 'PROGRAMADO' && esOrigen && (
-                              <button onClick={() => handleConfirmarSalida(d.id)} style={{ background: '#fef9c3', color: '#a16207', border: 'none', borderRadius: '6px', padding: '5px 10px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+                              <button onClick={() => handleConfirmarSalida(d.id)} style={{ background: '#fef9c3', color: '#a16207', border: 'none', borderRadius: '6px', padding: '5px 10px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', flexShrink: 0 }}>
                                 Confirmar Salida
                               </button>
                             )}
                             {d.estado === 'EN_RUTA' && esDestino && (
-                              <button onClick={() => handleConfirmarLlegada(d.id)} style={{ background: '#dcfce7', color: '#15803d', border: 'none', borderRadius: '6px', padding: '5px 10px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+                              <button onClick={() => handleConfirmarLlegada(d.id)} style={{ background: '#dcfce7', color: '#15803d', border: 'none', borderRadius: '6px', padding: '5px 10px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', flexShrink: 0 }}>
                                 Confirmar Llegada
                               </button>
                             )}

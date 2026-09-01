@@ -151,12 +151,28 @@ export const TablaEncomiendas: React.FC<TablaEncomiendasProps> = ({
       ) : (
         <>
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <table style={{ width: '100%', minWidth: '1150px', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ background: '#f8fafc' }}>
                   {mostrarSeleccion && <th style={{ padding: '11px 16px', width: '32px' }} />}
                   {columnas.map(l => (
-                    <th key={l} style={{ padding: '11px 16px', textAlign: 'left', fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', borderBottom: '1px solid #e8edf2', whiteSpace: 'nowrap' }}>{l}</th>
+                    <th
+                      key={l}
+                      style={{
+                        padding: '11px 16px',
+                        textAlign: 'left',
+                        fontSize: '10.5px',
+                        fontWeight: 700,
+                        color: '#64748b',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.08em',
+                        borderBottom: '1px solid #e8edf2',
+                        whiteSpace: 'nowrap',
+                        ...(l === 'Acciones' ? { minWidth: '170px' } : {})
+                      }}
+                    >
+                      {l}
+                    </th>
                   ))}
                 </tr>
               </thead>
@@ -177,8 +193,8 @@ export const TablaEncomiendas: React.FC<TablaEncomiendasProps> = ({
                           />
                         </td>
                       )}
-                      <td style={{ padding: '12px 16px', fontSize: '12.5px', fontFamily: 'monospace', color: '#334155', fontWeight: 600 }}>{enc.referencia}</td>
-                      <td style={{ padding: '12px 16px', fontSize: '12.5px', color: '#334155' }}>
+                      <td style={{ padding: '12px 16px', fontSize: '12.5px', fontFamily: 'monospace', color: '#334155', fontWeight: 600, whiteSpace: 'nowrap' }}>{enc.referencia}</td>
+                      <td style={{ padding: '12px 16px', fontSize: '12.5px', color: '#334155', whiteSpace: 'nowrap' }}>
                         {enc.radicadoRndc ? (
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f0f9ff', color: '#0369a1', border: '1px solid #bae6fd', borderRadius: '4px', padding: '2px 8px', fontFamily: 'monospace', fontSize: '11.5px', fontWeight: 600 }}>
                             {enc.radicadoRndc}
@@ -199,37 +215,37 @@ export const TablaEncomiendas: React.FC<TablaEncomiendasProps> = ({
                         {enc.nombreDestinatario}
                         <div style={{ fontSize: '11.5px', color: '#94a3b8', fontWeight: 500 }}>{enc.documentoDestinatario}</div>
                       </td>
-                      <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{enc.oficinaOrigenNombre || '-'}</td>
-                      <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{enc.oficinaDestinoNombre || '-'}</td>
-                      <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{enc.pesoReal ?? enc.pesoEstimado ?? '-'} kg</td>
-                      <td style={{ padding: '12px 16px' }}>
+                      <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', minWidth: '150px' }}>{enc.oficinaOrigenNombre || '-'}</td>
+                      <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', minWidth: '150px' }}>{enc.oficinaDestinoNombre || '-'}</td>
+                      <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', whiteSpace: 'nowrap' }}>{enc.pesoReal ?? enc.pesoEstimado ?? '-'} kg</td>
+                      <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
                         <EstadoBadge estado={enc.estado} />
                       </td>
                       <td style={{ padding: '12px 16px', fontSize: '12.5px', color: '#64748b', whiteSpace: 'nowrap' }}>{formatearFecha(enc.fechaRegistro)}</td>
-                      <td style={{ padding: '12px 16px' }}>
-                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                      <td style={{ padding: '12px 16px', minWidth: '170px', whiteSpace: 'nowrap' }}>
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'nowrap', alignItems: 'center' }}>
                           {onVer && (
-                            <button onClick={() => onVer(enc)} title="Ver detalle" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8', display: 'flex' }} onMouseEnter={e => (e.currentTarget.style.color = '#0D3B8E')} onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}>
+                            <button onClick={() => onVer(enc)} title="Ver detalle" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8', display: 'flex', flexShrink: 0 }} onMouseEnter={e => (e.currentTarget.style.color = '#0D3B8E')} onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}>
                               <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>visibility</span>
                             </button>
                           )}
                           {enc.estado === 'COTIZADA' && onEliminar && (
-                            <button onClick={() => onEliminar(enc)} title="Eliminar" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8', display: 'flex' }} onMouseEnter={e => (e.currentTarget.style.color = '#dc2626')} onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}>
+                            <button onClick={() => onEliminar(enc)} title="Eliminar" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8', display: 'flex', flexShrink: 0 }} onMouseEnter={e => (e.currentTarget.style.color = '#dc2626')} onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}>
                               <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>delete</span>
                             </button>
                           )}
                           {enc.estado === 'EN_TRANSITO' && destino && onConfirmarRecepcion && (
-                            <button onClick={() => onConfirmarRecepcion(enc)} style={{ background: '#e0f2fe', color: '#0369a1', border: 'none', borderRadius: '6px', padding: '5px 10px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-                            Confirmar Recepción
+                            <button onClick={() => onConfirmarRecepcion(enc)} style={{ background: '#e0f2fe', color: '#0369a1', border: 'none', borderRadius: '6px', padding: '5px 10px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                              Confirmar Recepción
                             </button>
                           )}
                           {enc.estado === 'EN_DESTINO' && destino && onEntregar && (
-                            <button onClick={() => onEntregar(enc)} style={{ background: '#dcfce7', color: '#15803d', border: 'none', borderRadius: '6px', padding: '5px 10px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+                            <button onClick={() => onEntregar(enc)} style={{ background: '#dcfce7', color: '#15803d', border: 'none', borderRadius: '6px', padding: '5px 10px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', flexShrink: 0 }}>
                               Entregar
                             </button>
                           )}
                           {(enc.estado === 'EN_TRANSITO' || enc.estado === 'EN_DESTINO') && onDevolver && (
-                            <button onClick={() => onDevolver(enc)} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '6px', padding: '5px 10px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+                            <button onClick={() => onDevolver(enc)} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '6px', padding: '5px 10px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', flexShrink: 0 }}>
                               Marcar Devuelta
                             </button>
                           )}

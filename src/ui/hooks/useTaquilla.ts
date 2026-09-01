@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import taquillaApiService from '../../infrastructure/services/taquillaApi';
-import asientosApiService from '../../infrastructure/services/asientosApi';
+import { apiTaquillaRepository } from '../../infrastructure/repositories/ApiTaquillaRepository';
+import { apiAsientoRepository } from '../../infrastructure/repositories/ApiAsientoRepository';
 
 interface BuscarViajesParams {
   ciudadorigen?: string;
@@ -48,17 +48,17 @@ export const useTaquilla = () => {
 
   // Buscar viajes
   const buscarViajes = useMutation({
-    mutationFn: (params: BuscarViajesParams) => taquillaApiService.buscarViajes(params),
+    mutationFn: (params: BuscarViajesParams) => apiTaquillaRepository.buscarViajes(params),
   });
 
   // Obtener asientos de un viaje
   const obtenerAsientos = useMutation({
-    mutationFn: (idViaje: number) => asientosApiService.obtenerAsientosViaje(idViaje),
+    mutationFn: (idViaje: number) => apiAsientoRepository.obtenerAsientosViaje(idViaje),
   });
 
   // Reservar asientos
   const reservarAsientos = useMutation({
-    mutationFn: (data: ReservarAsientosData) => asientosApiService.reservarAsientos(data),
+    mutationFn: (data: ReservarAsientosData) => apiAsientoRepository.reservarAsientos(data),
     onSuccess: (_, variables) => {
       setAsientosReservados(variables.asientos);
     },
@@ -71,22 +71,22 @@ export const useTaquilla = () => {
       idPuntoOrigen: number;
       idTipoBus: number;
       piso: number;
-    }) => taquillaApiService.obtenerPuntosDestino(idViaje, idPuntoOrigen, idTipoBus, piso),
+    }) => apiTaquillaRepository.obtenerPuntosDestino(idViaje, idPuntoOrigen, idTipoBus, piso),
   });
 
   // Obtener punto origen del taquillero
   const obtenerPuntoOrigen = useMutation({
-    mutationFn: (idViaje: number) => taquillaApiService.obtenerPuntoOrigenTaquillero(idViaje),
+    mutationFn: (idViaje: number) => apiTaquillaRepository.obtenerPuntoOrigenTaquillero(idViaje),
   });
 
   // Buscar o crear pasajero
   const buscarOCrearPasajero = useMutation({
-    mutationFn: (data: PasajeroData) => taquillaApiService.buscarOCrearPasajero(data),
+    mutationFn: (data: PasajeroData) => apiTaquillaRepository.buscarOCrearPasajero(data),
   });
 
   // Confirmar venta
   const confirmarVenta = useMutation({
-    mutationFn: (data: ConfirmarVentaData) => taquillaApiService.confirmarVenta(data),
+    mutationFn: (data: ConfirmarVentaData) => apiTaquillaRepository.confirmarVenta(data),
     onSuccess: () => {
       // Limpiar estado después de venta exitosa
       setViajeSeleccionado(null);
@@ -97,7 +97,7 @@ export const useTaquilla = () => {
 
   // Cancelar operación
   const cancelarOperacion = useMutation({
-    mutationFn: (idviaje: number) => taquillaApiService.cancelarOperacion({ idviaje }),
+    mutationFn: (idviaje: number) => apiTaquillaRepository.cancelarOperacion({ idviaje }),
     onSuccess: () => {
       setAsientosReservados([]);
       setPasajeros([]);
@@ -106,12 +106,12 @@ export const useTaquilla = () => {
 
   // Descargar PDF
   const descargarPdf = useMutation({
-    mutationFn: (idTiquete: number) => taquillaApiService.descargarPdfTiquete(idTiquete),
+    mutationFn: (idTiquete: number) => apiTaquillaRepository.descargarPdfTiquete(idTiquete),
   });
 
   // Abrir taquilla
   const abrirTaquilla = useMutation({
-    mutationFn: () => taquillaApiService.abrirTaquilla(),
+    mutationFn: () => apiTaquillaRepository.abrirTaquilla(),
   });
 
   // Obtener tarifa de un tramo
@@ -121,12 +121,12 @@ export const useTaquilla = () => {
       idPuntoDestino: number;
       idTipoBus: number;
       piso: number;
-    }) => taquillaApiService.obtenerTarifaTramo(idPuntoOrigen, idPuntoDestino, idTipoBus, piso),
+    }) => apiTaquillaRepository.obtenerTarifaTramo(idPuntoOrigen, idPuntoDestino, idTipoBus, piso),
   });
 
   // Obtener tiquetes de un viaje
   const obtenerTiquetesViaje = useMutation({
-    mutationFn: (idViaje: number) => taquillaApiService.obtenerTiquetesViaje(idViaje),
+    mutationFn: (idViaje: number) => apiTaquillaRepository.obtenerTiquetesViaje(idViaje),
   });
 
   return {

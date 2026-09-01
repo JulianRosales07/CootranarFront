@@ -5,6 +5,7 @@ import { ROUTES } from '../../../shared/constants';
 import { Layout } from '../../components/layout/Layout';
 import { DashboardSkeleton } from '../../components/dashboard/DashboardSkeleton';
 import heroImg from '../../../assets/BusCootranar.jpg';
+import logoCootranar from '../../../assets/LOGO-COOTRANAR.png';
 
 /* ─────────────────────────────────────────────
    Inline styles & keyframe injection
@@ -111,21 +112,11 @@ const KEYFRAMES = `
     }
     .cootranar-logo-row {
       margin-bottom: 1.5rem !important;
-      gap: 0.75rem !important;
-      flex-wrap: wrap !important;
       justify-content: center !important;
     }
-    .cootranar-logo-icon {
-      width: 52px !important;
-      height: 52px !important;
-      border-radius: 13px !important;
-    }
-    .cootranar-logo-letter {
-      font-size: 1.7rem !important;
-    }
-    .cootranar-logo-name {
-      font-size: clamp(1.7rem, 6.5vw, 2.3rem) !important;
-      letter-spacing: 0.02em !important;
+    .cootranar-logo-img {
+      max-height: 80px !important;
+      max-width: 260px !important;
     }
     .cootranar-tagline {
       font-size: clamp(1.2rem, 5vw, 1.45rem) !important;
@@ -393,31 +384,16 @@ export const LoginPage = () => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: '1rem',
       marginBottom: '2.5rem',
     },
-    logoIcon: {
-      width: 66, height: 66,
-      background: '#fff',
-      borderRadius: 16,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      boxShadow: '0 8px 32px rgba(0,0,0,.28)',
-      flexShrink: 0,
-    },
-    logoLetter: {
-      fontFamily: "'Montserrat', sans-serif",
-      fontSize: '2.1rem',
-      fontWeight: 900,
-      color: '#2563eb',
-      lineHeight: 1,
-    },
-    logoName: {
-      fontFamily: "'Montserrat', sans-serif",
-      fontSize: '2.6rem',
-      fontWeight: 900,
-      color: '#fff',
-      letterSpacing: '.04em',
-      textShadow: '0 2px 12px rgba(0,0,0,.3)',
+    logoImg: {
+      maxHeight: 100,
+      maxWidth: 340,
+      width: 'auto',
+      height: 'auto',
+      objectFit: 'contain' as const,
+      filter: 'drop-shadow(0 4px 16px rgba(0,0,0,.35))',
+      display: 'block',
     },
 
     tagline: {
@@ -763,10 +739,12 @@ export const LoginPage = () => {
 
           {/* Logo */}
           <div style={S.logoRow} className="cootranar-logo-row">
-            <div style={S.logoIcon} className="cootranar-logo-icon">
-              <span style={S.logoLetter} className="cootranar-logo-letter">C</span>
-            </div>
-            <span style={S.logoName} className="cootranar-logo-name">COOTRANAR</span>
+            <img
+              src={logoCootranar}
+              alt="COOTRANAR"
+              style={S.logoImg}
+              className="cootranar-logo-img"
+            />
           </div>
 
           {/* Tagline */}

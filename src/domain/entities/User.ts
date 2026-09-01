@@ -8,4 +8,6 @@ export interface User {
   nombrerol: string;
   activo: boolean;
   fotoperfil?: string | null;
+  roles?: string[];
+  rolActivo?: string;
 }

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { configuracionSistemaApi } from '../../infrastructure/services/configuracionSistemaApi';
+import { apiConfiguracionSistemaRepository } from '../../infrastructure/repositories/ApiConfiguracionSistemaRepository';
 
 export const ESTADOS_PRECIO = {
   NORMAL: 'NORMAL',
@@ -14,14 +14,14 @@ export const useConfiguracionSistema = () => {
   const { data: estadoPrecio, isLoading, error } = useQuery({
     queryKey: ['configuracion-sistema', 'estado-precio-global'],
     queryFn: async () => {
-      const response = await configuracionSistemaApi.obtenerEstadoPrecioGlobal();
+      const response = await apiConfiguracionSistemaRepository.obtenerEstadoPrecioGlobal();
       return response.data.data.estado as EstadoPrecio;
     },
   });
 
   const cambiarEstado = useMutation({
     mutationFn: async (nuevoEstado: EstadoPrecio) => {
-      const response = await configuracionSistemaApi.cambiarEstadoPrecioGlobal(nuevoEstado);
+      const response = await apiConfiguracionSistemaRepository.cambiarEstadoPrecioGlobal(nuevoEstado);
       return response.data.data;
     },
     onSuccess: () => {

@@ -112,11 +112,21 @@ const KEYFRAMES = `
     }
     .cootranar-logo-row {
       margin-bottom: 1.5rem !important;
+      gap: 0.75rem !important;
+      flex-wrap: wrap !important;
       justify-content: center !important;
     }
+    .cootranar-logo-icon {
+      width: 52px !important;
+      height: 52px !important;
+      border-radius: 13px !important;
+    }
+    .cootranar-logo-letter {
+      font-size: 1.7rem !important;
+    }
     .cootranar-logo-img {
-      max-height: 80px !important;
-      max-width: 260px !important;
+      max-height: 56px !important;
+      max-width: 220px !important;
     }
     .cootranar-tagline {
       font-size: clamp(1.2rem, 5vw, 1.45rem) !important;
@@ -384,15 +394,35 @@ export const LoginPage = () => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
+      gap: '1rem',
       marginBottom: '2.5rem',
     },
+    logoIcon: {
+      width: 66,
+      height: 66,
+      background: 'rgba(17, 24, 39, 0.92)',
+      borderRadius: 16,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      boxShadow: '0 8px 32px rgba(0,0,0,.35)',
+      border: '1px solid rgba(255, 255, 255, 0.1)',
+      flexShrink: 0,
+    },
+    logoLetter: {
+      fontFamily: "'Montserrat', sans-serif",
+      fontSize: '2.1rem',
+      fontWeight: 900,
+      color: '#3b82f6',
+      lineHeight: 1,
+    },
     logoImg: {
-      maxHeight: 100,
-      maxWidth: 340,
+      maxHeight: 70,
+      maxWidth: 280,
       width: 'auto',
       height: 'auto',
       objectFit: 'contain' as const,
-      filter: 'drop-shadow(0 4px 16px rgba(0,0,0,.35))',
+      filter: 'drop-shadow(0 4px 14px rgba(0,0,0,.35))',
       display: 'block',
     },
 
@@ -739,6 +769,9 @@ export const LoginPage = () => {
 
           {/* Logo */}
           <div style={S.logoRow} className="cootranar-logo-row">
+            <div style={S.logoIcon} className="cootranar-logo-icon">
+              <span style={S.logoLetter} className="cootranar-logo-letter">C</span>
+            </div>
             <img
               src={logoCootranar}
               alt="COOTRANAR"

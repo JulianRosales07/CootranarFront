@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { viajesApi } from '../../infrastructure/services/viajesApi';
+import { apiViajeRepository } from '../../infrastructure/repositories/ApiViajeRepository';
 
 export const useViajes = (filtro: 'todos' | 'activos' | 'inactivos' = 'todos', page = 1, busqueda = '') => {
   const queryClient = useQueryClient();
@@ -11,13 +11,13 @@ export const useViajes = (filtro: 'todos' | 'activos' | 'inactivos' = 'todos', p
       let response;
       
       if (busqueda.trim()) {
-        response = await viajesApi.buscar(busqueda.trim(), params);
+        response = await apiViajeRepository.buscar(busqueda.trim(), params);
       } else if (filtro === 'activos') {
-        response = await viajesApi.obtenerActivos(params);
+        response = await apiViajeRepository.obtenerActivos(params);
       } else if (filtro === 'inactivos') {
-        response = await viajesApi.obtenerInactivos(params);
+        response = await apiViajeRepository.obtenerInactivos(params);
       } else {
-        response = await viajesApi.obtenerTodos(params);
+        response = await apiViajeRepository.obtenerTodos(params);
       }
       
       return response.data.data;
@@ -25,7 +25,7 @@ export const useViajes = (filtro: 'todos' | 'activos' | 'inactivos' = 'todos', p
   });
 
   const crearMutation = useMutation({
-    mutationFn: (data: any) => viajesApi.crear(data),
+    mutationFn: (data: any) => apiViajeRepository.crear(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['viajes'] });
     },
@@ -33,21 +33,21 @@ export const useViajes = (filtro: 'todos' | 'activos' | 'inactivos' = 'todos', p
 
   const actualizarMutation = useMutation({
     mutationFn: ({ id, data }: { id: string | number; data: any }) => 
-      viajesApi.actualizar(id, data),
+      apiViajeRepository.actualizar(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['viajes'] });
     },
   });
 
   const activarMutation = useMutation({
-    mutationFn: (id: string | number) => viajesApi.activar(id),
+    mutationFn: (id: string | number) => apiViajeRepository.activar(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['viajes'] });
     },
   });
 
   const desactivarMutation = useMutation({
-    mutationFn: (id: string | number) => viajesApi.desactivar(id),
+    mutationFn: (id: string | number) => apiViajeRepository.desactivar(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['viajes'] });
     },

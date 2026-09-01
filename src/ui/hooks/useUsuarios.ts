@@ -85,11 +85,12 @@ export const useUsuarios = (params: UseUsuariosParams = {}) => {
   });
 
   const usuarios: UsuarioDTO[] = usuariosResponse?.usuarios || [];
-  const paginacion = usuariosResponse?.paginacion || {
-    totalRegistros: usuarios.length,
-    totalPaginas: 1,
-    paginaActual: params.page || 1,
-    limite: params.limit || 10,
+  const rawPaginacion = usuariosResponse?.paginacion;
+  const paginacion = {
+    totalRegistros: rawPaginacion?.total ?? rawPaginacion?.totalRegistros ?? usuarios.length,
+    totalPaginas: rawPaginacion?.totalPaginas ?? 1,
+    paginaActual: rawPaginacion?.paginaActual ?? params.page ?? 1,
+    limite: rawPaginacion?.porPagina ?? rawPaginacion?.limite ?? params.limit ?? 10,
   };
 
   return {

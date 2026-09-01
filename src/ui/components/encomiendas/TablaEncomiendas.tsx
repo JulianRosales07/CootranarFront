@@ -52,6 +52,18 @@ function NavArrow({ icon, disabled, onClick }: { icon: string; disabled: boolean
   );
 }
 
+function formatOficina(nombre?: string) {
+  if (!nombre || nombre === '-') return { ciudad: '—', detalle: '' };
+  const parts = nombre.split(/\s*[-–—]\s*/);
+  if (parts.length > 1) {
+    return {
+      ciudad: parts[0].trim(),
+      detalle: parts.slice(1).join(' - ').trim(),
+    };
+  }
+  return { ciudad: nombre.trim(), detalle: '' };
+}
+
 interface AccionesEncomienda {
   onVer?: (enc: EncomiendaDTO) => void;
   onEliminar?: (enc: EncomiendaDTO) => void;
@@ -120,7 +132,7 @@ export const TablaEncomiendas: React.FC<TablaEncomiendasProps> = ({
 
   return (
     <div style={{ background: 'white', borderRadius: '10px', border: '1px solid #e8edf2', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', padding: '16px 24px', borderBottom: '1px solid #f1f5f9' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', padding: '14px 20px', borderBottom: '1px solid #f1f5f9' }}>
         <span style={{ fontWeight: 700, fontSize: '15px', color: '#0f172a' }}>Encomiendas</span>
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           <div style={{ position: 'relative' }}>
@@ -129,7 +141,7 @@ export const TablaEncomiendas: React.FC<TablaEncomiendasProps> = ({
               value={busqueda}
               onChange={e => onBusquedaChange(e.target.value)}
               placeholder="Buscar por referencia, radicado, remitente..."
-              style={{ padding: '7px 12px 7px 32px', border: '1px solid #e2e8f0', borderRadius: '7px', fontSize: '12.5px', color: '#334155', outline: 'none', fontFamily: 'inherit', minWidth: '240px' }}
+              style={{ padding: '7px 12px 7px 32px', border: '1px solid #e2e8f0', borderRadius: '7px', fontSize: '12.5px', color: '#334155', outline: 'none', fontFamily: 'inherit', minWidth: '230px' }}
             />
           </div>
           <select
@@ -151,24 +163,23 @@ export const TablaEncomiendas: React.FC<TablaEncomiendasProps> = ({
       ) : (
         <>
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', minWidth: '1150px', borderCollapse: 'collapse' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
               <thead>
                 <tr style={{ background: '#f8fafc' }}>
-                  {mostrarSeleccion && <th style={{ padding: '11px 16px', width: '32px' }} />}
+                  {mostrarSeleccion && <th style={{ padding: '10px 8px', width: '28px' }} />}
                   {columnas.map(l => (
                     <th
                       key={l}
                       style={{
-                        padding: '11px 16px',
-                        textAlign: 'left',
-                        fontSize: '10.5px',
+                        padding: '10px 8px',
+                        textAlign: l === 'Acciones' ? 'center' : 'left',
+                        fontSize: '10px',
                         fontWeight: 700,
                         color: '#64748b',
                         textTransform: 'uppercase',
-                        letterSpacing: '0.08em',
+                        letterSpacing: '0.06em',
                         borderBottom: '1px solid #e8edf2',
                         whiteSpace: 'nowrap',
-                        ...(l === 'Acciones' ? { minWidth: '170px' } : {})
                       }}
                     >
                       {l}
@@ -181,10 +192,13 @@ export const TablaEncomiendas: React.FC<TablaEncomiendasProps> = ({
                   <tr><td colSpan={columnas.length + (mostrarSeleccion ? 1 : 0)} style={{ padding: '48px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>No se encontraron encomiendas.</td></tr>
                 ) : encomiendas.map((enc) => {
                   const destino = esOficinaDestino(enc);
+                  const orig = formatOficina(enc.oficinaOrigenNombre);
+                  const dest = formatOficina(enc.oficinaDestinoNombre);
+
                   return (
                     <tr key={enc.id} style={{ borderBottom: '1px solid #f1f5f9' }} onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')} onMouseLeave={e => (e.currentTarget.style.background = 'white')}>
                       {mostrarSeleccion && (
-                        <td style={{ padding: '12px 16px' }}>
+                        <td style={{ padding: '8px 8px' }}>
                           <input
                             type="checkbox"
                             checked={seleccionadas?.has(enc.id) ?? false}
@@ -193,60 +207,130 @@ export const TablaEncomiendas: React.FC<TablaEncomiendasProps> = ({
                           />
                         </td>
                       )}
-                      <td style={{ padding: '12px 16px', fontSize: '12.5px', fontFamily: 'monospace', color: '#334155', fontWeight: 600, whiteSpace: 'nowrap' }}>{enc.referencia}</td>
-                      <td style={{ padding: '12px 16px', fontSize: '12.5px', color: '#334155', whiteSpace: 'nowrap' }}>
+                      {/* Referencia */}
+                      <td style={{ padding: '8px 8px', fontSize: '11.5px', fontFamily: 'monospace', color: '#1e293b', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                        {enc.referencia}
+                      </td>
+
+                      {/* Radicado RNDC */}
+                      <td style={{ padding: '8px 8px', whiteSpace: 'nowrap' }}>
                         {enc.radicadoRndc ? (
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f0f9ff', color: '#0369a1', border: '1px solid #bae6fd', borderRadius: '4px', padding: '2px 8px', fontFamily: 'monospace', fontSize: '11.5px', fontWeight: 600 }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', background: '#f0f9ff', color: '#0369a1', border: '1px solid #bae6fd', borderRadius: '4px', padding: '2px 6px', fontFamily: 'monospace', fontSize: '11px', fontWeight: 600 }}>
                             {enc.radicadoRndc}
                           </span>
                         ) : enc.estado !== 'COTIZADA' ? (
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#94a3b8', fontSize: '11px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '4px', padding: '2px 6px' }} title="En proceso de sincronización con RNDC MinTransporte">
-                            <span className="material-symbols-outlined" style={{ fontSize: '12px', color: '#f59e0b' }}>hourglass_top</span>
-                            Pendiente RNDC
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', color: '#94a3b8', fontSize: '10.5px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '4px', padding: '2px 5px' }} title="En proceso de sincronización con RNDC MinTransporte">
+                            <span className="material-symbols-outlined" style={{ fontSize: '11px', color: '#f59e0b' }}>hourglass_top</span>
+                            Pendiente
                           </span>
                         ) : (
-                          <span style={{ color: '#94a3b8', fontSize: '12px' }}>—</span>
+                          <span style={{ color: '#94a3b8', fontSize: '11.5px' }}>—</span>
                         )}
                       </td>
-                      <td style={{ padding: '12px 16px', fontSize: '13.5px', fontWeight: 600, color: '#1e293b' }}>
-                        {enc.nombreRemitente || '—'}
+
+                      {/* Remitente */}
+                      <td style={{ padding: '8px 8px', fontSize: '12px' }}>
+                        <div style={{ fontWeight: 600, color: '#1e293b', maxWidth: '110px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={enc.nombreRemitente || '—'}>
+                          {enc.nombreRemitente || '—'}
+                        </div>
                       </td>
-                      <td style={{ padding: '12px 16px', fontSize: '13.5px', fontWeight: 600, color: '#1e293b' }}>
-                        {enc.nombreDestinatario}
-                        <div style={{ fontSize: '11.5px', color: '#94a3b8', fontWeight: 500 }}>{enc.documentoDestinatario}</div>
+
+                      {/* Destinatario */}
+                      <td style={{ padding: '8px 8px', fontSize: '12px' }}>
+                        <div style={{ fontWeight: 600, color: '#1e293b', maxWidth: '110px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={enc.nombreDestinatario}>
+                          {enc.nombreDestinatario}
+                        </div>
+                        <div style={{ fontSize: '10.5px', color: '#94a3b8', fontWeight: 500 }}>{enc.documentoDestinatario}</div>
                       </td>
-                      <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', minWidth: '150px' }}>{enc.oficinaOrigenNombre || '-'}</td>
-                      <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', minWidth: '150px' }}>{enc.oficinaDestinoNombre || '-'}</td>
-                      <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', whiteSpace: 'nowrap' }}>{enc.pesoReal ?? enc.pesoEstimado ?? '-'} kg</td>
-                      <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
+
+                      {/* Origen */}
+                      <td style={{ padding: '8px 8px', fontSize: '12px' }}>
+                        <div style={{ fontWeight: 600, color: '#334155', whiteSpace: 'nowrap' }}>{orig.ciudad}</div>
+                        {orig.detalle && (
+                          <div style={{ fontSize: '10px', color: '#94a3b8', maxWidth: '95px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={orig.detalle}>
+                            {orig.detalle}
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Destino */}
+                      <td style={{ padding: '8px 8px', fontSize: '12px' }}>
+                        <div style={{ fontWeight: 600, color: '#334155', whiteSpace: 'nowrap' }}>{dest.ciudad}</div>
+                        {dest.detalle && (
+                          <div style={{ fontSize: '10px', color: '#94a3b8', maxWidth: '95px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={dest.detalle}>
+                            {dest.detalle}
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Peso */}
+                      <td style={{ padding: '8px 8px', fontSize: '11.5px', color: '#475569', whiteSpace: 'nowrap' }}>
+                        {enc.pesoReal ?? enc.pesoEstimado ?? '-'} kg
+                      </td>
+
+                      {/* Estado */}
+                      <td style={{ padding: '8px 8px', whiteSpace: 'nowrap' }}>
                         <EstadoBadge estado={enc.estado} />
                       </td>
-                      <td style={{ padding: '12px 16px', fontSize: '12.5px', color: '#64748b', whiteSpace: 'nowrap' }}>{formatearFecha(enc.fechaRegistro)}</td>
-                      <td style={{ padding: '12px 16px', minWidth: '170px', whiteSpace: 'nowrap' }}>
-                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'nowrap', alignItems: 'center' }}>
+
+                      {/* Fecha */}
+                      <td style={{ padding: '8px 8px', fontSize: '11.5px', color: '#64748b', whiteSpace: 'nowrap' }}>
+                        {formatearFecha(enc.fechaRegistro)}
+                      </td>
+
+                      {/* Acciones */}
+                      <td style={{ padding: '8px 8px', whiteSpace: 'nowrap' }}>
+                        <div style={{ display: 'flex', gap: '5px', flexWrap: 'nowrap', alignItems: 'center', justifyContent: 'center' }}>
                           {onVer && (
-                            <button onClick={() => onVer(enc)} title="Ver detalle" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8', display: 'flex', flexShrink: 0 }} onMouseEnter={e => (e.currentTarget.style.color = '#0D3B8E')} onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}>
-                              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>visibility</span>
+                            <button
+                              onClick={() => onVer(enc)}
+                              title="Ver detalle completo"
+                              style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '5px', padding: '4px 6px', cursor: 'pointer', color: '#0D3B8E', display: 'flex', alignItems: 'center', transition: 'all 0.15s' }}
+                              onMouseEnter={e => (e.currentTarget.style.background = '#e2e8f0')}
+                              onMouseLeave={e => (e.currentTarget.style.background = '#f1f5f9')}
+                            >
+                              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>visibility</span>
                             </button>
                           )}
                           {enc.estado === 'COTIZADA' && onEliminar && (
-                            <button onClick={() => onEliminar(enc)} title="Eliminar" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8', display: 'flex', flexShrink: 0 }} onMouseEnter={e => (e.currentTarget.style.color = '#dc2626')} onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}>
-                              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>delete</span>
+                            <button
+                              onClick={() => onEliminar(enc)}
+                              title="Eliminar preinscripción"
+                              style={{ background: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '5px', padding: '4px 6px', cursor: 'pointer', color: '#dc2626', display: 'flex', alignItems: 'center', transition: 'all 0.15s' }}
+                              onMouseEnter={e => (e.currentTarget.style.background = '#fee2e2')}
+                              onMouseLeave={e => (e.currentTarget.style.background = '#fef2f2')}
+                            >
+                              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>delete</span>
                             </button>
                           )}
                           {enc.estado === 'EN_TRANSITO' && destino && onConfirmarRecepcion && (
-                            <button onClick={() => onConfirmarRecepcion(enc)} style={{ background: '#e0f2fe', color: '#0369a1', border: 'none', borderRadius: '6px', padding: '5px 10px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                              Confirmar Recepción
+                            <button
+                              onClick={() => onConfirmarRecepcion(enc)}
+                              title="Confirmar Recepción en Destino"
+                              style={{ background: '#e0f2fe', color: '#0369a1', border: '1px solid #bae6fd', borderRadius: '5px', padding: '4px 8px', fontSize: '11px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
+                            >
+                              <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>check_circle</span>
+                              Recibir
                             </button>
                           )}
                           {enc.estado === 'EN_DESTINO' && destino && onEntregar && (
-                            <button onClick={() => onEntregar(enc)} style={{ background: '#dcfce7', color: '#15803d', border: 'none', borderRadius: '6px', padding: '5px 10px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                            <button
+                              onClick={() => onEntregar(enc)}
+                              title="Entregar al Destinatario"
+                              style={{ background: '#dcfce7', color: '#15803d', border: '1px solid #bbf7d0', borderRadius: '5px', padding: '4px 8px', fontSize: '11px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
+                            >
+                              <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>inventory</span>
                               Entregar
                             </button>
                           )}
                           {(enc.estado === 'EN_TRANSITO' || enc.estado === 'EN_DESTINO') && onDevolver && (
-                            <button onClick={() => onDevolver(enc)} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '6px', padding: '5px 10px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                              Marcar Devuelta
+                            <button
+                              onClick={() => onDevolver(enc)}
+                              title="Marcar Devuelta"
+                              style={{ background: '#fee2e2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '5px', padding: '4px 8px', fontSize: '11px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
+                            >
+                              <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>assignment_return</span>
+                              Devolver
                             </button>
                           )}
                         </div>

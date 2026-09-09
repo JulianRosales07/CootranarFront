@@ -5,6 +5,7 @@ import { Header } from './Header';
 import { useSidebar } from '../../context/SidebarContext';
 import { useAuth } from '../../hooks/useAuth';
 import { perfilApi } from '../../../infrastructure/services/perfilApi';
+import { SonarGrid } from '@/components/ui/sonar-grid';
 
 interface LayoutProps {
   children: ReactNode;
@@ -36,7 +37,7 @@ export const Layout = ({ children, hideHeader, isLoading = false }: LayoutProps)
 
   return (
     <div
-      className="flex h-screen overflow-hidden"
+      className="flex h-screen overflow-hidden relative"
       style={{
         backgroundColor: isDark ? '#09090b' : '#f8fafc',
         color: isDark ? '#f8fafc' : '#0f172a',
@@ -44,10 +45,26 @@ export const Layout = ({ children, hideHeader, isLoading = false }: LayoutProps)
         transition: 'background-color 0.25s ease, color 0.25s ease',
       }}
     >
+      {/* Fondo interactivo SonarGrid */}
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
+        <SonarGrid
+          className="w-full h-full cursor-default"
+          color={isDark ? 'rgba(96, 165, 250, 0.4)' : 'rgba(13, 59, 142, 0.25)'}
+          spacing={28}
+          dotRadius={1.4}
+          baseOpacity={isDark ? 0.25 : 0.18}
+          pingEvery={3.5}
+          speed={240}
+          ringWidth={95}
+          amplitude={2.0}
+          interactive={true}
+        />
+      </div>
+
       <Sidebar isLoading={isLoading} />
       {/* Main content area - scrollable */}
       <div
-        className="flex-1 flex flex-col overflow-hidden"
+        className="flex-1 flex flex-col overflow-hidden relative z-10"
         style={{
           marginLeft: `${ml}px`,
           width: isMobile ? '100%' : 'auto',
@@ -80,7 +97,9 @@ export const Layout = ({ children, hideHeader, isLoading = false }: LayoutProps)
               flexShrink: 0,
               padding: isMobile ? '16px 14px' : '16px 32px',
               borderTop: isDark ? '1px solid rgba(255, 255, 255, 0.05)' : '1px solid rgba(0, 0, 0, 0.05)',
-              backgroundColor: isDark ? '#09090b' : '#f8fafc',
+              backgroundColor: isDark ? 'rgba(9, 9, 11, 0.8)' : 'rgba(248, 250, 252, 0.8)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
               display: 'flex',
               flexDirection: isMobile ? 'column' : 'row',
               justifyContent: 'space-between',

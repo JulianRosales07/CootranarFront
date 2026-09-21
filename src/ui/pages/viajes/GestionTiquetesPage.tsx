@@ -392,7 +392,16 @@ const ModalDetalle = ({ tiquete, viaje, onClose, onValidar, validando, onDescarg
   descargandoPdfId: number | null;
   onReprogramar: (t: Tiquete) => void;
 }) => {
+  const { theme } = useSidebar();
+  const isDark = theme === 'dark';
   const descargando = descargandoPdfId === tiquete.idtiquete;
+
+  // Los degradados no los puede reescribir el CSS de modo oscuro (que actúa por
+  // selectores sobre el atributo style), así que se resuelve aquí por tema.
+  const fondoAsientoDestacado = isDark
+    ? 'linear-gradient(135deg, rgba(30,58,138,0.38), rgba(15,76,129,0.22))'
+    : `linear-gradient(135deg, ${C.secondaryFixed}, #e8f0fe)`;
+
   const seccion = (titulo: string, icono: string, children: React.ReactNode) => (
     <div style={{ marginBottom: '20px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', paddingBottom: '8px', borderBottom: `1px solid ${C.outlineVariant}` }}>
@@ -459,7 +468,8 @@ const ModalDetalle = ({ tiquete, viaje, onClose, onValidar, validando, onDescarg
 
           {/* Asiento destacado */}
           <div style={{
-            background: `linear-gradient(135deg, ${C.secondaryFixed}, #e8f0fe)`,
+            background: fondoAsientoDestacado,
+            border: isDark ? '1px solid rgba(96, 165, 250, 0.35)' : 'none',
             borderRadius: '14px', padding: '16px 20px', marginBottom: '20px',
             display: 'flex', alignItems: 'center', gap: '16px',
           }}>

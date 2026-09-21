@@ -26,6 +26,7 @@ export const ROUTES = {
   TARIFAS_ENCOMIENDAS: '/encomiendas/tarifas',
   TARIFAS_RUTA: '/rutas/tarifas',
   REPORTE_INGRESOS: '/reportes/ingresos-por-bus',
+  CONFIGURACION_MILLAS: '/millas/configuracion',
   DEPARTAMENTOS: '/departamentos',
   PERFIL: '/perfil',
 } as const;

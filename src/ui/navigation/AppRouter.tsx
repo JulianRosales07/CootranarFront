@@ -17,6 +17,7 @@ import { ViajesPage } from '../pages/viajes/ViajesPage';
 import { TiposServicioPage } from '../pages/tipos-servicio/TiposServicioPage';
 import { TiposBusPage } from '../pages/tipos-bus/TiposBusPage';
 import { RutasPage } from '../pages/rutas/RutasPage';
+import { ConfiguracionMillasPage } from '../pages/millas/ConfiguracionMillasPage';
 import { TarifasRutaPage } from '../pages/rutas/TarifasRutaPage';
 import { ConfiguracionMasivaTarifasPage } from '../pages/rutas/ConfiguracionMasivaTarifasPage';
 import { TaquillerosPage } from '../pages/empleados/TaquillerosPage';
@@ -77,6 +78,7 @@ export const AppRouter = () => {
             <Route path={ROUTES.TIPOS_BUS} element={<TiposBusPage />} />
             <Route path={ROUTES.TAQUILLEROS} element={<TaquillerosPage />} />
             <Route path={ROUTES.USUARIOS} element={<UsuariosPage />} />
+            <Route path={ROUTES.CONFIGURACION_MILLAS} element={<ConfiguracionMillasPage />} />
           </Route>
 
           <Route path="/" element={<Navigate to={ROUTES.LOGIN} replace />} />

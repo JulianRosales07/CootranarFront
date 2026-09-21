@@ -75,6 +75,12 @@ const sections: NavSection[] = [
       { path: ROUTES.TAQUILLEROS, label: 'Taquilleros', icon: 'assignment_ind', descripcion: 'Asignación de turnos, apertura y arqueo de taquillas.' },
     ],
   },
+  {
+    title: 'Fidelización',
+    items: [
+      { path: ROUTES.CONFIGURACION_MILLAS, label: 'Programa de Millas', icon: 'loyalty', descripcion: 'Reglas de acumulación, niveles del club, recompensas y promociones.' },
+    ],
+  },
 ];
 
 interface SidebarProps {

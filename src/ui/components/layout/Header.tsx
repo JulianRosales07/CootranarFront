@@ -98,6 +98,16 @@ const getPageHeaderInfo = (pathname: string) => {
           </>
         ),
       };
+    case ROUTES.CONFIGURACION_MILLAS:
+      return {
+        title: 'Programa de Millas',
+        breadcrumbs: (
+          <>
+            Inicio &rsaquo; Fidelización &rsaquo;{' '}
+            <span style={{ color: '#0D3B8E', fontWeight: 600 }}>Programa de Millas</span>
+          </>
+        ),
+      };
     case ROUTES.TAQUILLA:
       return {
         title: 'Venta de Tiquetes',

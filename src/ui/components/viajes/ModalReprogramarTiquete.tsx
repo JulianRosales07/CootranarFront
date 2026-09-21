@@ -3,6 +3,7 @@ import taquillaApiService from '../../../infrastructure/services/taquillaApi';
 import asientosApiService from '../../../infrastructure/services/asientosApi';
 import metodosPagoApiService from '../../../infrastructure/services/metodosPagoApi';
 import { rutasApi } from '../../../infrastructure/services/rutasApi';
+import { SelectorAsientosBus } from './SelectorAsientosBus';
 
 // ── Paleta (misma que GestionTiquetesPage) ───────────────────────────────────
 const C = {
@@ -355,14 +356,6 @@ export const ModalReprogramarTiquete = ({ tiquete, viajeActual, onClose, onExito
       formaPago, tiquete, asientoNuevo, onExito]);
 
   // ── Helpers de render ──────────────────────────────────────────────────────
-  const esAsientoActual = (a: AsientoDisponible) =>
-    Boolean(esMismoViaje && tiquete.idasientoviaje && a.idasientoviaje === tiquete.idasientoviaje);
-
-  const asientoSeleccionable = (a: AsientoDisponible) =>
-    a.estado === 'LIBRE' || esAsientoActual(a);
-
-  const pisos = [...new Set(asientos.map(a => a.piso))].sort((x, y) => x - y);
-
   const campoResumen = (label: string, valor: string) => (
     <div key={label}>
       <p style={{ ...labelStyle, marginBottom: '2px' }}>{label}</p>
@@ -633,56 +626,14 @@ export const ModalReprogramarTiquete = ({ tiquete, viajeActual, onClose, onExito
 
               {/* Asientos */}
               <p style={labelStyle}>Asiento en el viaje destino</p>
-              {cargandoAsientos ? (
-                <p style={{ color: C.onSurfaceVariant, fontFamily: FONT, fontSize: '13px', padding: '16px 0' }}>
-                  Cargando asientos disponibles…
-                </p>
-              ) : asientos.length === 0 ? (
-                <p style={{ color: C.onSurfaceVariant, fontFamily: FONT, fontSize: '13px', padding: '16px 0' }}>
-                  Selecciona el tramo para ver los asientos.
-                </p>
-              ) : (
-                pisos.map(piso => (
-                  <div key={piso} style={{ marginBottom: '14px' }}>
-                    {pisos.length > 1 && (
-                      <p style={{ fontSize: '11.5px', fontWeight: 700, color: C.onSurfaceVariant, margin: '0 0 7px', fontFamily: FONT }}>
-                        {piso === 1 ? 'Primer piso' : `Piso ${piso}`}
-                      </p>
-                    )}
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
-                      {asientos.filter(a => a.piso === piso).map(a => {
-                        const actual = esAsientoActual(a);
-                        const libre = asientoSeleccionable(a);
-                        const sel = idAsientoNuevo === a.idasientoviaje;
-                        const fondo = sel ? C.primary : actual ? C.warningBg : libre ? '#fff' : '#f1f5f9';
-                        const borde = sel ? C.primary : actual ? C.warning : libre ? C.outlineVariant : '#e2e8f0';
-                        const color = sel ? '#fff' : actual ? C.warning : libre ? C.onSurface : '#94a3b8';
-                        return (
-                          <button
-                            key={a.idasientoviaje}
-                            onClick={() => libre && setIdAsientoNuevo(a.idasientoviaje)}
-                            disabled={!libre}
-                            title={
-                              actual ? 'Asiento actual del tiquete'
-                                : libre ? `Asiento ${a.numeroasiento}${a.espoltrona ? ' (poltrona)' : ''}`
-                                : `Asiento ${a.numeroasiento} no disponible (${a.estado})`
-                            }
-                            style={{
-                              width: '46px', height: '46px', borderRadius: '9px', cursor: libre ? 'pointer' : 'not-allowed',
-                              background: fondo, border: `1.5px solid ${borde}`, color,
-                              fontSize: '13px', fontWeight: 800, fontFamily: FONT,
-                              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', lineHeight: 1.1,
-                            }}
-                          >
-                            {a.numeroasiento}
-                            {a.espoltrona && <span style={{ fontSize: '8px', fontWeight: 700 }}>POLT</span>}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))
-              )}
+              <SelectorAsientosBus
+                viaje={viajeDestino}
+                asientos={asientos}
+                idAsientoSeleccionado={idAsientoNuevo}
+                onSeleccionar={setIdAsientoNuevo}
+                idAsientoActual={esMismoViaje ? tiquete.idasientoviaje ?? null : null}
+                cargando={cargandoAsientos}
+              />
 
               {/* Resumen de tarifa */}
               {asientoNuevo && (

@@ -11,6 +11,14 @@ export const asientosApiService = {
     return httpClient.get(`/asientos/viaje/${idViaje}`);
   },
 
+  // Obtener asientos de un viaje con la disponibilidad calculada para un tramo
+  // (un asiento puede estar vendido en un tramo y libre en otro)
+  obtenerAsientosViajePorTramo: (idViaje: number, idPuntoOrigen: number, idPuntoDestino: number) => {
+    return httpClient.get(`/asientos/viaje/${idViaje}`, {
+      params: { idPuntoOrigen, idPuntoDestino },
+    });
+  },
+
   // Reservar asientos (múltiples)
   reservarAsientos: async (data: ReservarAsientosData) => {
     // El backend solo tiene endpoint para reservar asientos individuales

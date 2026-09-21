@@ -1,6 +1,8 @@
 import { useState, useCallback } from 'react';
 import { Layout } from '../../components/layout/Layout';
 import taquillaApiService from '../../../infrastructure/services/taquillaApi';
+import { ModalReprogramarTiquete } from '../../components/viajes/ModalReprogramarTiquete';
+import { useSidebar } from '../../context/SidebarContext';
 
 // ── Paleta ────────────────────────────────────────────────────────────────────
 const C = {
@@ -54,11 +56,17 @@ interface ViajeResumen {
   nombretipobus: string;
   asientoslibres: number;
   totalasientos: number;
+  // En viajes de paso la disponibilidad real es la del tramo buscado
+  asientoslibrestramo?: number;
+  tipoResultado?: 'DIRECTO' | 'DE_PASO';
+  idruta?: number;
+  idtipobus?: number;
 }
 
 interface Tiquete {
   idtiquete: number;
   codigotiquete?: string;
+  idasientoviaje?: number;
   numeroasiento: number;
   piso?: number;
   espoltrona?: boolean;
@@ -80,6 +88,9 @@ interface Tiquete {
   destinotramo?: string;
   // PDF
   urlpdf?: string | null;
+  // Reprogramación
+  vecesreprogramado?: number;
+  fechaultimareprogramacion?: string | null;
 }
 
 // ── Buscador de viajes ────────────────────────────────────────────────────────
@@ -146,17 +157,30 @@ const BuscadorViajes = ({ onBuscar, cargando }: BuscadorProps) => {
 
 // ── Card de viaje en la lista ─────────────────────────────────────────────────
 const ViajeCard = ({ viaje, seleccionado, onClick }: { viaje: ViajeResumen; seleccionado: boolean; onClick: () => void }) => {
-  const pct = Math.round(((viaje.totalasientos - viaje.asientoslibres) / Math.max(viaje.totalasientos, 1)) * 100);
+  const { theme } = useSidebar();
+  const isDark = theme === 'dark';
+
+  // En un viaje de paso lo que importa es la disponibilidad del tramo buscado
+  const libres = Number(viaje.asientoslibrestramo ?? viaje.asientoslibres ?? 0);
+  const total = Number(viaje.totalasientos ?? 0);
+  const ocupados = Math.max(total - libres, 0);
+  const pct = total > 0 ? Math.min(Math.round((ocupados / total) * 100), 100) : 0;
   const barColor = pct > 80 ? '#ef4444' : pct > 50 ? '#f59e0b' : '#22c55e';
+
+  // El estado seleccionado necesita fondo y halo propios: el CSS global de modo
+  // oscuro no reescribe box-shadow y dejaba la tarjeta clara con texto claro.
+  const fondoSeleccionado = isDark ? 'rgba(30, 58, 138, 0.32)' : '#f0f5ff';
+  const haloSeleccionado = isDark ? '0 0 0 3px rgba(96, 165, 250, 0.35)' : `0 0 0 3px ${C.secondaryFixed}`;
+  const bordeSeleccionado = isDark ? '2px solid #60a5fa' : `2px solid ${C.secondary}`;
 
   return (
     <div
       onClick={onClick}
       style={{
         padding: '16px 18px', cursor: 'pointer', borderRadius: '12px',
-        border: seleccionado ? `2px solid ${C.secondary}` : `1px solid ${C.outlineVariant}`,
-        background: seleccionado ? '#f0f5ff' : '#fff',
-        boxShadow: seleccionado ? `0 0 0 3px ${C.secondaryFixed}` : '0 1px 4px rgba(0,0,0,0.04)',
+        border: seleccionado ? bordeSeleccionado : `1px solid ${C.outlineVariant}`,
+        background: seleccionado ? fondoSeleccionado : '#fff',
+        boxShadow: seleccionado ? haloSeleccionado : '0 1px 4px rgba(0,0,0,0.04)',
         transition: 'all 0.15s', marginBottom: '10px',
       }}
     >
@@ -195,7 +219,8 @@ const ViajeCard = ({ viaje, seleccionado, onClick }: { viaje: ViajeResumen; sele
           <div style={{ width: `${pct}%`, height: '100%', background: barColor, borderRadius: '999px', transition: 'width 0.5s' }} />
         </div>
         <span style={{ fontSize: '11px', fontWeight: '700', color: barColor, fontFamily: FONT, whiteSpace: 'nowrap' }}>
-          {viaje.asientoslibres} libres / {viaje.totalasientos}
+          {libres} libres{total > 0 ? ` / ${total}` : ''}
+          {ocupados > 0 ? ` · ${ocupados} ocupados` : ''}
         </span>
       </div>
     </div>
@@ -218,13 +243,14 @@ const EstadoBadge = ({ validado }: { validado?: boolean }) => {
 };
 
 // ── Fila de tiquete en tabla ──────────────────────────────────────────────────
-const TiqueteFila = ({ t, onVerDetalle, onValidar, validando, onDescargarPdf, descargandoPdfId }: {
+const TiqueteFila = ({ t, onVerDetalle, onValidar, validando, onDescargarPdf, descargandoPdfId, onReprogramar }: {
   t: Tiquete;
   onVerDetalle: (t: Tiquete) => void;
   onValidar: (t: Tiquete) => void;
   validando: boolean;
   onDescargarPdf: (t: Tiquete) => void;
   descargandoPdfId: number | null;
+  onReprogramar: (t: Tiquete) => void;
 }) => {
   const [hover, setHover] = useState(false);
   const descargando = descargandoPdfId === t.idtiquete;
@@ -247,6 +273,16 @@ const TiqueteFila = ({ t, onVerDetalle, onValidar, validando, onDescargarPdf, de
           {t.piso === 1 ? '1er Piso' : t.piso === 2 ? '2do Piso' : '—'}
           {t.espoltrona ? ' · Poltrona' : ''}
         </div>
+        {Boolean(t.vecesreprogramado) && (
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: '3px', marginTop: '4px',
+            padding: '2px 7px', borderRadius: '999px', background: C.warningBg, color: C.warning,
+            fontSize: '9.5px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: FONT,
+          }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '11px' }}>event_repeat</span>
+            Reprogramado {t.vecesreprogramado}x
+          </div>
+        )}
       </td>
       <td style={TD}>
         <div style={{ fontWeight: '700', fontSize: '13px', color: C.onSurface, fontFamily: FONT }}>
@@ -291,6 +327,18 @@ const TiqueteFila = ({ t, onVerDetalle, onValidar, validando, onDescargarPdf, de
             </span>
             {descargando ? 'Abriendo…' : 'PDF'}
           </button>
+          <button
+            onClick={() => onReprogramar(t)}
+            title="Cambiar este tiquete a otro viaje (sin devolución de dinero)"
+            style={{
+              padding: '6px 10px', background: C.warningBg, color: C.warning, border: `1px solid #fcd34d`,
+              borderRadius: '7px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px',
+              fontSize: '12px', fontWeight: '700', fontFamily: FONT,
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>event_repeat</span>
+            Reprogramar
+          </button>
           {!t.validado && (
             <button
               onClick={() => onValidar(t)}
@@ -334,7 +382,7 @@ const TH: React.CSSProperties = {
 };
 
 // ── Modal de detalle del tiquete ──────────────────────────────────────────────
-const ModalDetalle = ({ tiquete, viaje, onClose, onValidar, validando, onDescargarPdf, descargandoPdfId }: {
+const ModalDetalle = ({ tiquete, viaje, onClose, onValidar, validando, onDescargarPdf, descargandoPdfId, onReprogramar }: {
   tiquete: Tiquete;
   viaje: ViajeResumen | null;
   onClose: () => void;
@@ -342,6 +390,7 @@ const ModalDetalle = ({ tiquete, viaje, onClose, onValidar, validando, onDescarg
   validando: boolean;
   onDescargarPdf: (t: Tiquete) => void;
   descargandoPdfId: number | null;
+  onReprogramar: (t: Tiquete) => void;
 }) => {
   const descargando = descargandoPdfId === tiquete.idtiquete;
   const seccion = (titulo: string, icono: string, children: React.ReactNode) => (
@@ -463,7 +512,24 @@ const ModalDetalle = ({ tiquete, viaje, onClose, onValidar, validando, onDescarg
           {seccion('Información de Venta', 'receipt_long', <>
             {campo('Fecha de Venta', tiquete.fechaventa ? fmtFecha(tiquete.fechaventa) : '—')}
             {campo('Forma de Pago', tiquete.formapago)}
+            {campo('Veces Reprogramado', String(tiquete.vecesreprogramado ?? 0))}
+            {campo('Última Reprogramación', tiquete.fechaultimareprogramacion ? fmtFecha(tiquete.fechaultimareprogramacion) : '—')}
           </>)}
+
+          {/* Botón reprogramar */}
+          <button
+            onClick={() => { onReprogramar(tiquete); onClose(); }}
+            title="Cambiar este tiquete a otro viaje (sin devolución de dinero)"
+            style={{
+              width: '100%', padding: '13px', background: C.warningBg, color: C.warning,
+              border: `1.5px solid #fcd34d`, borderRadius: '12px', fontSize: '14px', fontWeight: '800',
+              cursor: 'pointer', fontFamily: FONT, display: 'flex', alignItems: 'center',
+              justifyContent: 'center', gap: '8px', marginBottom: '10px',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '19px' }}>event_repeat</span>
+            Reprogramar a otro viaje
+          </button>
 
           {/* Botón descargar PDF */}
           <button
@@ -539,6 +605,9 @@ export const GestionTiquetesPage = () => {
 
   // Estado descarga de PDF
   const [descargandoPdfId, setDescargandoPdfId] = useState<number | null>(null);
+
+  // Estado reprogramación
+  const [tiqueteReprogramar, setTiqueteReprogramar] = useState<Tiquete | null>(null);
 
   // Filtro/búsqueda en tabla
   const [filtroBusqueda, setFiltroBusqueda] = useState('');
@@ -624,6 +693,16 @@ export const GestionTiquetesPage = () => {
     }
   }, []);
 
+  // ── Reprogramar tiquete ────────────────────────────────────────────────────
+  // El tiquete no se anula ni se devuelve el dinero: se mueve a otro viaje.
+  // Si cambió de viaje desaparece de esta lista, por eso se recarga al terminar.
+  const handleReprogramacionExitosa = useCallback((mensaje: string) => {
+    setTiqueteReprogramar(null);
+    setMsgValidacion({ tipo: 'ok', texto: mensaje });
+    setTimeout(() => setMsgValidacion(null), 8000);
+    if (viajeSeleccionado) handleSeleccionarViaje(viajeSeleccionado);
+  }, [viajeSeleccionado, handleSeleccionarViaje]);
+
   // ── Filtrado de tiquetes ───────────────────────────────────────────────────
   const tiquetesFiltrados = tiquetes.filter(t => {
     const q = filtroBusqueda.toLowerCase();
@@ -660,6 +739,23 @@ export const GestionTiquetesPage = () => {
       <div style={{ marginBottom: '24px' }}>
         <BuscadorViajes onBuscar={handleBuscarViajes} cargando={cargandoViajes} />
       </div>
+
+      {/* Mensaje de validación / reprogramación */}
+      {msgValidacion && (
+        <div style={{
+          padding: '12px 18px', borderRadius: '10px', marginBottom: '16px',
+          background: msgValidacion.tipo === 'ok' ? C.successBg : C.errorBg,
+          border: `1px solid ${msgValidacion.tipo === 'ok' ? '#86efac' : '#fca5a5'}`,
+          color: msgValidacion.tipo === 'ok' ? C.success : C.error,
+          fontWeight: '700', fontSize: '14px', fontFamily: FONT,
+          display: 'flex', alignItems: 'center', gap: '10px',
+        }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+            {msgValidacion.tipo === 'ok' ? 'check_circle' : 'error'}
+          </span>
+          {msgValidacion.texto}
+        </div>
+      )}
 
       {/* Layout de dos columnas */}
       <div className="gestion-tiquetes-grid" style={{ display: 'grid', gridTemplateColumns: viajes.length > 0 ? '320px 1fr' : '1fr', gap: '20px', alignItems: 'start' }}>
@@ -753,23 +849,6 @@ export const GestionTiquetesPage = () => {
           {/* Panel principal con tiquetes */}
           {viajeSeleccionado && tiquetes.length > 0 && !cargandoTiquetes && (
             <>
-              {/* Toast validación */}
-              {msgValidacion && (
-                <div style={{
-                  padding: '12px 18px', borderRadius: '10px', marginBottom: '16px',
-                  background: msgValidacion.tipo === 'ok' ? C.successBg : C.errorBg,
-                  border: `1px solid ${msgValidacion.tipo === 'ok' ? '#86efac' : '#fca5a5'}`,
-                  color: msgValidacion.tipo === 'ok' ? C.success : C.error,
-                  fontWeight: '700', fontSize: '14px', fontFamily: FONT,
-                  display: 'flex', alignItems: 'center', gap: '10px',
-                }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
-                    {msgValidacion.tipo === 'ok' ? 'check_circle' : 'error'}
-                  </span>
-                  {msgValidacion.texto}
-                </div>
-              )}
-
               {/* Stats del viaje */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '16px' }}>
                 {[
@@ -863,6 +942,7 @@ export const GestionTiquetesPage = () => {
                             validando={validando}
                             onDescargarPdf={handleDescargarPdf}
                             descargandoPdfId={descargandoPdfId}
+                            onReprogramar={setTiqueteReprogramar}
                           />
                         ))
                       )}
@@ -899,6 +979,17 @@ export const GestionTiquetesPage = () => {
           validando={validando}
           onDescargarPdf={handleDescargarPdf}
           descargandoPdfId={descargandoPdfId}
+          onReprogramar={setTiqueteReprogramar}
+        />
+      )}
+
+      {/* Modal reprogramación */}
+      {tiqueteReprogramar && (
+        <ModalReprogramarTiquete
+          tiquete={tiqueteReprogramar}
+          viajeActual={viajeSeleccionado}
+          onClose={() => setTiqueteReprogramar(null)}
+          onExito={handleReprogramacionExitosa}
         />
       )}
     </Layout>

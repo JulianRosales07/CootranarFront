@@ -4,6 +4,7 @@ import type {
   PasajeroData,
   ConfirmarVentaData,
   CancelarOperacionData,
+  ReprogramarTiqueteData,
 } from '../../domain/repositories/TaquillaRepository';
 import { httpClient } from '../api/httpClient';
 
@@ -50,6 +51,14 @@ export class ApiTaquillaRepository implements TaquillaRepository {
 
   async obtenerTiquetesViaje(idViaje: number): Promise<any> {
     return httpClient.get(`/taquilla/viajes/${idViaje}/tiquetes`);
+  }
+
+  async reprogramarTiquete(idTiquete: number, data: ReprogramarTiqueteData): Promise<any> {
+    return httpClient.post(`/taquilla/tiquetes/${idTiquete}/reprogramar`, data);
+  }
+
+  async obtenerReprogramacionesTiquete(idTiquete: number): Promise<any> {
+    return httpClient.get(`/taquilla/tiquetes/${idTiquete}/reprogramaciones`);
   }
 }
 

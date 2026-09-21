@@ -254,8 +254,33 @@ html.dark [style*="color: #92400e"],
 html.dark [style*="color: #713f12"],
 html.dark [style*="color: '#78350f'"],
 html.dark [style*="color: '#92400e'"],
-html.dark [style*="color: '#713f12'"] {
-  color: #fde68a !important;
+html.dark [style*="color: '#713f12'"],
+html.dark [style*="color: rgb(120, 53, 15)"],
+html.dark [style*="color: rgb(146, 64, 14)"],
+html.dark [style*="color: rgb(113, 63, 18)"],
+html.dark [style*="color: rgb(180, 83, 9)"],
+html.dark [style*="color: #b45309"] {
+  color: #fbbf24 !important;
+}
+
+/* Rojos oscuros usados como texto sobre superficies claras (#b91c1c, #dc2626).
+   Las reglas de la sección 8 son posteriores, así que un chip con fondo rojo
+   sigue ganando con su propio tono. */
+html.dark [style*="color: rgb(185, 28, 28)"],
+html.dark [style*="color: rgb(220, 38, 38)"],
+html.dark [style*="color: rgb(186, 26, 26)"],
+html.dark [style*="color: #b91c1c"],
+html.dark [style*="color: #dc2626"],
+html.dark [style*="color: #ba1a1a"] {
+  color: #fca5a5 !important;
+}
+
+/* Verdes oscuros usados como texto (#15803d, #166534) */
+html.dark [style*="color: rgb(21, 128, 61)"],
+html.dark [style*="color: rgb(22, 101, 52)"],
+html.dark [style*="color: #15803d"],
+html.dark [style*="color: #166534"] {
+  color: #4ade80 !important;
 }
 
 /* ── 5. Tarjetas, Contenedores y Superficies ── */
@@ -379,10 +404,24 @@ html.dark [style*="background-color: rgb(254, 242, 242)"],
 html.dark [style*="background-color: #fef2f2"],
 html.dark [style*="background: #fef2f2"],
 html.dark [style*="background-color: #fff1f2"],
-html.dark [style*="background: #fff1f2"] {
+html.dark [style*="background: #fff1f2"],
+html.dark [style*="rgb(254, 226, 226)"],
+html.dark [style*="background-color: rgb(254, 226, 226)"],
+html.dark [style*="background-color: #fee2e2"],
+html.dark [style*="background: #fee2e2"] {
   background-color: rgba(220, 38, 38, 0.2) !important;
   border-color: rgba(239, 68, 68, 0.35) !important;
   color: #fca5a5 !important;
+}
+
+/* Superficie azul muy clara usada en tarjetas/paneles resaltados (#f0f5ff).
+   Solo se cambia el fondo: los textos hijos ya los reasignan las reglas 1-4. */
+html.dark [style*="rgb(240, 245, 255)"],
+html.dark [style*="background-color: rgb(240, 245, 255)"],
+html.dark [style*="background-color: #f0f5ff"],
+html.dark [style*="background: #f0f5ff"] {
+  background-color: rgba(30, 58, 138, 0.28) !important;
+  border-color: rgba(96, 165, 250, 0.4) !important;
 }
 
 html.dark [style*="rgb(254, 243, 199)"],

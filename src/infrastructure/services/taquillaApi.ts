@@ -37,6 +37,22 @@ export interface CancelarOperacionData {
   idviaje: number;
 }
 
+/**
+ * Reprogramación: el tiquete se mueve a otro viaje / asiento / tramo.
+ * Nunca se devuelve dinero. idPuntoOrigen / idPuntoDestino solo son obligatorios
+ * cuando el viaje destino pertenece a otra ruta. idMetodoPago / formaPago solo
+ * se envían cuando el tramo nuevo cuesta más que lo ya pagado.
+ */
+export interface ReprogramarTiqueteData {
+  idViajeNuevo: number;
+  idAsientoViajeNuevo: number;
+  motivo: string;
+  idPuntoOrigen?: number;
+  idPuntoDestino?: number;
+  idMetodoPago?: number;
+  formaPago?: 'CONTADO' | 'CREDITO';
+}
+
 export const taquillaApiService = {
   // Buscar viajes disponibles
   buscarViajes: (params: BuscarViajesParams) => {
@@ -90,6 +106,16 @@ export const taquillaApiService = {
   // Obtener tiquetes de un viaje
   obtenerTiquetesViaje: (idViaje: number) => {
     return httpClient.get(`/taquilla/viajes/${idViaje}/tiquetes`);
+  },
+
+  // Reprogramar un tiquete a otro viaje/asiento (sin devolución de dinero)
+  reprogramarTiquete: (idTiquete: number, data: ReprogramarTiqueteData) => {
+    return httpClient.post(`/taquilla/tiquetes/${idTiquete}/reprogramar`, data);
+  },
+
+  // Historial de reprogramaciones de un tiquete
+  obtenerReprogramacionesTiquete: (idTiquete: number) => {
+    return httpClient.get(`/taquilla/tiquetes/${idTiquete}/reprogramaciones`);
   },
 };
 

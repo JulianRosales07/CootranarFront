@@ -35,6 +35,22 @@ export interface CancelarOperacionData {
   idviaje: number;
 }
 
+/**
+ * Reprogramación: el tiquete se mueve a otro viaje / asiento / tramo.
+ * Nunca se devuelve dinero. idPuntoOrigen / idPuntoDestino solo son obligatorios
+ * cuando el viaje destino pertenece a otra ruta. idMetodoPago / formaPago solo
+ * se envían cuando el tramo nuevo cuesta más que lo ya pagado.
+ */
+export interface ReprogramarTiqueteData {
+  idViajeNuevo: number;
+  idAsientoViajeNuevo: number;
+  motivo: string;
+  idPuntoOrigen?: number;
+  idPuntoDestino?: number;
+  idMetodoPago?: number;
+  formaPago?: 'CONTADO' | 'CREDITO';
+}
+
 export interface TaquillaRepository {
   buscarViajes(params: BuscarViajesParams): Promise<any>;
   obtenerPuntosDestino(idViaje: number, idPuntoOrigen: number, idTipoBus: number, piso: number): Promise<any>;
@@ -46,4 +62,6 @@ export interface TaquillaRepository {
   abrirTaquilla(): Promise<any>;
   obtenerTarifaTramo(idPuntoOrigen: number, idPuntoDestino: number, idTipoBus: number, piso: number): Promise<any>;
   obtenerTiquetesViaje(idViaje: number): Promise<any>;
+  reprogramarTiquete(idTiquete: number, data: ReprogramarTiqueteData): Promise<any>;
+  obtenerReprogramacionesTiquete(idTiquete: number): Promise<any>;
 }

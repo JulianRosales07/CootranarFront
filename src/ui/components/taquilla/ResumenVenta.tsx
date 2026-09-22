@@ -52,6 +52,7 @@ function getIcon(nombre: string) {
   if (l.includes('nequi') || l.includes('daviplata') || l.includes('dav')) return 'smartphone';
   if (l.includes('convenio') || l.includes('empresa')) return 'business_center';
   if (l.includes('transferencia') || l.includes('pse') || l.includes('banco')) return 'account_balance';
+  if (l.includes('milla') || l.includes('puntos')) return 'stars';
   return 'monetization_on';
 }
 

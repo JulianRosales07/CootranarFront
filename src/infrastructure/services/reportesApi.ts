@@ -9,4 +9,8 @@ export const reportesApi = {
 
   detalleTiquetesPorVehiculo: (idVehiculo: string, params: Record<string, unknown> = {}) =>
     httpClient.get(`/reportes/ingresos-por-vehiculo/${idVehiculo}/tiquetes`, { params }),
+
+  ecommerceAnalytics: (params: Record<string, unknown> = {}) =>
+    httpClient.get('/reportes/ecommerce-analytics', { params }),
 };
+

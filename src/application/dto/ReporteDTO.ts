@@ -85,3 +85,99 @@ export interface PaginacionReporte {
   paginaActual: number;
   porPagina: number;
 }
+
+export interface EcommerceKPIs {
+  tiquetes_vendidos: number;
+  total_ingresos: number;
+  promedio_tiquete: number;
+  clientes_compradores: number;
+  viajes_con_ventas: number;
+}
+
+export interface EcommerceFunnel {
+  total_intentos: number;
+  aprobados: number;
+  pendientes: number;
+  rechazados: number;
+  monto_aprobado: number;
+  monto_total_intentado: number;
+  tasaConversion: number;
+  tasaAbandono: number;
+}
+
+export interface CanalComparativa {
+  canal: 'E-commerce' | 'Taquilla';
+  tiquetes: number;
+  ingresos: number;
+  promediotiquete: number;
+}
+
+export interface EcommerceComparativaCanales {
+  detalles: CanalComparativa[];
+  totalTiquetesGeneral: number;
+  totalIngresosGeneral: number;
+  penetracionVolumen: number;
+  penetracionIngresos: number;
+}
+
+export interface EcommerceTopRuta {
+  origen: string;
+  destino: string;
+  tiquetes: number;
+  totalingresos: number;
+  promediotiquete: number;
+}
+
+export interface EcommerceHoraInteraccion {
+  hora: number;
+  total_interacciones: number;
+  compras_exitosas: number;
+}
+
+export interface EcommerceTransaccionDetalle {
+  idpagowompi: number;
+  referencia: string;
+  monto: number;
+  estado: string;
+  fechacreacion: string;
+  nombrecliente: string;
+  correocliente: string | null;
+  idviaje: number;
+  fechasalida: string | null;
+  horasalida: string | null;
+  nombreruta: string | null;
+  cantidadasientos: number;
+  pasajeros: string;
+  origennombre: string;
+  destinonombre: string;
+}
+
+export interface EcommerceFidelizacion {
+  total_clientes_registrados: number;
+  total_canjes: number;
+  total_millas_redimidas: number;
+}
+
+export interface EcommerceEvaluacion {
+  estado: 'POSITIVO' | 'ATENCION' | 'INICIAL';
+  badge: string;
+  color: string;
+  mensaje: string;
+}
+
+export interface EcommerceAnalyticsResponse {
+  kpis: EcommerceKPIs;
+  funnel: EcommerceFunnel;
+  comparativaCanales: EcommerceComparativaCanales;
+  topRutas: EcommerceTopRuta[];
+  horasInteraccion: EcommerceHoraInteraccion[];
+  serieDiaria: IngresoDiario[];
+  transacciones: EcommerceTransaccionDetalle[];
+  fidelizacion: EcommerceFidelizacion;
+  evaluacion: EcommerceEvaluacion;
+  filtrosAplicados: {
+    fechaDesde: string | null;
+    fechaHasta: string | null;
+  };
+}
+

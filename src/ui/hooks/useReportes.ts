@@ -2,8 +2,9 @@ import { useQuery } from '@tanstack/react-query';
 import { reportesApi } from '../../infrastructure/services/reportesApi';
 import type {
   FiltrosReporte, TotalesReporte, IngresoVehiculo, IngresoDiario,
-  IngresoOficina, DetalleTiquete, PaginacionReporte,
+  IngresoOficina, DetalleTiquete, PaginacionReporte, EcommerceAnalyticsResponse,
 } from '../../application/dto/ReporteDTO';
+
 
 /** Convierte los filtros del frontend a query params, omitiendo los vacíos. */
 const construirParams = (filtros: FiltrosReporte): Record<string, unknown> => {
@@ -137,3 +138,28 @@ export const obtenerDetalleTiquetesParaExport = async (
 
   return acumulados;
 };
+
+/**
+ * Hook para consultar analítica, flujo de checkout y resultados de la plataforma E-commerce.
+ */
+export const useEcommerceAnalytics = (filtros: FiltrosReporte = {}) => {
+  const { data, isLoading, error, refetch, isFetching } = useQuery({
+    queryKey: ['reportes', 'ecommerce-analytics', filtros.fechaDesde, filtros.fechaHasta],
+    queryFn: async () => {
+      const params: Record<string, unknown> = {};
+      if (filtros.fechaDesde) params.fechaDesde = filtros.fechaDesde;
+      if (filtros.fechaHasta) params.fechaHasta = filtros.fechaHasta;
+      const response = await reportesApi.ecommerceAnalytics(params);
+      return response.data.data as EcommerceAnalyticsResponse;
+    },
+  });
+
+  return {
+    analytics: data ?? null,
+    isLoading,
+    isFetching,
+    error,
+    refetch,
+  };
+};
+

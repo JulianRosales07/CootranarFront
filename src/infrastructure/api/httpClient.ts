@@ -1,7 +1,14 @@
 import axios from 'axios';
 import { descifrarDataRecursivo } from '../../shared/utils/cryptoRsa';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+export const getApiBaseUrl = (): string => {
+  if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+    return '/api';
+  }
+  return import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+};
+
+export const API_BASE_URL = getApiBaseUrl();
 
 export const httpClient = axios.create({
   baseURL: API_BASE_URL,
@@ -50,6 +57,7 @@ httpClient.interceptors.response.use(
     if (status === 401) {
       const msg = (data?.message || '').toLowerCase();
       const esPermisos = msg.includes('permiso') || msg.includes('autorizado') || msg.includes('rol') || msg.includes('acceso') || msg.includes('no tiene');
+      const esExpiradoClaro = msg.includes('expirado') || msg.includes('expired') || msg.includes('jwt') || msg.includes('inválido') || msg.includes('invalido');
 
       console.log('[401 Debug] Mensaje:', msg);
 
@@ -59,8 +67,9 @@ httpClient.interceptors.response.use(
         const token = localStorage.getItem('authToken');
         const isLoginPage = window.location.pathname.includes('/login');
 
-        if (token && !isLoginPage) {
-          console.warn('⚠️ Error 401: Sesión no válida, expirada o token no proporcionado. Redirigiendo a Login...');
+        // Evitar bucle de redirección inmediata al loguear si aún se usa cookie-based-auth sin expiración clara
+        if (token && !isLoginPage && (esExpiradoClaro || (token !== 'cookie-based-auth' && token.trim() !== ''))) {
+          console.warn('⚠️ Error 401: Sesión no válida o expirada. Redirigiendo a Login...');
           localStorage.removeItem('authToken');
           localStorage.removeItem('usuario');
           window.location.href = '/login';

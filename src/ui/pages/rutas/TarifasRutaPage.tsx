@@ -4,6 +4,7 @@ import { Layout } from '../../components/layout/Layout';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { rutasApi } from '../../../infrastructure/services/rutasApi';
 import { tarifasRutaApi } from '../../../infrastructure/services/tarifasRutaApi';
+import { httpClient } from '../../../infrastructure/api/httpClient';
 import { BarraCompletitud } from '../../components/rutas/BarraCompletitud';
 import { ModalTarifa } from '../../components/rutas/ModalTarifa';
 import { useCompletitudTarifas } from '../../hooks/useCompletitudTarifas';
@@ -74,11 +75,8 @@ export const TarifasRutaPage = () => {
   const { data: tiposBus = [], isLoading: loadingTiposBus } = useQuery({
     queryKey: ['tipos-bus-activos'],
     queryFn: async () => {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/tipoBus/activos`, {
-        credentials: 'include',
-      });
-      const data = await response.json();
-      return data.data.tiposbus || [];
+      const response = await httpClient.get('/tipoBus/activos');
+      return response.data?.data?.tiposbus || response.data?.tiposbus || [];
     },
   });
 

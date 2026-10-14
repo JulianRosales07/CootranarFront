@@ -53,11 +53,13 @@ export class ApiAuthService implements AuthService {
         }
 
         // Intento de encontrar el token en cualquier lugar
-        let token = body.token || data.token || body.accessToken || data.accessToken || body.jwt || data.jwt || body.token_sesion;
+        let token = body.token || data?.token || body.accessToken || data?.accessToken || body.jwt || data?.jwt || body.token_sesion;
         
         if (!token && headers && (headers['authorization'] || headers['Authorization'])) {
           token = (headers['authorization'] || headers['Authorization']).replace('Bearer ', '');
         }
+
+        console.log('[ApiAuthService] Token en login:', token ? 'Token Bearer recibido con éxito' : 'Sin token directo (cookie-based-auth)');
 
         const usuario = data.usuario || body.usuario || data.user || body.user;
 

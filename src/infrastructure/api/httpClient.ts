@@ -15,7 +15,12 @@ httpClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('authToken');
   // Solo agregar el header Authorization si hay un token real (no el marcador de cookies)
   if (token && token !== 'undefined' && token !== 'null' && token !== 'cookie-based-auth' && token.trim() !== '') {
-    config.headers.Authorization = `Bearer ${token}`;
+    if (config.headers && typeof (config.headers as any).set === 'function') {
+      (config.headers as any).set('Authorization', `Bearer ${token}`);
+    } else {
+      config.headers = config.headers || {};
+      config.headers.Authorization = `Bearer ${token}`;
+    }
   }
   console.log(`[HTTP Request] ${config.method?.toUpperCase()} ${config.url}`);
   return config;

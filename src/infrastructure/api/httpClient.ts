@@ -44,26 +44,24 @@ httpClient.interceptors.response.use(
 
     if (status === 401) {
       const msg = (data?.message || '').toLowerCase();
-      const esTokenExpirado = msg.includes('expirado') || msg.includes('expired') || msg.includes('malformed') || msg.includes('jwt') || msg.includes('token inválido') || msg.includes('token invalido');
       const esPermisos = msg.includes('permiso') || msg.includes('autorizado') || msg.includes('rol') || msg.includes('acceso') || msg.includes('no tiene');
 
       console.log('[401 Debug] Mensaje:', msg);
-      console.log('[401 Debug] Es token expirado:', esTokenExpirado);
 
       if (esPermisos) {
         console.warn('⚠️ Error 401: Sin permisos suficientes. No se cierra sesión.');
-      } else if (esTokenExpirado) {
+      } else {
         const token = localStorage.getItem('authToken');
         const isLoginPage = window.location.pathname.includes('/login');
-        
-        if (token && token !== 'cookie-based-auth' && !isLoginPage) {
-          console.warn('⚠️ Error 401: Token expirado/inválido confirmado. Redirigiendo a Login...');
+
+        if (token && !isLoginPage) {
+          console.warn('⚠️ Error 401: Sesión no válida, expirada o token no proporcionado. Redirigiendo a Login...');
           localStorage.removeItem('authToken');
           localStorage.removeItem('usuario');
           window.location.href = '/login';
+        } else {
+          console.warn('⚠️ Error 401 puntual en petición:', url);
         }
-      } else {
-        console.warn('⚠️ Error 401 puntual en petición. No se cierra sesión automáticamente:', url);
       }
     }
     return Promise.reject(error);

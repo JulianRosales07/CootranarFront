@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { ROUTES } from '../../../shared/constants';
+import { isTokenExpired } from '../../../shared/utils/authUtils';
 import { Layout } from '../../components/layout/Layout';
 import { DashboardSkeleton } from '../../components/dashboard/DashboardSkeleton';
 import heroImg from '../../../assets/BusCootranar.jpg';
@@ -274,12 +275,12 @@ export const LoginPage = () => {
   const [showForm, setShowForm]     = useState(false); // controls form visibility on mobile
 
   const errorRef = useRef<HTMLDivElement>(null);
-  const { isAuthenticated, user, login } = useAuth();
+  const { isAuthenticated, user, token, login } = useAuth();
   const navigate  = useNavigate();
 
-  /* Redirigir de inmediato si ya está autenticado para evitar que 'atrás' lleve al login */
+  /* Redirigir de inmediato si ya está autenticado y el token sigue vigente */
   useEffect(() => {
-    if (isAuthenticated && user) {
+    if (isAuthenticated && user && token && !isTokenExpired(token)) {
       const targetRoute =
         user.nombrerol === 'TAQUILLERO'
           ? ROUTES.TAQUILLA
@@ -288,7 +289,7 @@ export const LoginPage = () => {
           : ROUTES.DASHBOARD;
       navigate(targetRoute, { replace: true });
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, user, token, navigate]);
 
   /* Inject keyframes once */
   useEffect(() => {

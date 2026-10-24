@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { descifrarDataRecursivo } from '../../shared/utils/cryptoRsa';
+import { isTokenExpired, clearAuthStorage } from '../../shared/utils/authUtils';
 
 export const getApiBaseUrl = (): string => {
   if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
@@ -18,10 +19,23 @@ export const httpClient = axios.create({
   withCredentials: true, // Permite enviar y recibir cookies
 });
 
+let isRedirecting = false;
+
 httpClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('authToken');
-  // Solo agregar el header Authorization si hay un token real (no el marcador de cookies)
-  if (token && token !== 'undefined' && token !== 'null' && token !== 'cookie-based-auth' && token.trim() !== '') {
+  const url = config.url || '';
+  const isLoginUrl = url.includes('/auth/login') || url.includes('/login');
+
+  if (token && !isLoginUrl) {
+    if (isTokenExpired(token)) {
+      console.warn('⚠️ Token JWT expirado antes de enviar petición. Limpiando sesión...');
+      clearAuthStorage();
+      if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+      }
+      return Promise.reject(new axios.Cancel('Sesión expirada'));
+    }
+
     if (config.headers && typeof (config.headers as any).set === 'function') {
       (config.headers as any).set('Authorization', `Bearer ${token}`);
     } else {
@@ -40,15 +54,25 @@ httpClient.interceptors.response.use(
     }
     return response;
   },
-  (error) => {
+  async (error) => {
+    if (axios.isCancel(error)) {
+      return Promise.reject(error);
+    }
 
     const status = error.response?.status;
     const url = error.config?.url;
-    const data = error.response?.data;
+    let data = error.response?.data;
+
+    // Intentar descifrar data si viene cifrado
+    if (data) {
+      try {
+        data = await descifrarDataRecursivo(data);
+      } catch {
+        // Mantener data tal como está si falla
+      }
+    }
 
     console.error(`[HTTP Error] ${status} en ${url}`, data);
-    console.log('[HTTP Error] Config:', error.config);
-    console.log('[HTTP Error] Headers:', error.config?.headers);
 
     if (status === 403) {
       console.warn('⚠️ Error 403: Sin permisos para este recurso.');
@@ -56,25 +80,22 @@ httpClient.interceptors.response.use(
 
     if (status === 401) {
       const msg = (data?.message || '').toLowerCase();
+      const esLoginUrl = url?.includes('/auth/login') || url?.includes('/login');
+      const isLoginPage = typeof window !== 'undefined' && window.location.pathname.includes('/login');
       const esPermisos = msg.includes('permiso') || msg.includes('autorizado') || msg.includes('rol') || msg.includes('acceso') || msg.includes('no tiene');
-      const esExpiradoClaro = msg.includes('expirado') || msg.includes('expired') || msg.includes('jwt') || msg.includes('inválido') || msg.includes('invalido');
 
       console.log('[401 Debug] Mensaje:', msg);
 
       if (esPermisos) {
         console.warn('⚠️ Error 401: Sin permisos suficientes. No se cierra sesión.');
-      } else {
-        const token = localStorage.getItem('authToken');
-        const isLoginPage = window.location.pathname.includes('/login');
+      } else if (!esLoginUrl) {
+        // En cualquier petición protegida no autorizada (token expirado, inválido o ausente)
+        console.warn('⚠️ Error 401: Sesión no válida o expirada. Redirigiendo a Login...');
+        clearAuthStorage();
 
-        // Evitar bucle de redirección inmediata al loguear si aún se usa cookie-based-auth sin expiración clara
-        if (token && !isLoginPage && (esExpiradoClaro || (token !== 'cookie-based-auth' && token.trim() !== ''))) {
-          console.warn('⚠️ Error 401: Sesión no válida o expirada. Redirigiendo a Login...');
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('usuario');
+        if (!isLoginPage && !isRedirecting) {
+          isRedirecting = true;
           window.location.href = '/login';
-        } else {
-          console.warn('⚠️ Error 401 puntual en petición:', url);
         }
       }
     }

@@ -81,10 +81,36 @@ export const DashboardPage = () => {
       {cargandoActual ? (
         <DashboardSkeleton loading={true} />
       ) : errorActual ? (
-        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '10px', padding: '20px 24px', color: '#dc2626' }}>
-          <p style={{ margin: 0, fontSize: '13px', fontWeight: 600 }}>
-            No se pudo cargar la información: {(errorActual as any)?.response?.data?.message || (errorActual as Error).message}
-          </p>
+        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '10px', padding: '20px 24px', color: '#dc2626', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+          <div>
+            <p style={{ margin: 0, fontSize: '13px', fontWeight: 600 }}>
+              No se pudo cargar la información: {(errorActual as any)?.response?.data?.message || (errorActual as Error).message}
+            </p>
+            <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#991b1b' }}>
+              {(errorActual as any)?.response?.status === 401 ? 'Tu sesión ha vencido o el token no es válido. Por favor vuelve a iniciar sesión.' : 'Verifica tu conexión o intenta nuevamente.'}
+            </p>
+          </div>
+          {(errorActual as any)?.response?.status === 401 && (
+            <button
+              onClick={() => {
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('usuario');
+                window.location.href = '/login';
+              }}
+              style={{
+                background: '#dc2626',
+                color: '#fff',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '6px',
+                fontSize: '12px',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              Iniciar Sesión
+            </button>
+          )}
         </div>
       ) : (
         <>

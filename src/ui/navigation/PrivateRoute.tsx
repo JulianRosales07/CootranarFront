@@ -1,19 +1,23 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { ROUTES } from '../../shared/constants';
+import { isTokenExpired, clearAuthStorage } from '../../shared/utils/authUtils';
 
 interface PrivateRouteProps {
   allowedRoles?: string[];
 }
 
 export const PrivateRoute = ({ allowedRoles }: PrivateRouteProps) => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, token } = useAuth();
 
-  if (!isAuthenticated) {
+  const isInvalidSession = !isAuthenticated || !token || !user || isTokenExpired(token);
+
+  if (isInvalidSession) {
+    clearAuthStorage();
     return <Navigate to={ROUTES.LOGIN} replace />;
   }
 
-  if (allowedRoles && user && !allowedRoles.includes(user.nombrerol)) {
+  if (allowedRoles && !allowedRoles.includes(user.nombrerol)) {
     // Redirección por defecto según el rol del usuario
     let defaultRoute: string = ROUTES.DASHBOARD;
     if (user.nombrerol === 'TAQUILLERO') {

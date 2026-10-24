@@ -59,7 +59,11 @@ export class ApiAuthService implements AuthService {
           token = (headers['authorization'] || headers['Authorization']).replace('Bearer ', '');
         }
 
-        console.log('[ApiAuthService] Token en login:', token ? 'Token Bearer recibido con éxito' : 'Sin token directo (cookie-based-auth)');
+        console.log('[ApiAuthService] Token en login:', token ? 'Token Bearer recibido con éxito' : 'Sin token');
+
+        if (!token) {
+          throw new Error('No se recibió un token de autenticación válido del servidor');
+        }
 
         const usuario = data.usuario || body.usuario || data.user || body.user;
 
@@ -81,7 +85,7 @@ export class ApiAuthService implements AuthService {
 
         return {
           user,
-          token: token || 'cookie-based-auth', // Marcador para indicar que usa cookies
+          token,
         };
       }
 

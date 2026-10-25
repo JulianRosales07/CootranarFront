@@ -1,5 +1,6 @@
 import React from 'react';
 import { useSidebar } from '../../context/SidebarContext';
+import { formatFechaCalendario } from '../../../shared/utils/formatters';
 
 interface Conductor {
   idusuario: number;
@@ -62,17 +63,8 @@ const BadgeEstado: React.FC<{ estado: string }> = ({ estado }) => {
   );
 };
 
-const formatearFecha = (fecha: string) => {
-  if (!fecha) return '—';
-  return new Date(fecha).toLocaleDateString('es-CO', { 
-    day: '2-digit', 
-    month: 'long', 
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true
-  });
-};
+const formatearFecha = (fecha: string) =>
+  formatFechaCalendario(fecha, { day: '2-digit', month: 'long', year: 'numeric' });
 
 export const ModalDetallesViaje: React.FC<Props> = ({ viaje, onClose, cargando }) => {
   const { isMobile, theme } = useSidebar();

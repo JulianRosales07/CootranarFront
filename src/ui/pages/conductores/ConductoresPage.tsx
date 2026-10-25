@@ -3,6 +3,7 @@ import { Layout } from '../../components/layout/Layout';
 import { useConductores } from '../../hooks/useConductores';
 import type { Conductor, EstadoConductor } from '../../../domain/entities/Conductor';
 import { httpClient } from '../../../infrastructure/api/httpClient';
+import { formatFechaCalendario } from '../../../shared/utils/formatters';
 
 const BLUE = '#0D3B8E';
 const ITEMS_PER_PAGE = 5;
@@ -604,11 +605,7 @@ export const ConductoresPage = () => {
                   paginated.map((conductor, idx) => {
                     const globalIdx = (page - 1) * ITEMS_PER_PAGE + idx;
                     // Format vencimiento date nicely
-                    const venc = conductor.vencimientoLicencia
-                      ? new Date(conductor.vencimientoLicencia).toLocaleDateString('es-CO', {
-                          day: '2-digit', month: 'short', year: 'numeric',
-                        })
-                      : '—';
+                    const venc = formatFechaCalendario(conductor.vencimientoLicencia);
 
                     return (
                       <tr

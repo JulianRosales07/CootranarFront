@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatFechaCalendario } from '../../../shared/utils/formatters';
 
 const C = {
   primary:             '#00355f',
@@ -46,10 +47,7 @@ interface ListaViajesProps {
   cargando?: boolean;
 }
 
-const formatearFecha = (f: string) => {
-  if (!f) return '—';
-  return new Date(f).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
-};
+const formatearFecha = (f: string) => formatFechaCalendario(f);
 
 const formatearHora = (h: string) => {
   if (!h) return '—';

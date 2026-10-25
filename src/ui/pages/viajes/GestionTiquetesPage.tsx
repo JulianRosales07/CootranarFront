@@ -3,6 +3,7 @@ import { Layout } from '../../components/layout/Layout';
 import taquillaApiService from '../../../infrastructure/services/taquillaApi';
 import { ModalReprogramarTiquete } from '../../components/viajes/ModalReprogramarTiquete';
 import { useSidebar } from '../../context/SidebarContext';
+import { formatFechaCalendario } from '../../../shared/utils/formatters';
 
 // ── Paleta ────────────────────────────────────────────────────────────────────
 const C = {
@@ -27,10 +28,7 @@ const C = {
 const FONT = "'Hanken Grotesk', 'Plus Jakarta Sans', sans-serif";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-const fmtFecha = (f: string) => {
-  if (!f) return '—';
-  return new Date(f).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
-};
+const fmtFecha = (f: string) => formatFechaCalendario(f);
 const fmtHora = (h: string) => {
   if (!h) return '—';
   const [hh, mm] = String(h).split(':').map(Number);

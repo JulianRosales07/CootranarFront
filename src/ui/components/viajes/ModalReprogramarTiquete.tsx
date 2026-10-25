@@ -4,6 +4,7 @@ import asientosApiService from '../../../infrastructure/services/asientosApi';
 import metodosPagoApiService from '../../../infrastructure/services/metodosPagoApi';
 import { rutasApi } from '../../../infrastructure/services/rutasApi';
 import { SelectorAsientosBus } from './SelectorAsientosBus';
+import { formatFechaCalendario } from '../../../shared/utils/formatters';
 
 // ── Paleta (misma que GestionTiquetesPage) ───────────────────────────────────
 const C = {
@@ -26,10 +27,7 @@ const C = {
 
 const FONT = "'Hanken Grotesk', 'Plus Jakarta Sans', sans-serif";
 
-const fmtFecha = (f?: string) => {
-  if (!f) return '—';
-  return new Date(f).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
-};
+const fmtFecha = (f?: string) => formatFechaCalendario(f);
 const fmtHora = (h?: string) => {
   if (!h) return '—';
   const [hh, mm] = String(h).split(':').map(Number);

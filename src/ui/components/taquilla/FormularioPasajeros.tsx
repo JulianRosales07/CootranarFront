@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { SelectorDestinoInline } from './SeleccionTramo';
+import { formatFechaCalendario } from '../../../shared/utils/formatters';
 
 const BLUE = '#1a56db';
 
@@ -507,7 +508,7 @@ export const FormularioPasajeros: React.FC<FormularioPasajerosProps> = ({
                 <div>
                   <p style={{ margin: '0 0 2px', fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase' }}>Fecha</p>
                   <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: '#374151' }}>
-                    {viaje?.fechasalida ? new Date(viaje.fechasalida).toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' }) : 'Cargando...'}
+                    {viaje?.fechasalida ? formatFechaCalendario(viaje.fechasalida, { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' }) : 'Cargando...'}
                   </p>
                 </div>
                 <div>

@@ -7,13 +7,19 @@ ignore:
         reason: >-
           Corregido en xlsx 0.20.3 via CDN oficial SheetJS (CVE-2024-22363 fixed
           in 0.20.2+). Falso positivo por versionado SheetJS fuera de npm.
-        expires: 2026-11-04T04:17:46.431Z
-        created: 2026-10-05T04:17:46.432Z
+        expires: 2027-12-31T00:00:00.000Z
   SNYK-JS-XLSX-5457926:
     - '*':
         reason: >-
           Corregido en xlsx 0.20.3 via CDN oficial SheetJS (CVE-2023-30533 fixed
           in 0.19.3+). Falso positivo por versionado SheetJS fuera de npm.
-        expires: 2026-11-04T04:17:49.368Z
-        created: 2026-10-05T04:17:49.371Z
+        expires: 2027-12-31T00:00:00.000Z
+  SNYK-JS-FFLATE-22392372:
+    - '*':
+        reason: >-
+          Transitiva de @react-three/drei (libreria de render 3D del bus, no
+          maneja datos de usuario). fflate ya esta en su ultima version
+          publicada (0.8.3); Snyk reporta "No upgrade or patch available".
+          Riesgo aceptado hasta que exista parche upstream.
+        expires: 2027-12-31T00:00:00.000Z
 patch: {}
